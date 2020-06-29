@@ -1,0 +1,2 @@
+project "Reflection"
+	defineProject("ConsoleApp")

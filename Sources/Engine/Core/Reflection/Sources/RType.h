@@ -16,14 +16,14 @@ public:
 	{}
 
 	template<typename T>
-	static RType* RegisterType(const char* tName, const uint64_t& tSize)
+	static RType* RegisterType(const char* tName)
 	{
 		if (GetType(tName))
 		{
 			std::cerr << tName << " type is already registered";
 			return nullptr;
 		}
-		RType* type = new RType(tName, tSize);
+		T* type = new T(tName, sizeof(T));
 		types.push_back(std::unique_ptr<RType>(type));
 		return type;
 	}

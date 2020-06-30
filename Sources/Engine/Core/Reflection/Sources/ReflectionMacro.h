@@ -19,4 +19,4 @@ public: \
 public: \
 	inline static className* MakeClass(const char* tName, const uint64_t& tSize) { return new className(tName, tSize); }
 
-#define REFL_REGISTER_TYPE(type) RType::RegisterType<type>(#type, sizeof(type));
+#define REFL_REGISTER_TYPE(typeName) RType::RegisterType<RType>(#typeName)

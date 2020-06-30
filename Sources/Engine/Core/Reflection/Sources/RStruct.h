@@ -7,24 +7,24 @@
 #include <functional>
 #include "ReflectionMacro.h"
 
-class ICTorFunction {};
-
-template<typename... Args>
-class RCtorFunction : public ICTorFunction
-{
-public:
-	RCtorFunction(const std::function<void* (Args...)>& InFunc) :
-		ctor(InFunc)
-	{
-		std::cout << "make ctor" << std::endl;
-	}
-
-	std::function<void* (Args...)> ctor;
-};
 
 class RStruct : public RType
 {
 	REFL_DECLARE_STRUCT(RStruct)
+
+private:
+
+	class ICTorFunction {};
+
+	template<typename... Args>
+	class RCtorFunction : public ICTorFunction
+	{
+	public:
+		RCtorFunction(const std::function<void* (Args...)>& InFunc) :
+			ctor(InFunc) { }
+
+		std::function<void* (Args...)> ctor;
+	};
 
 public:
 
@@ -35,24 +35,19 @@ public:
 	template<typename... Args>
 	inline void SetCtor(const std::function<void* (Args...)>& inCtor)
 	{
-		auto test = std::make_shared<RCtorFunction<Args...>>(inCtor);
-		std::shared_ptr<ICTorFunction> t = test;
-		ctor = t;
+		ctor = std::make_unique<RCtorFunction<Args...>>(inCtor);
 	}
 
 	template<typename T, typename... Args>
-	inline T* NewStruct(Args&&... inArgs)
+	inline T* Instantiate(Args&&... inArgs)
 	{
-		std::cerr << "try cast" << std::endl;
-		if (!ctor) { std::cout << "no ctor" << std::endl; }
-		RCtorFunction<Args...>* ctorFunc = static_cast<RCtorFunction<Args...>*>(ctor);
+		RCtorFunction<Args...>* ctorFunc = static_cast<RCtorFunction<Args...>*>(ctor.get());
 		if (!ctorFunc)
 		{
 			std::cerr << "No constructor available" << std::endl;
 			return nullptr;
 		}
-		T* str = reinterpret_cast<T*>(ctorFunc->ctor(std::forward<Args>(inArgs)...));
-		return str;
+		return reinterpret_cast<T*>(ctorFunc->ctor(std::forward<Args>(inArgs)...));
 	}
 
 	inline void RegisterProperty(const RProperty& inProperty)
@@ -96,37 +91,4 @@ private:
 	std::vector<RProperty> properties;
 	std::vector<RStruct*> parents;
 	inline static std::vector<std::unique_ptr<RStruct>> structures;
-};
-
-template<typename T, typename U = RType>
-class RTypeBuilder
-{
-public:
-	RTypeBuilder(const char* InName)
-	{
-		Type = RType::RegisterType<U>(InName, sizeof(T));
-	}
-	virtual ~RTypeBuilder() = default;
-protected:
-	RType* Type;
-};
-
-template<typename T, typename U = RStruct>
-class RStructBuilder : public RTypeBuilder<T, U>
-{
-public:
-
-	RStructBuilder(const char* InName) : RTypeBuilder<T, U>(InName)
-	{
-		Struct = static_cast<RStruct*>(Type);
-	}
-
-	template<typename... Args>
-	void Ctor()
-	{
-		std::function<void* (Args...)> Functor = &T::MakeStruct<Args...>;
-		Struct->SetCtor<Args...>(Functor);
-	}
-
-	RStruct* Struct;
 };

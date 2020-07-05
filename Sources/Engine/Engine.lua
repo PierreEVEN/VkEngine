@@ -1,6 +1,7 @@
 SrcDir = os.getcwd()
 
-function defineProject(projectType)
+
+function defineProject(projectType, useReflection)
 	location (os.getcwd().."/Build")
 	kind (projectType)
 	language "C++"
@@ -9,18 +10,27 @@ function defineProject(projectType)
 	targetdir (os.getcwd().."/Binaries/")
 	objdir (os.getcwd().."/Intermediates/".."%{cfg.longname}")  
 	files { "**.cpp", "**.h" }
+	includedirs("Sources/Private")
+	includedirs("Sources/Public")
 	includedirs("Sources")
+	includedirs("\""..os.getcwd().."/Reflection/Public\"")
+	includedirs("\""..os.getcwd().."/Reflection/Private\"")
+	includedirs("\""..os.getcwd().."/Reflection\"")
 	debugdir(SrcDir.."/../")
+	
+	if useReflection then
+		prebuildcommands {"\""..SrcDir.."/Tools/ReflectionTool/Binaries/ReflectionTool.exe\" -m=\""..os.getcwd().."/Sources/\" -o=\""..os.getcwd().."/Reflection/\""}
+	end
 end
 
 workspace "Engine"
 	configurations { "Debug", "Release" }
 	language "C++"
-	startproject "Reflection"
+	startproject "ReflectionTool"
 	architecture "x86_64"
 	
 	location (SrcDir.."/../../")
-		filter "configurations:Debug"
+	filter "configurations:Debug"
 		defines { "DEBUG" }
 		symbols "On"
 	filter "configurations:Release"
@@ -31,4 +41,6 @@ workspace "Engine"
 	group("Core/Reflection/")
 		include("Core/Reflection")
 	
+	group("Tools/ReflectionTool/")
+		include("Tools/ReflectionTool")
 	

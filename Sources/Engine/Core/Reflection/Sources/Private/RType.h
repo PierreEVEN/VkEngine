@@ -3,13 +3,17 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <iostream>
+#include "ReflectionMacro.h"
 
 template<typename T>
 struct RTypeName;
 
 class RType
 {
+
 public:
+
 
 	RType(const char* tName, const uint64_t& tSize)
 		: typeName(tName), typeSize(tSize)
@@ -20,7 +24,7 @@ public:
 	{
 		if (GetType(tName))
 		{
-			std::cerr << tName << " type is already registered";
+			std::cerr << tName << " type is already registered" << std::endl;
 			return nullptr;
 		}
 		T* type = new T(tName, sizeof(T));

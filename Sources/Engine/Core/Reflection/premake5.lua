@@ -1,2 +1,3 @@
 project "Reflection"
-	defineProject("ConsoleApp")
+	defineProject("ConsoleApp", true)
+	dependson("ReflectionTool")

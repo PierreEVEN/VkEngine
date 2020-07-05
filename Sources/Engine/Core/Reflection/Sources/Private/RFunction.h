@@ -9,5 +9,6 @@ class RFunction
 	{}
 
 private:
+
 	const char* functionName;
 };

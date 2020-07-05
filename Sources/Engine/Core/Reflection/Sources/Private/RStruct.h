@@ -7,10 +7,8 @@
 #include <functional>
 #include "ReflectionMacro.h"
 
-
 class RStruct : public RType
 {
-	REFL_DECLARE_STRUCT(RStruct)
 
 private:
 
@@ -26,11 +24,27 @@ private:
 		std::function<void* (Args...)> ctor;
 	};
 
+	inline static void RegisterStruct_Internal(RStruct* inStruct)
+	{
+		RStruct::structures.push_back(inStruct);
+	}
+
 public:
 
 	RStruct(const char* tName, const uint64_t& tSize)
 		: RType(tName, tSize)
 	{}
+
+	template<typename T, typename... Args>
+	static RStruct* RegisterStruct(const char* strName)
+	{
+		RStruct* newStruct = static_cast<RStruct*>(RType::RegisterType<RStruct>(strName));
+
+		newStruct->SetCtor<Args...>(std::function<void* (Args...)>(&T::MakeStruct<Args...>));
+
+		RegisterStruct_Internal(newStruct);
+		return newStruct;
+	}
 
 	template<typename... Args>
 	inline void SetCtor(const std::function<void* (Args...)>& inCtor)
@@ -38,7 +52,7 @@ public:
 		ctor = std::make_unique<RCtorFunction<Args...>>(inCtor);
 	}
 
-	template<typename T, typename... Args>
+	template<typename T = void, typename... Args>
 	inline T* Instantiate(Args&&... inArgs)
 	{
 		RCtorFunction<Args...>* ctorFunc = static_cast<RCtorFunction<Args...>*>(ctor.get());
@@ -52,7 +66,7 @@ public:
 
 	inline void RegisterProperty(const RProperty& inProperty)
 	{
-		properties.push_back(inProperty);
+		properties.push_back(std::make_unique<RProperty>(inProperty));
 	}
 
 	inline void AddParent(RStruct* parent)
@@ -71,7 +85,7 @@ public:
 		}
 		return false;
 	}
-
+	
 	template<typename T>
 	inline static RStruct* GetStruct()
 	{
@@ -82,13 +96,25 @@ public:
 	{
 		for (const auto& structure : structures)
 			if (structure->GetName() == tName)
-				return structure.get();
+				return structure;
 		return nullptr;
 	}
 
+	inline static std::vector<RStruct*>& GetStructs() { return structures; }
+
+	inline std::vector<std::unique_ptr<RProperty>>& GetProperties() { return properties; }
+
+	inline RProperty* GetProperty(const std::string& propName) {
+		for (const auto& property : properties)
+		{
+			if (property->GetName() == propName)
+				return property.get();
+		}
+		return nullptr;
+	}
 private:
 	std::shared_ptr<ICTorFunction> ctor;
-	std::vector<RProperty> properties;
+	std::vector<std::unique_ptr<RProperty>> properties;
 	std::vector<RStruct*> parents;
-	inline static std::vector<std::unique_ptr<RStruct>> structures;
+	inline static std::vector<RStruct*> structures;
 };

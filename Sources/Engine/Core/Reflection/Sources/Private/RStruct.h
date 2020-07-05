@@ -4,25 +4,12 @@
 #include "RProperty.h"
 #include "RFunction.h"
 #include "RType.h"
-#include <functional>
 #include "ReflectionMacro.h"
 
 class RStruct : public RType
 {
 
 private:
-
-	class ICTorFunction {};
-
-	template<typename... Args>
-	class RCtorFunction : public ICTorFunction
-	{
-	public:
-		RCtorFunction(const std::function<void* (Args...)>& InFunc) :
-			ctor(InFunc) { }
-
-		std::function<void* (Args...)> ctor;
-	};
 
 	inline static void RegisterStruct_Internal(RStruct* inStruct)
 	{
@@ -49,13 +36,19 @@ public:
 	template<typename... Args>
 	inline void SetCtor(const std::function<void* (Args...)>& inCtor)
 	{
-		ctor = std::make_unique<RCtorFunction<Args...>>(inCtor);
+		ctor = std::make_unique<RCtorFunctionPointer<Args...>>(inCtor);
+	}
+
+	template<typename... Args>
+	inline void RegisterFunction(const IFunctionPointer& inFunc)
+	{
+		functions.push_back(std::make_unique(inFunc));
 	}
 
 	template<typename T = void, typename... Args>
 	inline T* Instantiate(Args&&... inArgs)
 	{
-		RCtorFunction<Args...>* ctorFunc = static_cast<RCtorFunction<Args...>*>(ctor.get());
+		RCtorFunctionPointer<Args...>* ctorFunc = static_cast<RCtorFunctionPointer<Args...>*>(ctor.get());
 		if (!ctorFunc)
 		{
 			std::cerr << "No constructor available" << std::endl;
@@ -112,9 +105,18 @@ public:
 		}
 		return nullptr;
 	}
+
+	template<typename T, typename... Args>
+	inline T ExecuteFunction(const std::string& functionName, Args&&... inArgs)	{
+		for (const auto& func : functions)
+			return func(std::forward<Args>(inArgs)...);
+		return void;
+	}
+
 private:
-	std::shared_ptr<ICTorFunction> ctor;
+	std::shared_ptr<IFunctionPointer> ctor;
 	std::vector<std::unique_ptr<RProperty>> properties;
+	std::vector<std::unique_ptr<IFunctionPointer>> functions;
 	std::vector<RStruct*> parents;
 	inline static std::vector<RStruct*> structures;
 };

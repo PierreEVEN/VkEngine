@@ -1,0 +1,1 @@
+-Systeme pour obtenir la taille dynamiquement d'une RProperty (String / vector)

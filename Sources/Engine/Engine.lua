@@ -1,7 +1,7 @@
 SrcDir = os.getcwd()
 
 
-function defineProject(projectType, useReflection)
+function defineProject(projectType, useReflection, projectName)
 	location (os.getcwd().."/Build")
 	kind (projectType)
 	language "C++"
@@ -10,24 +10,30 @@ function defineProject(projectType, useReflection)
 	targetdir (os.getcwd().."/Binaries/")
 	objdir (os.getcwd().."/Intermediates/".."%{cfg.longname}")  
 	files { "**.cpp", "**.h" }
-	includedirs("Sources/Private")
 	includedirs("Sources/Public")
-	includedirs("Sources")
-	includedirs("\""..os.getcwd().."/Reflection/Public\"")
-	includedirs("\""..os.getcwd().."/Reflection/Private\"")
-	includedirs("\""..os.getcwd().."/Reflection\"")
-	debugdir(SrcDir.."/../")
+	includedirs("Intermediates/Reflection/Public")
+	debugdir(SrcDir.."/../../Ressources")
 	
 	if useReflection then
-		prebuildcommands {"\""..SrcDir.."/Tools/ReflectionTool/Binaries/ReflectionTool.exe\" -m=\""..os.getcwd().."/Sources/\" -o=\""..os.getcwd().."/Reflection/\""}
+		includeModule("Tools/Reflection", "Reflection")
+		dependson("Reflection")
+		dependson("ReflectionTool")
+		prebuildcommands {"\""..SrcDir.."/Tools/ReflectionTool/Binaries/ReflectionTool.exe\" -m=\""..os.getcwd().."/Sources/\" -o=\""..os.getcwd().."/Intermediates/Reflection/\""}
 	end
+end
+
+function includeModule(path, moduleName)
+	includedirs(SrcDir.."/"..path.."/Sources/Public")
+	includedirs(SrcDir.."/"..path.."/Intermediates/Reflection/Public")
+	links(SrcDir.."/"..path.."/Binaries/"..moduleName..".lib")
 end
 
 workspace "Engine"
 	configurations { "Debug", "Release" }
 	language "C++"
-	startproject "ReflectionTool"
-	architecture "x86_64"
+	startproject "Engine"
+	architecture("x64")
+	
 	
 	location (SrcDir.."/../../")
 	filter "configurations:Debug"
@@ -38,9 +44,11 @@ workspace "Engine"
 		optimize "On"
 	filter { }
 		
-	group("Core/Reflection/")
-		include("Core/Reflection")
+	group("Engine/Core")
+		include("Core/Engine")
+		include("Core/Utils")
 	
-	group("Tools/ReflectionTool/")
+	group("Engine/Tools")
 		include("Tools/ReflectionTool")
+		include("Tools/Reflection")
 	

@@ -1,14 +1,20 @@
-#include "RFileParser.h"
+
 #include <fstream>
 #include <iostream>
 #include <filesystem>
-#include "Tools/FileLibrary.h"
-#include "Tools/FileWriter.h"
-#include "RClassParser.h"
-#include "Tools/StringLibrary.h"
+#include "Utils/FileLibrary.h"
+#include "Utils/FileWriter.h"
+#include "Utils/StringLibrary.h"
 #include <sstream>
+#include "Parser/RFileParser.h"
 
 uint64_t currentFileID = 0;
+int BuildErrorLevel = 0;
+
+int RFileParser::GetErrorLevel()
+{
+	return BuildErrorLevel;
+}
 
 RFileParser::RFileParser(const std::string& inFilePath)
 	: filePath(inFilePath)
@@ -24,9 +30,9 @@ RFileParser::RFileParser(const std::string& inFilePath)
 	fs.close();
 }
 
-void RFileParser::GenerateHeader(const std::string& modulePath, const std::string& reflectionPath)
+std::string RFileParser::GenerateHeader(const std::string& modulePath, const std::string& reflectionPath)
 {
-	if (fileClasses.size() <= 0) return;
+	if (fileClasses.size() <= 0) return "";
 
 	std::string outPath = StringLibrary::SubstractString(filePath, modulePath);
 	std::string left, right;
@@ -38,54 +44,63 @@ void RFileParser::GenerateHeader(const std::string& modulePath, const std::strin
 	std::string newFilePath = reflectionPath + final + ".refl.h";
 
 	std::string dateString;
-	if (IsFileUpToDate(sourceFilePath, newFilePath, dateString)) return;
+	if (IsFileUpToDate(sourceFilePath, newFilePath, dateString)) return newFilePath;
 
 	OSWriter os(newFilePath);
+
 	os.WriteLine(dateString);
 	os.WriteLine("\n/**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/");
 	os.WriteLine("\n#undef _REFL_FILE_UNIQUE_ID_");
 	os.WriteLine("#define _REFL_FILE_UNIQUE_ID_ RUID_" + std::to_string(fileUniqueID) + " // File unique ID (used by reflection macros)");
 	os.WriteLine("\n\n#ifndef _REFL_" + right + "_H");
 	os.WriteLine("#define _REFL_" + right + "_H\n");
-	os.WriteLine("\n#include \"ReflectionMacro.h\"");
+	os.WriteLine("\n#include \"Reflection.h\"");
 
 	for (RClassParser& cl : fileClasses)
 		cl.WriteHeader(os);
 
 	os.WriteLine("\n\n#endif");
+
+	return newFilePath;
 }
 
-void RFileParser::GenerateSource(const std::string& modulePath, const std::string& reflectionPath)
+std::string RFileParser::GenerateSource(const std::string& modulePath, const std::string& reflectionPath)
 {
-	if (fileClasses.size() <= 0) return;
-	 
+	if (fileClasses.size() <= 0) return "";
+
 	std::string outPath = StringLibrary::SubstractString(filePath, modulePath);
 	std::string left, right;
 	StringLibrary::SplitLine(outPath, { '.' }, left, right, false);
+	std::string final = left;
+
+	if (StringLibrary::DoesContainsField(final, "Public", { '/', '\\' }))
+	{
+		final = "Private/" + StringLibrary::SubstractString(final, "Public/");
+	}
 
 	std::string sourceFilePath = modulePath + left + ".h";
-	std::string newFilePath = reflectionPath + left + ".refl.cpp";
+	std::string newFilePath = reflectionPath + final + ".refl.cpp";
 
 	std::string dateString;
-	if (IsFileUpToDate(sourceFilePath, newFilePath, dateString)) return;
+	if (IsFileUpToDate(sourceFilePath, newFilePath, dateString)) return newFilePath;
 
 	OSWriter os(newFilePath);
 	os.WriteLine(dateString);
 	os.WriteLine("\n/**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/");
-	os.WriteLine("\n#include \"" + left + ".refl.h\"");
 	os.WriteLine("#include \"" + filePath + "\"");
-	os.WriteLine("#include \"RStruct.h\"");
-	os.WriteLine("#include \"RClass.h\"");
+	os.WriteLine("\n#include \"Reflection.h\"");
 	
 	for (RClassParser& cl : fileClasses)
 		cl.WriteSource(os);
+
+	return newFilePath;
 }
 
 void RFileParser::AddMissingIncludes(const std::string& modulePath)
 {
 	if (fileClasses.size() <= 0) return;
-	int insertPos = -1;
-	std::string fileName = StringLibrary::CleanupLine(StringLibrary::SubstractString(filePath, modulePath));
+	int insertPos = 0;
+	std::string fileName = StringLibrary::CleanupLine(StringLibrary::SubstractString(filePath, modulePath + "/Public"));
 	std::string left, right;
 	StringLibrary::SplitLine(fileName, { '.' }, left, right, false);
 	std::string newLeft = StringLibrary::CleanupLine(left);
@@ -99,11 +114,13 @@ void RFileParser::AddMissingIncludes(const std::string& modulePath)
 
 	std::string target = StringLibrary::CleanupLine(right) + ".refl.h";
 
+	bool bFoundHeader = false;
+
 	for (int i = 0; i < fileData.Lines(); ++i)
 	{
 		std::string line = fileData.GetLine(i);
-		if (StringLibrary::IsStartingWith(line, "#define "))
-			insertPos = i;
+
+		if (StringLibrary::IsStartingWith(StringLibrary::CleanupLine(line), "#include"))
 		{
 			left = "";
 			right = "";
@@ -111,13 +128,36 @@ void RFileParser::AddMissingIncludes(const std::string& modulePath)
 			std::string newRight = StringLibrary::CleanupLine(right);
 			StringLibrary::SplitLine(newRight, { '"' }, left, right, false);
 			std::string newLeft = StringLibrary::CleanupLine(left);
-			if (newLeft == target)
+			insertPos = i + 1;
+			if (bFoundHeader)
 			{
-				return;
+				std::cerr << "error : reflection header for " << std::filesystem::relative(filePath) << " should be the last include (line " << i << ")" << std::endl;
+				BuildErrorLevel++;
+			}
+			else
+			{
+				if (std::filesystem::absolute(newLeft) == std::filesystem::absolute(target))
+				{
+					bFoundHeader = true;
+				}
 			}
 		}
 	}
-	std::cerr << "no reflection header for " << filePath << std::endl;
+	if (!bFoundHeader)
+	{
+		std::cerr << "warning : added missing reflection header for " << std::filesystem::relative(filePath) << " Recompilation will be necessary"<< std::endl;
+		BuildErrorLevel++;
+		OSWriter os(filePath);
+		for (int i = 0; i < fileData.Lines(); ++i)
+		{
+			if (i == insertPos)
+			{
+				os.WriteLine("#include \"" + target + "\" // automatically generated reflection header");
+			}
+			os.WriteLine(fileData.GetLine(i));
+		}
+		os.Close();
+	}
 }
 
 template <typename TP>
@@ -132,9 +172,15 @@ std::time_t to_time_t(TP tp)
 bool RFileParser::IsFileUpToDate(const std::string& sourcePath, const std::string& reflPath, std::string& timeString)
 {
 	std::ifstream rdr(reflPath);
-	if (!rdr.is_open()) return false;
+	if (!rdr.is_open())
+	{
+		return false;
+	}
 
-	if (!std::filesystem::exists(sourcePath)) return false;
+	if (!std::filesystem::exists(sourcePath))
+	{
+		return false;
+	}
 
 	char* line = new char[200];
 	if (!rdr.getline(line, 200, '\n')) return false;
@@ -148,7 +194,6 @@ bool RFileParser::IsFileUpToDate(const std::string& sourcePath, const std::strin
 	std::stringstream buffer;
 	buffer << std::put_time(gmt, "%A, %d %B %Y %H:%M:%S");
 	timeString = "//VERSION : " + buffer.str();
-	//std::cout << sourcePath << "  -- File last use time : " << timeString << "  ( compared to : " << strLine << " ) " << (strLine == timeString ? " UP TO DATE " : " OUTDATED") << std::endl;
 
 	return strLine == timeString;
 }

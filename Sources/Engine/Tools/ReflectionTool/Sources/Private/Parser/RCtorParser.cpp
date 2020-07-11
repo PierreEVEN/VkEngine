@@ -1,7 +1,8 @@
-#include "RCtorParser.h"
-#include "Tools/FileLibrary.h"
-#include "Tools/StringLibrary.h"
+
+#include "Utils/FileLibrary.h"
+#include "Utils/StringLibrary.h"
 #include <iostream>
+#include "Parser/RCtorParser.h"
 
 std::string RemoveVarName(const std::string& str)
 {

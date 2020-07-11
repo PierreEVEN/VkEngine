@@ -1,12 +1,9 @@
-#include "RClassParser.h"
-#include "RFileParser.h"
-#include "Tools/FileLibrary.h"
-#include "Tools/FileWriter.h"
+
+#include "Utils/FileLibrary.h"
+#include "Utils/FileWriter.h"
 #include <memory>
-#include "RCtorParser.h"
-#include "RPropertyParser.h"
-#include "RFunctionParser.h"
-#include "Tools/StringLibrary.h"
+#include "Utils/StringLibrary.h"
+#include "Parser/RClassParser.h"
 
 RClassParser::RClassParser(const LineReader& inData, uint32_t startLine, const std::string& path, const uint64_t& uniqueID)
 	: data(inData), RBodyLine(startLine), classpath(path), fileUniqueID(uniqueID)
@@ -78,11 +75,13 @@ void RClassParser::WriteSource(OSWriter& writer)
 		{
 			writer.WriteLine("static RStruct* _static_Item_Class_" + className + " = nullptr; //Static struct reference");
 			writer.WriteLine("RStruct* " + className + "::GetStaticStruct() { return _static_Item_Class_" + className + "; } //Static struct getter\n");
+			writer.WriteLine("RStruct* " + className + "::GetStruct() { return _static_Item_Class_" + className + "; } //struct getter\n");
 		}
 		if (bIsClass)
 		{
 			writer.WriteLine("static RClass* _static_Item_Class_" + className + " = nullptr; //Static class reference");
 			writer.WriteLine("RClass* " + className + "::GetStaticClass() { return _static_Item_Class_" + className + "; } //Static class getter\n");
+			writer.WriteLine("RClass* " + className + "::GetClass() { return _static_Item_Class_" + className + "; } //class getter\n");
 		}
 		writer.WriteLine("void _Refl_Register_Item_" + className + "() { // Register function");
 		if (bisStruct) writer.WriteLine("		_static_Item_Class_" + className + " = RStruct::RegisterStruct<" + className + (ctor && ctor->args.size() > 0 ? "," + StringLibrary::ConcatString(ctor->args, ", ") : "") + ">(\"" + className + "\"); //Register Struct");
@@ -91,14 +90,19 @@ void RClassParser::WriteSource(OSWriter& writer)
 		{
 			writer.WriteLine("		if (RIsReflected<" + parent + ">::Reflect) // Is parent reflected");
 			writer.WriteLine("			_static_Item_Class_" + className + "->AddParent(RStruct::GetStruct(\"" + parent + "\")); // register parent");
-			writer.WriteLine("		else std::cerr << \"" + parent + " is not actually reflected \" << std::endl; // Warning, parent is not reflected");
+			//writer.WriteLine("		else std::cerr << \"" + parent + " is not actually reflected \" << std::endl; // Warning, parent is not reflected");
 		}
 
 		if (properties.size() > 0) writer.WriteLine("		size_t VarOffset; // Var offset");
 		for (const RPropertyParser& prop : properties)
 		{
 			writer.WriteLine("		VarOffset = (char*)&((" + className + "*)nullptr->* & " + className + "::" + prop.propertyName + ") - (char*)nullptr; // Retrieve var offset");
-			writer.WriteLine("		_static_Item_Class_" + className + "->RegisterProperty(RProperty(RType::GetType(\"" + prop.propertyType + "\"), VarOffset, sizeof(" + prop.propertyType + "), \"" + prop.propertyName + "\")); // Register property");
+			writer.WriteLine("		_static_Item_Class_" + className + "->RegisterProperty(new RProperty(RType::GetType(\"" + prop.propertyType + "\"), VarOffset, sizeof(" + prop.propertyType + "), \"" + prop.propertyName + "\")); // Register property");
+		}
+		for (const RFunctionParser& func : functions)
+		{
+			std::string paramString = StringLibrary::ConcatString(func.params, { ", " });
+			writer.WriteLine("		_static_Item_Class_" + className + "->RegisterFunction(RFunction<" + func.returnType + (paramString != "" ? ", " + paramString : "") + (func.bIsStatic ? "" : "," + className) + ">(\"" + func.functionName + "\", std::function<" + func.returnType + " (" + (func.bIsStatic ? paramString : className + "&" + (paramString == "" ? "" : ", " + paramString)) + ")>(&" + className + "::" + func.functionName + (paramString != "" ? "<" + paramString  + ">" : "") + "))); // Register function");
 		}
 		writer.WriteLine("}\n");
 		writer.WriteLine("struct _Refl_Static_Item_Builder_" + className + "{ // Item builder - Build reflection data");
@@ -110,12 +114,12 @@ void RClassParser::WriteSource(OSWriter& writer)
 	}
 	else
 	{
-		writer.WriteLine("struct _Refl_static_type_builder_" + className + " { // Type builder - Build reflection data");
-		writer.WriteLine("\t_Refl_static_type_builder_" + className + "() { // Builder constructor");
+		writer.WriteLine("struct _Refl_static_type_builder_" + StringLibrary::ReplaceCharWith(className, ':', '_') + " { // Type builder - Build reflection data");
+		writer.WriteLine("\t_Refl_static_type_builder_" + StringLibrary::ReplaceCharWith(className, ':', '_') + "() { // Builder constructor");
 		writer.WriteLine("\t\tREFL_REGISTER_TYPE(" + className + "); // Call to builder function");
 		writer.WriteLine("\t}");
 		writer.WriteLine("};");
-		writer.WriteLine("static _Refl_static_type_builder_" + className + " _Refl_static_type_builder_var_" + className + "; //Build item when compiled");
+		writer.WriteLine("static _Refl_static_type_builder_" + StringLibrary::ReplaceCharWith(className, ':', '_') + " _Refl_static_type_builder_var_" + StringLibrary::ReplaceCharWith(className, ':', '_') + "; //Build item when compiled");
 	}
 
 }

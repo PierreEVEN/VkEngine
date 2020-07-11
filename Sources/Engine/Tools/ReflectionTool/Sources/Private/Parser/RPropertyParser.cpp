@@ -1,6 +1,7 @@
-#include "RPropertyParser.h"
-#include "Tools/FileLibrary.h"
-#include "Tools/StringLibrary.h"
+
+#include "Utils/FileLibrary.h"
+#include "Utils/StringLibrary.h"
+#include "Parser/RPropertyParser.h"
 
 RPropertyParser::RPropertyParser(const std::string& data)
 {

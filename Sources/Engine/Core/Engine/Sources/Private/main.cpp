@@ -9,10 +9,4 @@
 
 int main(int argc, char* argv[])
 {
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
-
-	static_assert(false, "ca marche");
-#else
-	static_assert(false, "merde");
-#endif
 }

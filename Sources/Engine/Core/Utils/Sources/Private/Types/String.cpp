@@ -1,7 +1,7 @@
 #include "Types/String.h"
 #include <iostream>
 
-const String String::ENDL = String('\n');
+const String String::ENDL = String((char)('\n'));
 
 String::String(const char* value) {
 	if (value)

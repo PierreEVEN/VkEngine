@@ -1,5 +1,7 @@
 #pragma once
+
 #include "Types/String.h"
+#include "Events/EventManager.h"
 
 #define EngineIO EngineInputOutput::IO
 
@@ -19,6 +21,10 @@
 #define CONSOLE_BG_COLOR_GREEN 32
 #define CONSOLE_BG_COLOR_RED 64
 #define CONSOLE_BG_COLOR_LIGHT 128
+
+#define DEFAULT_LOG_DIRECTORY "./Saved/Log/"
+
+DECLARE_DELEGATE_MULTICAST(Del_BroadcastMessage, const String&);
 
 class EngineInputOutput
 {
@@ -44,11 +50,17 @@ public:
 
 	static void SetTextColor(const uint8_t& color);
 
+	Del_BroadcastMessage OnSendMessage;
+
 private:
 
-	EngineInputOutput() {}
+	EngineInputOutput();
+	~EngineInputOutput();
 
 	void OutputText(const String& value);
+
+	void TextToScreen(const String& text);
+	void TextToLog(const String& text);
+
+	String FindNewLogfileName() const;
 };
-
-

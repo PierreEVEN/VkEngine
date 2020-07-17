@@ -1,7 +1,10 @@
 #include "IO/EngineIO.h"
-#include <iostream>
 
+#include <fstream>
 #include <Windows.h>
+#include <filesystem>
+
+std::ofstream outputFile;
 
 EngineInputOutput& EngineInputOutput::operator<<(bool _Val) {
 	OutputText(_Val ? "true" : "false");
@@ -38,7 +41,77 @@ void EngineInputOutput::SetTextColor(const uint8_t& color)
 	SetConsoleTextAttribute(hConsoleout, color);
 }
 
+EngineInputOutput::EngineInputOutput()
+{
+	OnSendMessage.Add(this, &EngineInputOutput::TextToLog);
+	OnSendMessage.Add(this, &EngineInputOutput::TextToScreen);
+	outputFile.open(FindNewLogfileName().GetData());
+}
+
+EngineInputOutput::~EngineInputOutput()
+{
+	outputFile.close();
+}
+
+String EngineInputOutput::FindNewLogfileName() const
+{
+	if (!std::filesystem::exists(DEFAULT_LOG_DIRECTORY))
+	{
+		std::filesystem::create_directories(DEFAULT_LOG_DIRECTORY);
+	}
+
+	time_t     now = time(0);
+	struct tm  tstruct;
+	char       buf[80];
+	localtime_s(&tstruct , &now);
+	strftime(buf, sizeof(buf), "%Y-%m-%d.%H.%M.%S", &tstruct);
+
+
+	int64_t LogIndex = -1;
+	String fileName;
+	
+	do {
+		LogIndex++;
+		if (LogIndex == 0)
+		{
+			fileName = String(DEFAULT_LOG_DIRECTORY) / String("Log Engine - ") + String(buf) + ".log";
+		}
+		else
+		{
+			fileName = String(DEFAULT_LOG_DIRECTORY) / String("Log Engine ") + String::ToString(LogIndex) + String(" - ") + String(buf) + ".log";
+		}
+	} while (std::filesystem::exists(fileName.GetData()));
+
+	bool bIsSet = false;
+	std::filesystem::directory_entry oldestFile;
+	int fileCount = 0;;
+	for (const std::filesystem::directory_entry& file : std::filesystem::directory_iterator(DEFAULT_LOG_DIRECTORY))
+	{
+		if (!bIsSet || std::filesystem::last_write_time(file) < std::filesystem::last_write_time(oldestFile)) oldestFile = file;
+		bIsSet = true;
+		fileCount++;
+	}
+
+	if (fileCount >= 10)
+	{
+		std::filesystem::remove(oldestFile);
+	}
+
+	return fileName;
+}
+
 void EngineInputOutput::OutputText(const String& value)
 {
-	std::cout << value.GetData();
+	OnSendMessage.Execute(value);
+}
+
+void EngineInputOutput::TextToLog(const String& text)
+{
+	outputFile.write(text.GetData(), text.Length());
+	outputFile.flush();
+}
+
+void EngineInputOutput::TextToScreen(const String& text)
+{
+	printf(text.GetData());
 }

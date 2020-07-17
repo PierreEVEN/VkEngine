@@ -40,5 +40,5 @@ void EngineInputOutput::SetTextColor(const uint8_t& color)
 
 void EngineInputOutput::OutputText(const String& value)
 {
-	std::cout << value;
+	std::cout << value.GetData();
 }

@@ -88,6 +88,8 @@ std::string RFileParser::GenerateSource(const std::string& modulePath, const std
 	os.WriteLine(dateString);
 	os.WriteLine("\n/**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/");
 	os.WriteLine("#include \"" + filePath + "\"");
+
+	os.WriteLine("\n#include <assert.h>");
 	os.WriteLine("\n#include \"Reflection.h\"");
 	
 	for (RClassParser& cl : fileClasses)

@@ -5,15 +5,39 @@
 #include "RFunction.h"
 #include "RType.h"
 #include "ReflectionMacro.h"
+#include <assert.h>
 
 class RStruct : public RType
 {
 
-private:
+protected:
 
 	inline static void RegisterStruct_Internal(RStruct* inStruct)
 	{
 		RStruct::structures.push_back(inStruct);
+
+		for (auto& str : structures)
+		{
+			for (int64_t p = (int64_t)str->UnlinkedParents.size() - 1; p >= 0; --p)
+			{
+				bool bIsValid = true;
+				const char* strName = inStruct->GetName();
+				size_t i;
+				for (i = 0; str->UnlinkedParents[p][i] != '\0'; ++i)
+				{
+					if (str->UnlinkedParents[p][i] != strName[i])
+					{
+						bIsValid = false;
+						break;
+					}
+				}
+				if (strName[i] == '\0' && bIsValid)
+				{
+					str->UnlinkedParents.erase(str->UnlinkedParents.begin() + p);
+					str->AddParent(inStruct->GetName());
+				}
+			}
+		}
 	}
 
 public:
@@ -54,7 +78,7 @@ public:
 			std::cerr << "No constructor available" << std::endl;
 			return nullptr;
 		}
-		return reinterpret_cast<T*>(ctorFunc->ctor(std::forward<Args>(inArgs)...));
+		return static_cast<T*>(ctorFunc->ctor(std::forward<Args>(inArgs)...));
 	}
 
 	inline void RegisterProperty(RProperty* inProperty)
@@ -62,9 +86,11 @@ public:
 		properties.push_back(inProperty);
 	}
 
-	inline void AddParent(RStruct* parent)
-	{
-		if (parent)	parents.push_back(parent);
+	inline void AddParent(const char* parent) {
+		if (RStruct* foundStruct = RStruct::GetStruct(parent))
+			parents.push_back(foundStruct);
+		else
+			UnlinkedParents.push_back(parent);
 	}
 
 	inline bool IsChildOf(RStruct* parent) const
@@ -99,8 +125,10 @@ public:
 		std::vector<RProperty*> totalProps = properties;
 		for (const RStruct* parent : parents)
 		{
-			std::vector<RProperty*> parentProps = parent->GetProperties();
-			totalProps.insert(totalProps.end(), parentProps.begin(), parentProps.end());
+			for (const auto& property : parent->GetProperties())
+			{
+				totalProps.push_back(property);
+			}
 		}
 		return totalProps;
 	}
@@ -129,10 +157,12 @@ public:
 
 	inline std::vector<std::unique_ptr<IFunctionPointer>>& GetFunctions() { return functions; }
 
+	std::vector<RStruct*> parents;
 private:
 	std::shared_ptr<IFunctionPointer> ctor;
 	std::vector<RProperty*> properties;
 	std::vector<std::unique_ptr<IFunctionPointer>> functions;
-	std::vector<RStruct*> parents;
 	inline static std::vector<RStruct*> structures;
+
+	std::vector<const char*> UnlinkedParents;
 };

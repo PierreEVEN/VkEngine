@@ -4,6 +4,7 @@
 #include <memory>
 #include "Utils/StringLibrary.h"
 #include "Parser/RClassParser.h"
+#include "Parser/RInheritanceTable.h"
 
 RClassParser::RClassParser(const LineReader& inData, uint32_t startLine, const std::string& path, const uint64_t& uniqueID)
 	: data(inData), RBodyLine(startLine), classpath(path), fileUniqueID(uniqueID)
@@ -35,8 +36,12 @@ RClassParser::RClassParser(const LineReader& inData, uint32_t startLine, const s
 			{
 				std::vector<std::string> cont = StringLibrary::GetStringFields(field, { ' ', '\t' });
 				if (cont.size() <= 0) std::cerr << "failed to parse parent" << std::endl;
-				else parents.push_back(StringLibrary::CleanupLine(cont.size() == 2 ? cont[1] : cont[0]));
+				else
+				{
+					parents.push_back(StringLibrary::CleanupLine(cont.size() == 2 ? cont[1] : cont[0]));
+				}
 			}
+			InheritanceTable::RegisterClass(className, parents);
 		}
 	}
 	else
@@ -75,13 +80,13 @@ void RClassParser::WriteSource(OSWriter& writer)
 		{
 			writer.WriteLine("static RStruct* _static_Item_Class_" + className + " = nullptr; //Static struct reference");
 			writer.WriteLine("RStruct* " + className + "::GetStaticStruct() { return _static_Item_Class_" + className + "; } //Static struct getter\n");
-			writer.WriteLine("RStruct* " + className + "::GetStruct() { return _static_Item_Class_" + className + "; } //struct getter\n");
+			writer.WriteLine("RStruct* " + className + "::GetStruct() const { return _static_Item_Class_" + className + "; } //struct getter\n");
 		}
 		if (bIsClass)
 		{
 			writer.WriteLine("static RClass* _static_Item_Class_" + className + " = nullptr; //Static class reference");
 			writer.WriteLine("RClass* " + className + "::GetStaticClass() { return _static_Item_Class_" + className + "; } //Static class getter\n");
-			writer.WriteLine("RClass* " + className + "::GetClass() { return _static_Item_Class_" + className + "; } //class getter\n");
+			writer.WriteLine("RClass* " + className + "::GetClass() const { return _static_Item_Class_" + className + "; } //class getter\n");
 		}
 		writer.WriteLine("void _Refl_Register_Item_" + className + "() { // Register function");
 		if (bisStruct) writer.WriteLine("		_static_Item_Class_" + className + " = RStruct::RegisterStruct<" + className + (ctor && ctor->args.size() > 0 ? "," + StringLibrary::ConcatString(ctor->args, ", ") : "") + ">(\"" + className + "\"); //Register Struct");
@@ -89,8 +94,7 @@ void RClassParser::WriteSource(OSWriter& writer)
 		for (const std::string& parent : parents)
 		{
 			writer.WriteLine("		if (RIsReflected<" + parent + ">::Reflect) // Is parent reflected");
-			writer.WriteLine("			_static_Item_Class_" + className + "->AddParent(RStruct::GetStruct(\"" + parent + "\")); // register parent");
-			//writer.WriteLine("		else std::cerr << \"" + parent + " is not actually reflected \" << std::endl; // Warning, parent is not reflected");
+			writer.WriteLine("			_static_Item_Class_" + className + "->AddParent(\"" + parent + "\"); // register parent");
 		}
 
 		if (properties.size() > 0) writer.WriteLine("		size_t VarOffset; // Var offset");

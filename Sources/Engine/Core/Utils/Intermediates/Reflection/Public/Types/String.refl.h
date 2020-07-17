@@ -1,4 +1,4 @@
-//VERSION : Friday, 10 July 2020 16:30:27
+//VERSION : Tuesday, 14 July 2020 19:03:22
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 
@@ -19,7 +19,7 @@
 
 class String; // Forward declaration
 
-#define _REFLECTION_BODY_RUID_8_LINE_10 REFL_DECLARE_CLASS(String)
+#define _REFLECTION_BODY_RUID_8_LINE_21 REFL_DECLARE_CLASS(String)
 
 REFL_DECLARE_TYPENAME(String); // Declare typename
 

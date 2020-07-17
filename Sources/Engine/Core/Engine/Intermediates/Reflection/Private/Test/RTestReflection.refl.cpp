@@ -1,7 +1,9 @@
-//VERSION : Saturday, 11 July 2020 15:33:33
+//VERSION : Tuesday, 14 July 2020 23:45:37
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 #include "C:/Users/pierre/Documents/Engine/Sources/Engine/Core/Engine/Sources/Public\Test\RTestReflection.h"
+
+#include <assert.h>
 
 #include "Reflection.h"
 
@@ -13,7 +15,7 @@
 static RClass* _static_Item_Class_OC = nullptr; //Static class reference
 RClass* OC::GetStaticClass() { return _static_Item_Class_OC; } //Static class getter
 
-RClass* OC::GetClass() { return _static_Item_Class_OC; } //class getter
+RClass* OC::GetClass() const { return _static_Item_Class_OC; } //class getter
 
 void _Refl_Register_Item_OC() { // Register function
 		_static_Item_Class_OC = RClass::RegisterClass<OC>("OC"); //Register Class
@@ -35,7 +37,7 @@ static _Refl_Static_Item_Builder_OC _Refl_Static_Item_Builder_Var_OC; //Build it
 static RClass* _static_Item_Class_OA = nullptr; //Static class reference
 RClass* OA::GetStaticClass() { return _static_Item_Class_OA; } //Static class getter
 
-RClass* OA::GetClass() { return _static_Item_Class_OA; } //class getter
+RClass* OA::GetClass() const { return _static_Item_Class_OA; } //class getter
 
 void _Refl_Register_Item_OA() { // Register function
 		_static_Item_Class_OA = RClass::RegisterClass<OA>("OA"); //Register Class
@@ -57,14 +59,14 @@ static _Refl_Static_Item_Builder_OA _Refl_Static_Item_Builder_Var_OA; //Build it
 static RClass* _static_Item_Class_OB = nullptr; //Static class reference
 RClass* OB::GetStaticClass() { return _static_Item_Class_OB; } //Static class getter
 
-RClass* OB::GetClass() { return _static_Item_Class_OB; } //class getter
+RClass* OB::GetClass() const { return _static_Item_Class_OB; } //class getter
 
 void _Refl_Register_Item_OB() { // Register function
 		_static_Item_Class_OB = RClass::RegisterClass<OB>("OB"); //Register Class
 		if (RIsReflected<OC>::Reflect) // Is parent reflected
-			_static_Item_Class_OB->AddParent(RStruct::GetStruct("OC")); // register parent
+			_static_Item_Class_OB->AddParent("OC"); // register parent
 		if (RIsReflected<OA>::Reflect) // Is parent reflected
-			_static_Item_Class_OB->AddParent(RStruct::GetStruct("OA")); // register parent
+			_static_Item_Class_OB->AddParent("OA"); // register parent
 }
 
 struct _Refl_Static_Item_Builder_OB{ // Item builder - Build reflection data
@@ -83,7 +85,7 @@ static _Refl_Static_Item_Builder_OB _Refl_Static_Item_Builder_Var_OB; //Build it
 static RStruct* _static_Item_Class_TestStr = nullptr; //Static struct reference
 RStruct* TestStr::GetStaticStruct() { return _static_Item_Class_TestStr; } //Static struct getter
 
-RStruct* TestStr::GetStruct() { return _static_Item_Class_TestStr; } //struct getter
+RStruct* TestStr::GetStruct() const { return _static_Item_Class_TestStr; } //struct getter
 
 void _Refl_Register_Item_TestStr() { // Register function
 		_static_Item_Class_TestStr = RStruct::RegisterStruct<TestStr,int, float, double, long>("TestStr"); //Register Struct
@@ -115,12 +117,12 @@ static _Refl_Static_Item_Builder_TestStr _Refl_Static_Item_Builder_Var_TestStr; 
 static RClass* _static_Item_Class_TestClass = nullptr; //Static class reference
 RClass* TestClass::GetStaticClass() { return _static_Item_Class_TestClass; } //Static class getter
 
-RClass* TestClass::GetClass() { return _static_Item_Class_TestClass; } //class getter
+RClass* TestClass::GetClass() const { return _static_Item_Class_TestClass; } //class getter
 
 void _Refl_Register_Item_TestClass() { // Register function
 		_static_Item_Class_TestClass = RClass::RegisterClass<TestClass,int, float, double, long>("TestClass"); //Register Class
 		if (RIsReflected<TestStr>::Reflect) // Is parent reflected
-			_static_Item_Class_TestClass->AddParent(RStruct::GetStruct("TestStr")); // register parent
+			_static_Item_Class_TestClass->AddParent("TestStr"); // register parent
 		size_t VarOffset; // Var offset
 		VarOffset = (char*)&((TestClass*)nullptr->* & TestClass::testProp1) - (char*)nullptr; // Retrieve var offset
 		_static_Item_Class_TestClass->RegisterProperty(new RProperty(RType::GetType("int32_t"), VarOffset, sizeof(int32_t), "testProp1")); // Register property
@@ -155,7 +157,7 @@ static _Refl_Static_Item_Builder_TestClass _Refl_Static_Item_Builder_Var_TestCla
 static RStruct* _static_Item_Class_FooStruct = nullptr; //Static struct reference
 RStruct* FooStruct::GetStaticStruct() { return _static_Item_Class_FooStruct; } //Static struct getter
 
-RStruct* FooStruct::GetStruct() { return _static_Item_Class_FooStruct; } //struct getter
+RStruct* FooStruct::GetStruct() const { return _static_Item_Class_FooStruct; } //struct getter
 
 void _Refl_Register_Item_FooStruct() { // Register function
 		_static_Item_Class_FooStruct = RStruct::RegisterStruct<FooStruct,int>("FooStruct"); //Register Struct
@@ -177,12 +179,12 @@ static _Refl_Static_Item_Builder_FooStruct _Refl_Static_Item_Builder_Var_FooStru
 static RStruct* _static_Item_Class_Foo1 = nullptr; //Static struct reference
 RStruct* Foo1::GetStaticStruct() { return _static_Item_Class_Foo1; } //Static struct getter
 
-RStruct* Foo1::GetStruct() { return _static_Item_Class_Foo1; } //struct getter
+RStruct* Foo1::GetStruct() const { return _static_Item_Class_Foo1; } //struct getter
 
 void _Refl_Register_Item_Foo1() { // Register function
 		_static_Item_Class_Foo1 = RStruct::RegisterStruct<Foo1,int>("Foo1"); //Register Struct
 		if (RIsReflected<FooStruct>::Reflect) // Is parent reflected
-			_static_Item_Class_Foo1->AddParent(RStruct::GetStruct("FooStruct")); // register parent
+			_static_Item_Class_Foo1->AddParent("FooStruct"); // register parent
 }
 
 struct _Refl_Static_Item_Builder_Foo1{ // Item builder - Build reflection data
@@ -201,7 +203,7 @@ static _Refl_Static_Item_Builder_Foo1 _Refl_Static_Item_Builder_Var_Foo1; //Buil
 static RStruct* _static_Item_Class_Foo2 = nullptr; //Static struct reference
 RStruct* Foo2::GetStaticStruct() { return _static_Item_Class_Foo2; } //Static struct getter
 
-RStruct* Foo2::GetStruct() { return _static_Item_Class_Foo2; } //struct getter
+RStruct* Foo2::GetStruct() const { return _static_Item_Class_Foo2; } //struct getter
 
 void _Refl_Register_Item_Foo2() { // Register function
 		_static_Item_Class_Foo2 = RStruct::RegisterStruct<Foo2>("Foo2"); //Register Struct
@@ -223,12 +225,12 @@ static _Refl_Static_Item_Builder_Foo2 _Refl_Static_Item_Builder_Var_Foo2; //Buil
 static RStruct* _static_Item_Class_Foo3 = nullptr; //Static struct reference
 RStruct* Foo3::GetStaticStruct() { return _static_Item_Class_Foo3; } //Static struct getter
 
-RStruct* Foo3::GetStruct() { return _static_Item_Class_Foo3; } //struct getter
+RStruct* Foo3::GetStruct() const { return _static_Item_Class_Foo3; } //struct getter
 
 void _Refl_Register_Item_Foo3() { // Register function
 		_static_Item_Class_Foo3 = RStruct::RegisterStruct<Foo3,int>("Foo3"); //Register Struct
 		if (RIsReflected<Foo1>::Reflect) // Is parent reflected
-			_static_Item_Class_Foo3->AddParent(RStruct::GetStruct("Foo1")); // register parent
+			_static_Item_Class_Foo3->AddParent("Foo1"); // register parent
 }
 
 struct _Refl_Static_Item_Builder_Foo3{ // Item builder - Build reflection data
@@ -247,14 +249,14 @@ static _Refl_Static_Item_Builder_Foo3 _Refl_Static_Item_Builder_Var_Foo3; //Buil
 static RStruct* _static_Item_Class_Foo4 = nullptr; //Static struct reference
 RStruct* Foo4::GetStaticStruct() { return _static_Item_Class_Foo4; } //Static struct getter
 
-RStruct* Foo4::GetStruct() { return _static_Item_Class_Foo4; } //struct getter
+RStruct* Foo4::GetStruct() const { return _static_Item_Class_Foo4; } //struct getter
 
 void _Refl_Register_Item_Foo4() { // Register function
 		_static_Item_Class_Foo4 = RStruct::RegisterStruct<Foo4,int>("Foo4"); //Register Struct
 		if (RIsReflected<Foo2>::Reflect) // Is parent reflected
-			_static_Item_Class_Foo4->AddParent(RStruct::GetStruct("Foo2")); // register parent
+			_static_Item_Class_Foo4->AddParent("Foo2"); // register parent
 		if (RIsReflected<Foo3>::Reflect) // Is parent reflected
-			_static_Item_Class_Foo4->AddParent(RStruct::GetStruct("Foo3")); // register parent
+			_static_Item_Class_Foo4->AddParent("Foo3"); // register parent
 }
 
 struct _Refl_Static_Item_Builder_Foo4{ // Item builder - Build reflection data
@@ -273,17 +275,17 @@ static _Refl_Static_Item_Builder_Foo4 _Refl_Static_Item_Builder_Var_Foo4; //Buil
 static RClass* _static_Item_Class_OObjectTest = nullptr; //Static class reference
 RClass* OObjectTest::GetStaticClass() { return _static_Item_Class_OObjectTest; } //Static class getter
 
-RClass* OObjectTest::GetClass() { return _static_Item_Class_OObjectTest; } //class getter
+RClass* OObjectTest::GetClass() const { return _static_Item_Class_OObjectTest; } //class getter
 
 void _Refl_Register_Item_OObjectTest() { // Register function
 		_static_Item_Class_OObjectTest = RClass::RegisterClass<OObjectTest>("OObjectTest"); //Register Class
 		if (RIsReflected<OObject>::Reflect) // Is parent reflected
-			_static_Item_Class_OObjectTest->AddParent(RStruct::GetStruct("OObject")); // register parent
+			_static_Item_Class_OObjectTest->AddParent("OObject"); // register parent
 		size_t VarOffset; // Var offset
 		VarOffset = (char*)&((OObjectTest*)nullptr->* & OObjectTest::testProperty1) - (char*)nullptr; // Retrieve var offset
 		_static_Item_Class_OObjectTest->RegisterProperty(new RProperty(RType::GetType("int"), VarOffset, sizeof(int), "testProperty1")); // Register property
 		VarOffset = (char*)&((OObjectTest*)nullptr->* & OObjectTest::testProperty2) - (char*)nullptr; // Retrieve var offset
-		_static_Item_Class_OObjectTest->RegisterProperty(new RProperty(RType::GetType("double"), VarOffset, sizeof(double), "testProperty2")); // Register property
+		_static_Item_Class_OObjectTest->RegisterProperty(new RProperty(RType::GetType("int"), VarOffset, sizeof(int), "testProperty2")); // Register property
 		VarOffset = (char*)&((OObjectTest*)nullptr->* & OObjectTest::testProperty3) - (char*)nullptr; // Retrieve var offset
 		_static_Item_Class_OObjectTest->RegisterProperty(new RProperty(RType::GetType("int"), VarOffset, sizeof(int), "testProperty3")); // Register property
 }

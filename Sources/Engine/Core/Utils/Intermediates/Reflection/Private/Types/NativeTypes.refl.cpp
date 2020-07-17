@@ -1,7 +1,9 @@
-
+//VERSION : Saturday, 11 July 2020 18:29:23
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 #include "C:/Users/pierre/Documents/Engine/Sources/Engine/Core/Utils/Sources/Public\Types\NativeTypes.h"
+
+#include <assert.h>
 
 #include "Reflection.h"
 

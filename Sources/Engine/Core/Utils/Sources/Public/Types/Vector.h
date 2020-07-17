@@ -87,7 +87,7 @@ struct IVector : public IStringable
 
 	virtual String ToString() const override
 	{
-		return String("(" + String(x) +	", " + String(y) + ", " + String(z) + ")");
+		return String(String("(") + String(x) +	", " + String(y) + ", " + String(z) + ")");
 	}
 
 private:
@@ -176,7 +176,7 @@ struct IVector2D : public IStringable
 
 	virtual String ToString() const override
 	{
-		return String("(" + String(x) + ", " + String(x) + ")");
+		return String(String("(") + String(x) + ", " + String(x) + ")");
 	}
 
 private:

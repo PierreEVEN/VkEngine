@@ -32,6 +32,12 @@ public:
 
 	EngineInputOutput& operator<<(const String& _Val);
 
+	EngineInputOutput& operator<<(const int32_t& _Val) { OutputText(String::ToString(_Val)); return IO; }
+	EngineInputOutput& operator<<(const int64_t& _Val) { OutputText(String::ToString(_Val)); return IO; }
+	EngineInputOutput& operator<<(const size_t& _Val) { OutputText(String::ToString(_Val)); return IO; }
+	EngineInputOutput& operator<<(const float& _Val) { OutputText(String::ToString(_Val)); return IO; }
+	EngineInputOutput& operator<<(const double& _Val) { OutputText(String::ToString(_Val)); return IO; }
+
 	EngineInputOutput& operator<<(const IStringable& _Val);
 
 	static EngineInputOutput IO;

@@ -7,24 +7,20 @@
 
 
 REFLECT()
-class OObject : public IStringable, public Serializable
+class OObject : public Serializable
 {
 	REFLECT_BODY()
 
 public:
+	RCONSTRUCTOR()
 	OObject() {}
-	OObject(const String& serialisationPath) : Serializable(serialisationPath) {}
-
-	virtual String ToString() const override
-	{
-		return GetName();
-	}
-
-	virtual String GetName() const
-	{
-		return "not implemented yet";
-	}
 
 	RPROPERTY()
-		int var = 2;
+		int var1 = 2;
+
+	RPROPERTY()
+		int var2 = 3;
+
+	RPROPERTY()
+		int var3 = 4;
 };

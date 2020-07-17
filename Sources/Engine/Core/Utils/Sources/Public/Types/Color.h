@@ -64,7 +64,7 @@ struct IColor : public IStringable
 
 	virtual String ToString() const override
 	{
-		return String("(" + String(r) + ", " + String(g) + ", " + String(b) + ", " + String(a) + ")");
+		return String(String("(") + String(r) + ", " + String(g) + ", " + String(b) + ", " + String(a) + ")");
 	}
 
 private:

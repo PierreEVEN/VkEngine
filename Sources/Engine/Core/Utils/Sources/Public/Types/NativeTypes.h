@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Reflection.h"
-#include "Types\NativeTypes.refl.h"
 #include <type_traits>
+#include "Types\NativeTypes.refl.h"
 
 REFLECT(bool)
 REFLECT(float)

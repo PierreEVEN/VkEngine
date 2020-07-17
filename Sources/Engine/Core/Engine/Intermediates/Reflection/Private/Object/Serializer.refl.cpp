@@ -1,7 +1,9 @@
-//VERSION : Thursday, 09 July 2020 15:12:05
+//VERSION : Friday, 17 July 2020 08:44:18
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 #include "C:/Users/pierre/Documents/Engine/Sources/Engine/Core/Engine/Sources/Public\Object\Serializer.h"
+
+#include <assert.h>
 
 #include "Reflection.h"
 
@@ -13,10 +15,12 @@
 static RClass* _static_Item_Class_Serializable = nullptr; //Static class reference
 RClass* Serializable::GetStaticClass() { return _static_Item_Class_Serializable; } //Static class getter
 
-RClass* Serializable::GetClass() { return _static_Item_Class_Serializable; } //class getter
+RClass* Serializable::GetClass() const { return _static_Item_Class_Serializable; } //class getter
 
 void _Refl_Register_Item_Serializable() { // Register function
 		_static_Item_Class_Serializable = RClass::RegisterClass<Serializable>("Serializable"); //Register Class
+		if (RIsReflected<IStringable>::Reflect) // Is parent reflected
+			_static_Item_Class_Serializable->AddParent("IStringable"); // register parent
 }
 
 struct _Refl_Static_Item_Builder_Serializable{ // Item builder - Build reflection data

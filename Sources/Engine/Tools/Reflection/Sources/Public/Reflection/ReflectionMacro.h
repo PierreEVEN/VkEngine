@@ -11,6 +11,8 @@ struct RIsReflected {
 	static constexpr bool Reflect = false;
 };
 
+class IReflectable {};
+
 #define REFL_DECLARE_TYPENAME(type) \
 template<> \
 struct RTypeName<type> \
@@ -22,7 +24,7 @@ struct RTypeName<type> \
 public: \
 	friend void _Refl_Register_Item_##structName##(); \
 	static class RStruct* GetStaticStruct(); \
-	virtual RStruct* GetStruct(); \
+	virtual RStruct* GetStruct() const; \
     template<typename... Args> \
 	inline static structName* MakeStruct(Args&&... InArgs) { return new structName(std::forward<Args>(InArgs)...); }
 
@@ -31,7 +33,7 @@ public: \
 	friend void _Refl_Register_Item_##className##(); \
 	friend void _Refl_Register_Class(); \
 	static class RClass* GetStaticClass(); \
-	virtual RClass* GetClass(); \
+	virtual RClass* GetClass() const; \
     template<typename... Args> \
 	inline static className* MakeClass(Args&&... InArgs) { return new className(std::forward<Args>(InArgs)...); } \
 private:

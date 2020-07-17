@@ -18,6 +18,7 @@ public:
 		newClass->SetCtor<Args...>(std::function<void* (Args...)>(&T::MakeClass<Args...>));
 
 		RegisterClass_Internal(newClass);
+		RegisterStruct_Internal(newClass);
 		return newClass;
 	}
 
@@ -30,9 +31,20 @@ public:
 
 	inline static RClass* GetClass(const char* tName)
 	{
-		for (const auto& className : classes)
-			if (className->GetName() == tName)
-				return className;
+		for (const auto& cl : classes)
+		{
+			bool bIsEqual = true;
+			const char* className = cl->GetName();
+			for (int i = 0; className[i] != '\0'; ++i)
+			{
+				if (className[i] != tName[i])
+				{
+					bIsEqual = false;
+					break;
+				}
+			}
+			if (bIsEqual) return cl;
+		}
 		return nullptr;
 	}
 

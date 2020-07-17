@@ -12,9 +12,16 @@ public:
 	{}
 
 	template<typename T = void>
-	inline T* Value(void* objPtr) const
+	inline T* Value(void* objPtr)
 	{
 		return reinterpret_cast<T*>((size_t)objPtr + propertyOffset);
+	}
+
+	template<typename T = void>
+	inline void SetValue(void* objPtr, T* valuePtr)
+	{
+		T* ptr = reinterpret_cast<T*>((size_t)objPtr + propertyOffset);
+		ptr = valuePtr;
 	}
 
 	inline const RType* GetType() const { return propertyType; }

@@ -30,6 +30,10 @@ void Logger::Log(const String& logText, LogVerbosity verbosity)
 	localtime_s(&tstruct, &now);
 	strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
 
-	EngineIO << '[' << buf  << "] " << type << " - " << logText << String::ENDL;
+	EngineIO << '[' << buf << "] " << type << " - " << logText << String::ENDL;
 	EngineInputOutput::SetTextColor(CONSOLE_FG_COLOR_WHITE);
+}
+
+void Logger::LogDetailed(const String& logText, LogVerbosity verbosity, const int& line, String fct) {
+	Log(String("(") + fct + ":" + String::ToString(line) + ") : " + logText, verbosity);
 }

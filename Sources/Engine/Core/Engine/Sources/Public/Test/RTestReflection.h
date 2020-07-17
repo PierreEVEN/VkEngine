@@ -102,7 +102,7 @@ public:
 		TestClass(int a, float b, double c, long d)
 		: testProp1(a), testProp2(b), testProp3(c), testProp4(d), TestStr()
 	{
-		LOG("building test class with params : " + String(a) + " " + String(b) + " " + String(c) + " " + String(d));
+		LOG(String("building test class with params : ") + String::ToString(a) + " " + String::ToString(b) + " " + String::ToString(c) + " " + String::ToString(d));
 		PrintTest();
 	}
 
@@ -191,12 +191,13 @@ class OObjectTest : public OObject
 	REFLECT_BODY()
 
 public:
+	OObjectTest() : OObject() {}
 
 	RPROPERTY()
 		int testProperty1 = 2;
 
 	RPROPERTY()
-		double testProperty2 = 2;
+		int testProperty2 = 2;
 
 	RPROPERTY()
 		int testProperty3 = 2;

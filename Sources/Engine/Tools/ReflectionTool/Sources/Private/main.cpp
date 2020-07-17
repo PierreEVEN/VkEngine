@@ -1,4 +1,4 @@
-#include <string>
+
 #include <filesystem>
 #include <iostream>
 #include "Parser/RFileParser.h"
@@ -13,9 +13,15 @@ int main(int argc, char* argv[]) {
 	std::cout << "Running reflection tool on module " << modulePath << std::endl;
 
 	std::vector<std::string> generatedFiles;
+
+	std::vector<RFileParser> filesRef;
+
 	for (const auto& entry : FileLibrary::GetFilesInDirectoryRecursive(modulePath, { "h" }))
 	{
-		RFileParser parser(entry);
+		filesRef.push_back(RFileParser(entry));
+	}
+	for (auto& parser : filesRef)
+	{
 		generatedFiles.push_back(parser.GenerateHeader(modulePath, outDir));
 		generatedFiles.push_back(parser.GenerateSource(modulePath, outDir));
 		parser.AddMissingIncludes(modulePath);
@@ -40,6 +46,6 @@ int main(int argc, char* argv[]) {
 	if (RFileParser::GetErrorLevel() != 0)
 	{
 		std::cerr << "#### GENERATION FAILED ####" << std::endl;
-		exit(5);
+		exit(1);
 	}
 }

@@ -1,4 +1,4 @@
-//VERSION : Tuesday, 14 July 2020 19:03:22
+//VERSION : Saturday, 18 July 2020 12:41:12
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 #include "C:/Users/pierre/Documents/Engine/Sources/Engine/Core/Utils/Sources/Public\Types\String.h"

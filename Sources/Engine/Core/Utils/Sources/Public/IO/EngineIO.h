@@ -2,6 +2,7 @@
 
 #include "Types/String.h"
 #include "Events/EventManager.h"
+#include <mutex>
 
 #define EngineIO EngineInputOutput::IO
 
@@ -31,16 +32,13 @@ class EngineInputOutput
 public:
 
 	EngineInputOutput& operator<<(bool _Val);
-
 	EngineInputOutput& operator<<(const char* _Val);
-
 	EngineInputOutput& operator<<(char _Val);
-
 	EngineInputOutput& operator<<(const String& _Val);
-
 	EngineInputOutput& operator<<(const int32_t& _Val) { OutputText(String::ToString(_Val)); return IO; }
+	EngineInputOutput& operator<<(const uint32_t& _Val) { OutputText(String::ToString(_Val)); return IO; }
 	EngineInputOutput& operator<<(const int64_t& _Val) { OutputText(String::ToString(_Val)); return IO; }
-	EngineInputOutput& operator<<(const size_t& _Val) { OutputText(String::ToString(_Val)); return IO; }
+	EngineInputOutput& operator<<(const uint64_t& _Val) { OutputText(String::ToString(_Val)); return IO; }
 	EngineInputOutput& operator<<(const float& _Val) { OutputText(String::ToString(_Val)); return IO; }
 	EngineInputOutput& operator<<(const double& _Val) { OutputText(String::ToString(_Val)); return IO; }
 
@@ -51,6 +49,9 @@ public:
 	static void SetTextColor(const uint8_t& color);
 
 	Del_BroadcastMessage OnSendMessage;
+
+	inline void Lock() { IoMutex.lock(); }
+	inline void Unlock() { IoMutex.unlock(); }
 
 private:
 
@@ -63,4 +64,6 @@ private:
 	void TextToLog(const String& text);
 
 	String FindNewLogfileName() const;
+
+	std::mutex IoMutex;
 };

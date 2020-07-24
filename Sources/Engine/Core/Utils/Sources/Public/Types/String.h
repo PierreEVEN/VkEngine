@@ -33,7 +33,9 @@ public:
 	String(const String& other);
 	String(const IStringable& other);
 	String(int32_t other) : String(ToString(other)) {}
+	String(uint32_t other) : String(ToString(other)) {}
 	String(int64_t other) : String(ToString(other)) {}
+	String(uint64_t other) : String(ToString(other)) {}
 	String(float other) : String(ToString(other)) {}
 	String(double other) : String(ToString(other)) {}
 

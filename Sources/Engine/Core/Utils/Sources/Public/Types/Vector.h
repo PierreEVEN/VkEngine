@@ -3,6 +3,12 @@
 #include <stdint.h>
 #include "String.h"
 
+enum class EVectorAxis
+{
+	AXIS_X = 0,
+	AXIS_Y = 1,
+	AXIS_Z = 2
+};
 
 template<typename T>
 struct IVector : public IStringable
@@ -24,6 +30,11 @@ struct IVector : public IStringable
 	}
 	inline const bool operator!=(const IVector<T>& other) const	{
 		return x != other.x || y != other.y || z != other.z;
+	}
+
+	/* [] operator */
+	inline const IVector<T> operator[](const EVectorAxis& axis) const {
+		return coords[axis];
 	}
 
 	/* X IVector Operators */
@@ -91,7 +102,14 @@ struct IVector : public IStringable
 	}
 
 private:
-	alignas(8) T x, y, z;
+	union
+	{
+		struct	{
+			alignas(8) T x, y, z;
+		};
+
+		T coords[3];
+	};
 };
 
 template<typename T>

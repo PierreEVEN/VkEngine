@@ -3,6 +3,7 @@
 
 void Logger::Log(const String& logText, LogVerbosity verbosity)
 {
+	EngineIO.Lock();
 	String type;
 	switch (verbosity)
 	{
@@ -29,9 +30,9 @@ void Logger::Log(const String& logText, LogVerbosity verbosity)
 	time_t now = time(0);
 	localtime_s(&tstruct, &now);
 	strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
-
 	EngineIO << '[' << buf << "] " << type << " - " << logText << String::ENDL;
 	EngineInputOutput::SetTextColor(CONSOLE_FG_COLOR_WHITE);
+	EngineIO.Unlock();
 }
 
 void Logger::LogDetailed(const String& logText, LogVerbosity verbosity, const int& line, String fct) {

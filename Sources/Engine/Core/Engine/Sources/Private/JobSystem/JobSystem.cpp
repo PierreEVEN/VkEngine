@@ -48,3 +48,10 @@ void JobSystem::AddJob(Job* job)
 	jobPool.Add(job);
 	Worker::GetSleepConditionVariable().notify_one();
 }
+
+void JobSystem::WaitJobCompletion()
+{
+	std::mutex AllJobCompleteSleepMutex;
+	std::unique_lock<std::mutex> Lock(AllJobCompleteSleepMutex);
+	AllJobCompleteCondition.wait(Lock);
+}

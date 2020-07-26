@@ -9,33 +9,13 @@
 #include "JobSystem/JobSystem.h"
 #include "JobSystem/Worker.h"
 #include "Profiler/Profiler.h"
-
-
-void TestFunc()
-{
-}
-
-
-std::condition_variable SleepMain;
+#include "Engine.h"
 
 int main(int argc, char* argv[])
 {
-
-
 	JobSystem::Initialize();
 
+	JobSystem::AddJob(new Job(Engine::Initialize));
 
-	JobSystem::AddJob(new Job(TestFunc));
-	JobSystem::AddJob(new Job(TestFunc));
-	JobSystem::AddJob(new Job(TestFunc));
-	JobSystem::AddJob(new Job(TestFunc));
-	JobSystem::AddJob(new Job(TestFunc));
-	JobSystem::AddJob(new Job(TestFunc));
-	JobSystem::AddJob(new Job(TestFunc));
-	JobSystem::AddJob(new Job(TestFunc));
-	JobSystem::AddJob(new Job(TestFunc));
-
-	std::mutex SleepMutex;
-	std::unique_lock<std::mutex> Lock(SleepMutex);
-	SleepMain.wait(Lock);
+	JobSystem::WaitJobCompletion();
 }

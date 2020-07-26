@@ -11,7 +11,6 @@ struct Worker
 	template<typename Lambda>
 	Worker(Lambda threadFunc) : Thread(threadFunc), ThreadId(Thread.get_id()) {}
 
-
 	inline std::thread::id GetThreadID() const { return ThreadId; }
 	void FlushJob();
 

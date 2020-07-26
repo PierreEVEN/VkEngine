@@ -8,7 +8,7 @@
 #define PROFILER_SET_REAL_VALUE(ProfilerName, Value) ProfilerName.SetRealValue(Value)
 #define PROFILER_MEASURE_DURATION_SET(ProfilerName)
 #define PROFILER_MEASURE_DURATION_ADD(ProfilerName)
-#define PROFILER_FLUSH_CYCLE(ProfilerName)
+#define PROFILER_FLUSH_CYCLE(ProfilerName) ProfilerName.Flush();
 
 class ProfilerBase
 {

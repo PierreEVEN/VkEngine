@@ -17,7 +17,8 @@ struct JobSystem
 
 	static void AddJob(Job* job);
 
-private:
+	static void WaitJobCompletion();
 
+	inline static std::condition_variable AllJobCompleteCondition;
 
 };

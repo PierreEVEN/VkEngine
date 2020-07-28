@@ -1,25 +1,27 @@
 #include "IO/Log.h"
 #include <chrono>
 
+const bool DISPLAY_CODE_LOCATION = true;
+
 void Logger::Log(const String& logText, LogVerbosity verbosity)
 {
 	EngineIO.Lock();
 	String type;
 	switch (verbosity)
 	{
-	case LogVerbosity::DISPLAY:
+	case LogVerbosity::VERB_DISPLAY:
 		EngineInputOutput::SetTextColor(CONSOLE_FG_COLOR_LIGHT_BLUE);
 		type = "LOG";
 		break;
-	case LogVerbosity::WARNING:
+	case LogVerbosity::VERB_WARNING:
 		EngineInputOutput::SetTextColor(CONSOLE_FG_COLOR_ORANGE);
 		type = "WARNING";
 		break;
-	case LogVerbosity::ERROR:
+	case LogVerbosity::VERB_ERROR:
 		EngineInputOutput::SetTextColor(CONSOLE_FG_COLOR_LIGHT_RED);
 		type = "ERROR";
 		break;
-	case LogVerbosity::ASSERT:
+	case LogVerbosity::VERB_ASSERT:
 		EngineInputOutput::SetTextColor(CONSOLE_FG_COLOR_VIOLET | CONSOLE_BG_COLOR_RED | CONSOLE_BG_COLOR_GREEN | CONSOLE_BG_COLOR_LIGHT);
 		type = "ASSERT";
 		break;
@@ -36,5 +38,12 @@ void Logger::Log(const String& logText, LogVerbosity verbosity)
 }
 
 void Logger::LogDetailed(const String& logText, LogVerbosity verbosity, const int& line, String fct) {
-	Log(String("(") + fct + ":" + String::ToString(line) + ") : " + logText, verbosity);
+	if (DISPLAY_CODE_LOCATION)
+	{
+		Log(String("(") + fct + ":" + String::ToString(line) + ") : " + logText, verbosity);
+	}
+	else
+	{
+		Log(logText, verbosity);
+	}
 }

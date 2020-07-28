@@ -3,10 +3,12 @@
 
 void Engine::Initialize()
 {
-	for (int i = 0; i < 100000000; ++i)
+	int64_t i = 0;
+	int64_t j = 5;
+	for (i = 0; i < 5000000000; ++i)
 	{
-		i++;
+		j += 2;
 	}
-	LOG("complete");
+	LOG(String("complete ") << String::ToString(j));
 }
 

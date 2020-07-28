@@ -1,9 +1,9 @@
-//VERSION : Friday, 24 July 2020 12:13:24
+//VERSION : Friday, 17 July 2020 09:02:37
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 
 #undef _REFL_FILE_UNIQUE_ID_
-#define _REFL_FILE_UNIQUE_ID_ RUID_4 // File unique ID (used by reflection macros)
+#define _REFL_FILE_UNIQUE_ID_ RUID_5 // File unique ID (used by reflection macros)
 
 
 #ifndef _REFL_Object_H
@@ -19,7 +19,7 @@
 
 class OObject; // Forward declaration
 
-#define _REFLECTION_BODY_RUID_4_LINE_12 REFL_DECLARE_CLASS(OObject)
+#define _REFLECTION_BODY_RUID_5_LINE_12 REFL_DECLARE_CLASS(OObject)
 
 REFL_DECLARE_TYPENAME(OObject); // Declare typename
 

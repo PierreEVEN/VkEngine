@@ -149,6 +149,20 @@ public:
 		return true;
 	}
 
+	template<typename T>
+	inline static String& ConcatenateArray(T& tarray, String separator = ", ")
+	{
+		String result = "";
+		size_t elemCount = tarray.size();
+		for (auto& elem : tarray)
+		{
+			result += String(elem);
+			elemCount--;
+			if (elemCount > 0) result += separator;
+		}
+		return result;
+	}
+
 private:
 
 	inline static const String& CopyTo(const String& from, String* to) {

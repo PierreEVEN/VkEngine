@@ -4,7 +4,6 @@
 
 struct Worker
 {
-	/* Initialize new worker from current thread */
 	Worker() : ThreadId(std::this_thread::get_id()) {}
 
 	/* Initialize new worker on different thread with lambda */
@@ -19,6 +18,7 @@ struct Worker
 	static std::condition_variable& GetSleepConditionVariable();
 
 private:
+	bool bIsActive;
 	const std::thread::id ThreadId;
 	const std::thread Thread;
 	std::mutex SleepMutex;

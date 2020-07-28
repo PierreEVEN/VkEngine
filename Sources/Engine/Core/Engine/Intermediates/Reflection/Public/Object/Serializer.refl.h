@@ -1,9 +1,9 @@
-//VERSION : Friday, 24 July 2020 12:13:24
+//VERSION : Friday, 17 July 2020 08:44:18
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 
 #undef _REFL_FILE_UNIQUE_ID_
-#define _REFL_FILE_UNIQUE_ID_ RUID_5 // File unique ID (used by reflection macros)
+#define _REFL_FILE_UNIQUE_ID_ RUID_6 // File unique ID (used by reflection macros)
 
 
 #ifndef _REFL_Serializer_H
@@ -19,7 +19,7 @@
 
 class Serializable; // Forward declaration
 
-#define _REFLECTION_BODY_RUID_5_LINE_116 REFL_DECLARE_CLASS(Serializable)
+#define _REFLECTION_BODY_RUID_6_LINE_116 REFL_DECLARE_CLASS(Serializable)
 
 REFL_DECLARE_TYPENAME(Serializable); // Declare typename
 

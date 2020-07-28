@@ -23,12 +23,9 @@ Worker& GetCurrentWorker()
 
 void JobSystem::Initialize()
 {
-	/* Initialize main thread (current) */
-	new (Workers.data()) Worker();
-
 	LOG(String("Initializing ") + String::ToString(CPU_THREAD_COUNT) + " workers");
 
-	for (size_t i = 1; i < JobSystem::CPU_THREAD_COUNT; ++i)
+	for (size_t i = 0; i < JobSystem::CPU_THREAD_COUNT; ++i)
 	{
 		/* Create one hardware thread per cpu thread */
 		new (Workers.data() + i) Worker(

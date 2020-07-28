@@ -8,4 +8,4 @@ else
 	"Tools/premake5.lin" --file=Sources/Engine/Engine.lua gmake2
 fi
 
-sleep 1
+read -rsn1 -p"Press any key to continue" variable;echo

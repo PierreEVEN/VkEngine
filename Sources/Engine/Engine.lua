@@ -1,5 +1,5 @@
 SrcDir = os.getcwd()
-
+LibDir = os.getcwd().."/../ThirdParty/"
 
 function defineProject(projectType, useReflection, projectName)
 	location (os.getcwd().."/Build")
@@ -22,11 +22,32 @@ function defineProject(projectType, useReflection, projectName)
 	end
 end
 
+function includeVulkan()
+	if type(os.getenv("vulkan_sdk")) ~= "" then
+		includedirs(os.getenv("vulkan_sdk").."/Include")
+		libdirs { os.getenv("vulkan_sdk").."/Lib/" }
+		links { "vulkan-1.lib" }
+	else
+		print("failed to find vulkan sdk path 'vulkan_sdk'")
+	end
+end
+
+function includeGaInput()
+	includedirs(LibDir.."gainput/lib/include")
+	links(LibDir.."/Libs/GaInput/Release/gainputstatic.lib")
+end
+
+function includeGlfw()
+	includedirs(LibDir.."glfw/include")
+	links(LibDir.."/Libs/glfw/Release/glfw3.lib")
+end
+
 function includeModule(path, moduleName)
 	includedirs(SrcDir.."/"..path.."/Sources/Public")
 	includedirs(SrcDir.."/"..path.."/Intermediates/Reflection/Public")
 	links(SrcDir.."/"..path.."/Binaries/"..moduleName..".lib")
 end
+
 
 workspace "Engine"
 	configurations { "Debug", "Release" }
@@ -47,6 +68,7 @@ workspace "Engine"
 	group("Engine/Core")
 		include("Core/Engine")
 		include("Core/Utils")
+		include("Core/Rendering")
 	
 	group("Engine/Tools")
 		include("Tools/ReflectionTool")

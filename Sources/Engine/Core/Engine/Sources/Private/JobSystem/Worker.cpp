@@ -11,21 +11,16 @@ size_t WorkingThreadsCount = 0;
 
 std::condition_variable& Worker::GetSleepConditionVariable() { return SleepConditionVariable; }
 
+std::mutex WorkingThreadMutex;
 
 void Worker::FlushJob()
 {
 	if (Job* foundJob = JobSystem::jobPool.Pop())
 	{
-		WorkingThreadsCount++;
 		(*foundJob)();
 	}
 	else
 	{
-		WorkingThreadsCount--;
-		if (WorkingThreadsCount == 0) {
-			LOG("Complete JS");
-			JobSystem::AllJobCompleteCondition.notify_one();
-		}
 		std::unique_lock<std::mutex> Lock(SleepMutex);
 		SleepConditionVariable.wait(Lock);
 	}

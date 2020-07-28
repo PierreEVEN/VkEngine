@@ -1,7 +1,7 @@
-//VERSION : Friday, 24 July 2020 12:13:24
+//VERSION : Sunday, 26 July 2020 16:45:09
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
-#include "C:/Users/pierre/Documents/engine/Sources/Engine/Core/Utils/Sources/Public\Types\String.h"
+#include "C:/Users/pierre/Documents/Engine/Sources/Engine/Core/Utils/Sources/Public\Types\String.h"
 
 #include <assert.h>
 

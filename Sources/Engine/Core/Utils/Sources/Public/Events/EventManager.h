@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 
 #define DECLARE_DELEGATE_SINGLECAST(name, ...) typedef DelegateSingleCast<void, __VA_ARGS__> name;
 #define DECLARE_DELEGATE_SINGLECAST_RETURN(name, returnType, ...) typedef DelegateSingleCast<returnType, __VA_ARGS__> name;

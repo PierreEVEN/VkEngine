@@ -36,7 +36,8 @@ void Rendering::Vulkan::LogDevice::CreateLogicalDevice()
 
 	createInfo.pEnabledFeatures = &deviceFeatures;
 
-	createInfo.enabledExtensionCount = 0;
+	createInfo.enabledExtensionCount = static_cast<uint32_t>(Utils::REQUIRED_DEVICE_EXTENSIONS.size());
+	createInfo.ppEnabledExtensionNames = Utils::REQUIRED_DEVICE_EXTENSIONS.data();
 
 	if (Utils::ENABLE_VALIDATION_LAYERS) {
 		createInfo.enabledLayerCount = static_cast<uint32_t>(Utils::USED_VALIDATION_LAYERS_NAMES .size());
@@ -68,5 +69,10 @@ VkDevice& Rendering::Vulkan::LogDevice::GetLogicalDevice()
 VkQueue& Rendering::Vulkan::LogDevice::GetGraphicQueues()
 {
 	return graphicsQueue;
+}
+
+VkQueue& Rendering::Vulkan::LogDevice::GetPresentQueue()
+{
+	return presentQueue;
 }
 

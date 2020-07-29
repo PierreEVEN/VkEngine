@@ -1,6 +1,9 @@
 #pragma once
+#include "Events/EventManager.h"
 
 struct GLFWwindow;
+
+struct SIntVector2D;
 
 namespace Rendering
 {
@@ -12,5 +15,8 @@ namespace Rendering
 	void CleanupRendering();
 	void CleaneupWindow();
 
+	const SIntVector2D& GetFrameSize();
+
 	GLFWwindow* GetPrimaryWindow();
+
 }

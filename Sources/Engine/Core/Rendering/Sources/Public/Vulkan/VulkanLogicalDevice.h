@@ -10,4 +10,5 @@ namespace Rendering::Vulkan::LogDevice
 
 	VkDevice& GetLogicalDevice();
 	VkQueue& GetGraphicQueues();
+	VkQueue& GetPresentQueue();
 }

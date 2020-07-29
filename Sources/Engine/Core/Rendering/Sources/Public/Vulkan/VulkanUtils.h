@@ -13,12 +13,22 @@ namespace Rendering::Vulkan::Utils
 		inline bool IsComplete() { return graphicsFamily.has_value() && presentFamily.has_value(); }
 	};
 
-	static const std::vector<const char*> USED_VALIDATION_LAYERS_NAMES = { "VK_LAYER_KHRONOS_validation" };
-	static constexpr bool ENABLE_VALIDATION_LAYERS = true;
+	struct SwapChainSupportDetails {
+		VkSurfaceCapabilitiesKHR capabilities;
+		std::vector<VkSurfaceFormatKHR> formats;
+		std::vector<VkPresentModeKHR> presentModes;
+	};
+
+	const std::vector<const char*> REQUIRED_DEVICE_EXTENSIONS = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+	const std::vector<const char*> USED_VALIDATION_LAYERS_NAMES = { "VK_LAYER_KHRONOS_validation" };
+	constexpr bool ENABLE_VALIDATION_LAYERS = true;
+	const uint8_t MAX_FRAMES_IN_FLIGHT = 2;
 
 	void CheckExtensions();
 	bool CheckValidationLayerSupport();
 	std::vector<const char*> GetRequiredExtensions();
+	bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
 	bool IsPhysicalDeviceSuitable(VkPhysicalDevice device);
 	QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
+	SwapChainSupportDetails GetSwapchainSupportDetails(VkPhysicalDevice device);
 }

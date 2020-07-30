@@ -17,6 +17,7 @@
 #include "Vulkan/VulkanCommandPool.h"
 #include "Vulkan/VulkanCommandBuffer.h"
 #include "Vulkan/VulkanSemaphores.h"
+#include "Vulkan/VulkanVertexBuffer.h"
 
 size_t CURRENT_FRAME_ID = 0;
 bool HAS_FRAMEBUFFER_BEEN_RESIZED = false;
@@ -37,6 +38,8 @@ void Rendering::Vulkan::InitializeVulkan()
 	GraphicPipeline::CreateGraphicPipeline();
 	Framebuffer::CreateFramebuffers();
 	CommandPool::CreateCommandPool();
+	VertexBuffer::CreateVertexBuffer();
+	VertexBuffer::CreateIndexBuffer();
 	CommandBuffer::CreateCommandBuffers();
 	Semaphores::CreateSemaphores();
 }
@@ -52,6 +55,8 @@ void Rendering::Vulkan::DestroyRessources()
 	RenderPass::DestroyRenderPass();
 	SwapChain::DestroyImageViews();
 	SwapChain::DestroySwapchain();
+	VertexBuffer::DestroyIndexBuffer();
+	VertexBuffer::DestroyVertexBuffer();
 	LogDevice::DestroyLogicalDevice();
 	Surface::DestroySurface();
 	if (Rendering::Vulkan::Utils::ENABLE_VALIDATION_LAYERS) {

@@ -1,9 +1,8 @@
 #pragma once
 #include "Events/EventManager.h"
+#include "Types/Vector.h"
 
 struct GLFWwindow;
-
-struct SIntVector2D;
 
 namespace Rendering
 {

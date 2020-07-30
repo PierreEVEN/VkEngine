@@ -5,8 +5,8 @@
 
 #include "IO/Log.h"
 #include "Vulkan/VulkanRendering.h"
-#include "EngineTypes.h"
 #include "Vulkan/VulkanLogicalDevice.h"
+#include "Types/Vector.h"
 
 GLFWwindow* primaryWindow;
 

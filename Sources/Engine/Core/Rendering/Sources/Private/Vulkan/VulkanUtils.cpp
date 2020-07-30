@@ -3,8 +3,10 @@
 #include "IO/Log.h"
 #include "Vulkan/VulkanInstance.h"
 #include "Vulkan/VulkanSurface.h"
-#include <set>
 #include "Vulkan/VulkanPhysicalDevice.h"
+#include <set>
+#include "Vulkan/VulkanLogicalDevice.h"
+#include "Vulkan/VulkanCommandPool.h"
 
 std::vector<const char*> Rendering::Vulkan::Utils::GetRequiredExtensions()
 {
@@ -155,4 +157,81 @@ Rendering::Vulkan::Utils::SwapChainSupportDetails Rendering::Vulkan::Utils::GetS
 	}
 
 	return details;
+}
+
+uint32_t Rendering::Vulkan::Utils::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+{
+	VkPhysicalDeviceMemoryProperties memProperties;
+	vkGetPhysicalDeviceMemoryProperties(PhysDevice::GetPhysicalDevice(), &memProperties);
+
+	for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+		if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+			return i;
+		}
+	}
+
+	LOG_ASSERT("Failed to find appropriated memory for buffer");
+	return -1;
+}
+
+void Rendering::Vulkan::Utils::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+{
+	VkBufferCreateInfo bufferInfo{};
+	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferInfo.size = size;
+	bufferInfo.usage = usage;
+	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if (vkCreateBuffer(LogDevice::GetLogicalDevice(), &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
+		LOG_ASSERT("Failed to create buffer");
+	}
+
+	VkMemoryRequirements memRequirements;
+	vkGetBufferMemoryRequirements(LogDevice::GetLogicalDevice(), buffer, &memRequirements);
+
+	VkMemoryAllocateInfo allocInfo{};
+	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.allocationSize = memRequirements.size;
+	allocInfo.memoryTypeIndex = Utils::FindMemoryType(memRequirements.memoryTypeBits, properties);
+
+	if (vkAllocateMemory(LogDevice::GetLogicalDevice(), &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
+		LOG_ASSERT("Failled to allocate buffer memory");
+	}
+
+	vkBindBufferMemory(LogDevice::GetLogicalDevice(), buffer, bufferMemory, 0);
+}
+
+void Rendering::Vulkan::Utils::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+{
+	VkCommandBufferAllocateInfo allocInfo{};
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandPool = CommandPool::GetCommandPool();
+	allocInfo.commandBufferCount = 1;
+
+	VkCommandBuffer commandBuffer;
+	vkAllocateCommandBuffers(LogDevice::GetLogicalDevice(), &allocInfo, &commandBuffer);
+
+	VkCommandBufferBeginInfo beginInfo{};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+	VkBufferCopy copyRegion{};
+	copyRegion.srcOffset = 0; // Optional
+	copyRegion.dstOffset = 0; // Optional
+	copyRegion.size = size;
+	vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+	vkEndCommandBuffer(commandBuffer);
+
+	VkSubmitInfo submitInfo{};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffer;
+
+	vkQueueSubmit(LogDevice::GetGraphicQueues(), 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueWaitIdle(LogDevice::GetGraphicQueues());
+
+	vkFreeCommandBuffers(LogDevice::GetLogicalDevice(), CommandPool::GetCommandPool(), 1, &commandBuffer);
 }

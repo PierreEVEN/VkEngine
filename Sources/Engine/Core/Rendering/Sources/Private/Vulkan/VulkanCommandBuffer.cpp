@@ -6,6 +6,7 @@
 #include "Vulkan/VulkanRenderPass.h"
 #include "Vulkan/VulkanSwapChain.h"
 #include "Vulkan/VulkanGraphicPipeline.h"
+#include "Vulkan/VulkanVertexBuffer.h"
 
 std::vector<VkCommandBuffer> commandBuffers;
 
@@ -48,9 +49,14 @@ void Rendering::Vulkan::CommandBuffer::CreateCommandBuffers()
 
 		vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicPipeline::GetGraphicPipeline());
+			vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicPipeline::GetGraphicPipeline());
 
-		vkCmdDraw(commandBuffers[i], 4, 1, 0, 0);
+			VkBuffer vertexBuffers[] = { VertexBuffer::GetVertexBuffer() };
+			VkDeviceSize offsets[] = { 0 };
+			vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
+			vkCmdBindIndexBuffer(commandBuffers[i], VertexBuffer::GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT16);
+
+			vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(VertexBuffer::GetIndexCount()), 1, 0, 0, 0);
 
 		vkCmdEndRenderPass(commandBuffers[i]);
 

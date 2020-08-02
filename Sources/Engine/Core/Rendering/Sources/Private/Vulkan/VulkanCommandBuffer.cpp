@@ -7,6 +7,8 @@
 #include "Vulkan/VulkanSwapChain.h"
 #include "Vulkan/VulkanGraphicPipeline.h"
 #include "Vulkan/VulkanVertexBuffer.h"
+#include "Vulkan/VulkanUniformBuffer.h"
+#include "Vulkan/VulkanMesh.h"
 
 std::vector<VkCommandBuffer> commandBuffers;
 
@@ -43,9 +45,12 @@ void Rendering::Vulkan::CommandBuffer::CreateCommandBuffers()
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = SwapChain::GetSwapchainExtend();
 
-		VkClearValue clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &clearColor;
+		std::array<VkClearValue, 2> clearValues{};
+		clearValues[0].color = { 0.5f, 0.2f, 0.1f, 1.0f };
+		clearValues[1].depthStencil = { 1.0f, 0 };
+
+		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+		renderPassInfo.pClearValues = clearValues.data();
 
 		vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -54,9 +59,10 @@ void Rendering::Vulkan::CommandBuffer::CreateCommandBuffers()
 			VkBuffer vertexBuffers[] = { VertexBuffer::GetVertexBuffer() };
 			VkDeviceSize offsets[] = { 0 };
 			vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
-			vkCmdBindIndexBuffer(commandBuffers[i], VertexBuffer::GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT16);
+			vkCmdBindIndexBuffer(commandBuffers[i], VertexBuffer::GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-			vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(VertexBuffer::GetIndexCount()), 1, 0, 0, 0);
+			vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicPipeline::GetPipelineLayout(), 0, 1, &UniformBuffer::GetDescriptorSets()[i] , 0, nullptr);
+			vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(Mesh::GetIndexCount()), 1, 0, 0, 0);
 
 		vkCmdEndRenderPass(commandBuffers[i]);
 

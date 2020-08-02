@@ -36,6 +36,7 @@ SET GAINPUTPATH=%cd%\Sources\ThirdParty\gainput\
 SET GLFWPATH=%cd%\Sources\ThirdParty\glfw\
 
 
+
 REM BUILD GAINPUT
 echo Building GAINPUT
 mkdir %GAINPUTPATH%\build > NUL 2>&1
@@ -49,7 +50,6 @@ echo compiling GAINPUT for Release x64...
 "%VSPATH%" lib/gainputstatic.vcxproj /t:build /p:Configuration="Release" /p:Platform="x64" /p:BuildInParallel=true /p:OutDir=%LIBPATH%\GaInput\Release
 IF NOT %errorLevel% == 0 ECHO failed to compile GAINPUT.
 
-pause
 
 REM BUILD GLFW
 echo Building GLFW

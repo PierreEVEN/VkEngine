@@ -2,6 +2,7 @@
 #include "IO/Log.h"
 #include "Vulkan/VulkanLogicalDevice.h"
 #include "Vulkan/VulkanUtils.h"
+#include "Vulkan/VulkanMesh.h"
 
 VkBuffer vertexBuffer;
 VkDeviceMemory vertexBufferMemory;
@@ -9,11 +10,12 @@ VkDeviceMemory vertexBufferMemory;
 VkBuffer indexBuffer;
 VkDeviceMemory indexBufferMemory;
 
+
 void Rendering::Vulkan::VertexBuffer::CreateVertexBuffer()
 {
 	LOG("Create vertex buffer");
 
-	VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+	VkDeviceSize bufferSize = sizeof(Mesh::GetVertices()[0]) * Mesh::GetVertices().size();
 
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingBufferMemory;
@@ -21,7 +23,7 @@ void Rendering::Vulkan::VertexBuffer::CreateVertexBuffer()
 
 	void* data;
 	vkMapMemory(LogDevice::GetLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-	memcpy(data, vertices.data(), (size_t)bufferSize);
+	memcpy(data, Mesh::GetVertices().data(), (size_t)bufferSize);
 	vkUnmapMemory(LogDevice::GetLogicalDevice(), stagingBufferMemory);
 
 	Utils::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
@@ -45,26 +47,17 @@ VkBuffer& Rendering::Vulkan::VertexBuffer::GetVertexBuffer()
 	return vertexBuffer;
 }
 
-size_t Rendering::Vulkan::VertexBuffer::GetVerticeCount()
-{
-	return vertices.size();
-}
-
 VkBuffer& Rendering::Vulkan::VertexBuffer::GetIndexBuffer()
 {
 	return indexBuffer;
 }
 
-size_t Rendering::Vulkan::VertexBuffer::GetIndexCount()
-{
-	return indices.size();
-}
 
 void Rendering::Vulkan::VertexBuffer::CreateIndexBuffer()
 {
 	LOG("Create index buffer");
 
-	VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+	VkDeviceSize bufferSize = sizeof(Mesh::GetIndices()[0]) * Mesh::GetIndices().size();
 
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingBufferMemory;
@@ -72,7 +65,7 @@ void Rendering::Vulkan::VertexBuffer::CreateIndexBuffer()
 
 	void* data;
 	vkMapMemory(LogDevice::GetLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-	memcpy(data, indices.data(), (size_t)bufferSize);
+	memcpy(data, Mesh::GetIndices().data(), (size_t)bufferSize);
 	vkUnmapMemory(LogDevice::GetLogicalDevice(), stagingBufferMemory);
 
 	Utils::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);

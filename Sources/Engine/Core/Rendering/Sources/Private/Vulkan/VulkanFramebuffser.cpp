@@ -3,6 +3,8 @@
 #include "Vulkan/VulkanRenderPass.h"
 #include "IO/Log.h"
 #include "Vulkan/VulkanLogicalDevice.h"
+#include <array>
+#include "Vulkan/VulkanDepthBuffer.h"
 
 std::vector<VkFramebuffer> swapChainFramebuffers;
 
@@ -12,15 +14,16 @@ void Rendering::Vulkan::Framebuffer::CreateFramebuffers()
 	swapChainFramebuffers.resize(SwapChain::GetImageViews().size());
 
 	for (size_t i = 0; i < SwapChain::GetImageViews().size(); i++) {
-		VkImageView attachments[] = {
-			SwapChain::GetImageViews()[i]
+		std::array<VkImageView, 2> attachments = {
+			SwapChain::GetImageViews()[i],
+			DepthBuffer::GetDepthImageView()
 		};
 
 		VkFramebufferCreateInfo framebufferInfo{};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		framebufferInfo.renderPass = RenderPass::GetRenderPass();
-		framebufferInfo.attachmentCount = 1;
-		framebufferInfo.pAttachments = attachments;
+		framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+		framebufferInfo.pAttachments = attachments.data();
 		framebufferInfo.width = SwapChain::GetSwapchainExtend().width;
 		framebufferInfo.height = SwapChain::GetSwapchainExtend().height;
 		framebufferInfo.layers = 1;

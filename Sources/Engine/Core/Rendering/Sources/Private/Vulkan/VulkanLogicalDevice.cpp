@@ -28,6 +28,8 @@ void Rendering::Vulkan::LogDevice::CreateLogicalDevice()
 	}
 
 	VkPhysicalDeviceFeatures deviceFeatures{};
+	deviceFeatures.samplerAnisotropy = VK_TRUE;
+	//deviceFeatures.fillModeNonSolid = VK_TRUE; // Wireframe
 
 	VkDeviceCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;

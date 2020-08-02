@@ -1,3 +1,9 @@
 [submodule "Sources/ThirdParty/stb"]
 	path = Sources/ThirdParty/stb
 	url = https://github.com/nothings/stb.git
+[submodule "Sources/ThirdParty/glm"]
+	path = Sources/ThirdParty/glm
+	url = https://github.com/g-truc/glm.git
+[submodule "Sources/ThirdParty/tinyobjloader"]
+	path = Sources/ThirdParty/tinyobjloader
+	url = https://github.com/tinyobjloader/tinyobjloader.git

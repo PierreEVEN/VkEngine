@@ -15,9 +15,13 @@ VKAPI_ATTR VkBool32 VKAPI_CALL ValidationLayerDebugCallback(VkDebugUtilsMessageS
 	else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
 		LOG_WARNING(String("VULKAN VALIDATION LAYER : ") + pCallbackData->pMessage);
 	else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+	{
 		LOG_ASSERT(String("VULKAN VALIDATION LAYER : ") + pCallbackData->pMessage);
+	}
 	else
+	{
 		LOG_ERROR(String("VULKAN VALIDATION LAYER - UNKOWN VERBOSITY : ") + pCallbackData->pMessage);
+	}
 
 	return VK_FALSE;
 }

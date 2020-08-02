@@ -11,6 +11,8 @@
 #include "Vulkan/VulkanFramebuffser.h"
 #include "Vulkan/VulkanGraphicPipeline.h"
 #include "Vulkan/VulkanRenderPass.h"
+#include "Vulkan/VulkanUniformBuffer.h"
+#include "Vulkan/VulkanDepthBuffer.h"
 
 VkSwapchainKHR swapChain;
 std::vector<VkImage> swapChainImages;
@@ -133,27 +135,9 @@ void Rendering::Vulkan::SwapChain::CreateImageViews()
 {
 	LOG("Create image views");
 	swapChainImageViews.resize(swapChainImages.size());
-	for (size_t i = 0; i < swapChainImages.size(); i++) {
-		VkImageViewCreateInfo createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		createInfo.image = swapChainImages[i];
-		createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		createInfo.format = swapChainImageFormat;
 
-		createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-		createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-		createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-		createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-		createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		createInfo.subresourceRange.baseMipLevel = 0;
-		createInfo.subresourceRange.levelCount = 1;
-		createInfo.subresourceRange.baseArrayLayer = 0;
-		createInfo.subresourceRange.layerCount = 1;
-
-		if (vkCreateImageView(LogDevice::GetLogicalDevice(), &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
-			LOG_ASSERT(String("Failed to create image view #") + String::ToString(i));
-		}
+	for (uint32_t i = 0; i < swapChainImages.size(); i++) {
+		swapChainImageViews[i] = Utils::CreateImageView(swapChainImages[i], swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 	}
 }
 
@@ -194,7 +178,10 @@ void Rendering::Vulkan::SwapChain::RecreateSwapChain()
 	LOG("Recreate swapchain");
 
 	CommandBuffer::FreeCommandBuffers();
+	UniformBuffer::DestroyDescriptorPool();
+	UniformBuffer::DestroyUniformBuffer();
 	Framebuffer::DestroyFramebuffers();
+	DepthBuffer::DestroyDepthRessources();
 	GraphicPipeline::DestroyGraphicPipeline();
 	RenderPass::DestroyRenderPass();
 	SwapChain::DestroyImageViews();
@@ -204,6 +191,10 @@ void Rendering::Vulkan::SwapChain::RecreateSwapChain()
 	SwapChain::CreateImageViews();
 	RenderPass::CreateRenderPass();
 	GraphicPipeline::CreateGraphicPipeline();
+	DepthBuffer::CreateDepthRessources();
 	Framebuffer::CreateFramebuffers();
+	UniformBuffer::CreateUniformBuffer();
+	UniformBuffer::CreateDescriptorPool();
+	UniformBuffer::CreateDescriptorSets();
 	CommandBuffer::CreateCommandBuffers();
 }

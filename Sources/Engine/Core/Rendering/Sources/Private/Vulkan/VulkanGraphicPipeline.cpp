@@ -6,10 +6,11 @@
 #include "Vulkan/VulkanSwapChain.h"
 #include "Vulkan/VulkanRenderPass.h"
 #include "Vulkan/VulkanVertexBuffer.h"
+#include "Vulkan/VulkanUniformBuffer.h"
+#include "Vulkan/VulkanMesh.h"
 
-VkPipelineLayout pipelineLayout;
 VkPipeline graphicsPipeline;
-
+VkPipelineLayout pipelineLayout;
 
 static std::vector<char> ReadFile(const String& filename) {
 	std::ifstream file(filename.GetData(), std::ios::ate | std::ios::binary);
@@ -51,8 +52,8 @@ void Rendering::Vulkan::GraphicPipeline::CreateGraphicPipeline()
 
 	VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
 
-	auto bindingDescription = VertexBuffer::Vertex::getBindingDescription();
-	auto attributeDescriptions = VertexBuffer::Vertex::getAttributeDescriptions();
+	auto bindingDescription = Mesh::Vertex::getBindingDescription();
+	auto attributeDescriptions = Mesh::Vertex::getAttributeDescriptions();
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -63,7 +64,7 @@ void Rendering::Vulkan::GraphicPipeline::CreateGraphicPipeline()
 
 	VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
 	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	inputAssembly.primitiveRestartEnable = VK_FALSE;
 
 	VkViewport viewport{};
@@ -92,12 +93,12 @@ void Rendering::Vulkan::GraphicPipeline::CreateGraphicPipeline()
 	rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 	rasterizer.lineWidth = 1.0f;
 	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-	rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterizer.depthBiasEnable = VK_FALSE;
 	rasterizer.depthBiasConstantFactor = 0.0f; // Optional
 	rasterizer.depthBiasClamp = 0.0f; // Optional
 	rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
-
+	
 	VkPipelineMultisampleStateCreateInfo multisampling{};
 	multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 	multisampling.sampleShadingEnable = VK_FALSE;
@@ -106,6 +107,16 @@ void Rendering::Vulkan::GraphicPipeline::CreateGraphicPipeline()
 	multisampling.pSampleMask = nullptr; // Optional
 	multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
 	multisampling.alphaToOneEnable = VK_FALSE; // Optional
+
+	VkPipelineDepthStencilStateCreateInfo depthStencil{};
+	depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	depthStencil.depthTestEnable = VK_TRUE;
+	depthStencil.depthWriteEnable = VK_TRUE;
+	depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+	depthStencil.depthBoundsTestEnable = VK_FALSE;
+	depthStencil.minDepthBounds = 0.0f; // Optional
+	depthStencil.maxDepthBounds = 1.0f; // Optional
+	depthStencil.stencilTestEnable = VK_FALSE;
 
 	VkPipelineColorBlendAttachmentState colorBlendAttachment{};
 	colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
@@ -137,9 +148,8 @@ void Rendering::Vulkan::GraphicPipeline::CreateGraphicPipeline()
 
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount = 0;            // Optional
-	pipelineLayoutInfo.pSetLayouts = nullptr;         // Optional
-	pipelineLayoutInfo.pushConstantRangeCount = 0;    // Optional
+	pipelineLayoutInfo.setLayoutCount = 1;            // Optional
+	pipelineLayoutInfo.pSetLayouts = &UniformBuffer::GetDescriptorSetLayout();
 	pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
 	if (vkCreatePipelineLayout(LogDevice::GetLogicalDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
@@ -163,6 +173,7 @@ void Rendering::Vulkan::GraphicPipeline::CreateGraphicPipeline()
 	pipelineInfo.subpass = 0;
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 	pipelineInfo.basePipelineIndex = -1; // Optional
+	pipelineInfo.pDepthStencilState = &depthStencil;
 
 	if (vkCreateGraphicsPipelines(LogDevice::GetLogicalDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
 		LOG_ASSERT("Faield to create graphic pipeline");
@@ -179,4 +190,9 @@ void Rendering::Vulkan::GraphicPipeline::DestroyGraphicPipeline()
 VkPipeline& Rendering::Vulkan::GraphicPipeline::GetGraphicPipeline()
 {
 	return graphicsPipeline;
+}
+
+VkPipelineLayout& Rendering::Vulkan::GraphicPipeline::GetPipelineLayout()
+{
+	return pipelineLayout;
 }

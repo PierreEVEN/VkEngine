@@ -18,6 +18,11 @@
 #include "Vulkan/VulkanCommandBuffer.h"
 #include "Vulkan/VulkanSemaphores.h"
 #include "Vulkan/VulkanVertexBuffer.h"
+#include "Vulkan/VulkanUniformBuffer.h"
+#include "Vulkan/VulkanImage.h"
+#include "Vulkan/VulkanDepthBuffer.h"
+#include <chrono>
+#include "Vulkan/VulkanMesh.h"
 
 size_t CURRENT_FRAME_ID = 0;
 bool HAS_FRAMEBUFFER_BEEN_RESIZED = false;
@@ -35,11 +40,20 @@ void Rendering::Vulkan::InitializeVulkan()
 	SwapChain::CreateSwapChain();
 	SwapChain::CreateImageViews();
 	RenderPass::CreateRenderPass();
+	UniformBuffer::CreateDescriptorSetLayout();
 	GraphicPipeline::CreateGraphicPipeline();
-	Framebuffer::CreateFramebuffers();
 	CommandPool::CreateCommandPool();
+	DepthBuffer::CreateDepthRessources();
+	Framebuffer::CreateFramebuffers();
+	Image::CreateTextureImage();
+	Image::CreateTextureImageView();
+	Image::CreateTextureSampler();
+	Mesh::LoadModel();
 	VertexBuffer::CreateVertexBuffer();
 	VertexBuffer::CreateIndexBuffer();
+	UniformBuffer::CreateUniformBuffer();
+	UniformBuffer::CreateDescriptorPool();
+	UniformBuffer::CreateDescriptorSets();
 	CommandBuffer::CreateCommandBuffers();
 	Semaphores::CreateSemaphores();
 }
@@ -50,11 +64,18 @@ void Rendering::Vulkan::DestroyRessources()
 
 	Semaphores::DestroySempahores();
 	CommandPool::DestroyCommandPool();
+	DepthBuffer::DestroyDepthRessources();
 	Framebuffer::DestroyFramebuffers();
 	GraphicPipeline::DestroyGraphicPipeline();
 	RenderPass::DestroyRenderPass();
 	SwapChain::DestroyImageViews();
 	SwapChain::DestroySwapchain();
+	Image::DestroyTextureSampler();
+	Image::DestroyTextureImageView();
+	Image::DestroyTextureImage();
+	UniformBuffer::DestroyUniformBuffer();
+	UniformBuffer::DestroyDescriptorPool();
+	UniformBuffer::DestroyDesciptorSetlayout();
 	VertexBuffer::DestroyIndexBuffer();
 	VertexBuffer::DestroyVertexBuffer();
 	LogDevice::DestroyLogicalDevice();
@@ -65,10 +86,24 @@ void Rendering::Vulkan::DestroyRessources()
 	Instance::DestroyInstance();
 }
 
+std::chrono::steady_clock::time_point lastTime;
+double printTimer = 0.0;
+
 void Rendering::Vulkan::DrawFrame()
 {
-	vkWaitForFences(LogDevice::GetLogicalDevice(), 1, &Semaphores::GetInFlightFence()[CURRENT_FRAME_ID], VK_TRUE, UINT64_MAX);
+	double deltaTime;
 
+	deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - lastTime).count() / 1000.0;
+	lastTime = std::chrono::steady_clock::now();
+
+	printTimer += deltaTime;
+	if (printTimer > 1000)
+	{
+		printTimer = 0.0;
+		LOG(String("DeltaTime : ") + String::ToString(deltaTime) + "ms\n" + String::ToString(1000 / deltaTime) + " fps");
+	}
+
+	vkWaitForFences(LogDevice::GetLogicalDevice(), 1, &Semaphores::GetInFlightFence()[CURRENT_FRAME_ID], VK_TRUE, UINT64_MAX);
 
 	uint32_t imageIndex;
 
@@ -86,6 +121,8 @@ void Rendering::Vulkan::DrawFrame()
 		vkWaitForFences(LogDevice::GetLogicalDevice(), 1, &Semaphores::GetImagesInFlightFences()[imageIndex], VK_TRUE, UINT64_MAX);
 	}
 	Semaphores::GetImagesInFlightFences()[imageIndex] = Semaphores::GetInFlightFence()[CURRENT_FRAME_ID];
+
+	UniformBuffer::UpdateUniformBuffer(imageIndex);
 
 	VkSubmitInfo submitInfo{};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

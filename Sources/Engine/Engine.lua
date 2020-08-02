@@ -22,6 +22,18 @@ function defineProject(projectType, useReflection, projectName)
 	end
 end
 
+function includeObjLoad()
+	includedirs(LibDir.."tinyobjloader");
+end
+
+function includeGlm()
+	includedirs(LibDir.."glm")
+end
+
+function includeStb()
+	includedirs(LibDir.."stb")
+end
+
 function includeVulkan()
 	if type(os.getenv("vulkan_sdk")) ~= "" then
 		includedirs(os.getenv("vulkan_sdk").."/Include")

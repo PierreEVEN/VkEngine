@@ -82,7 +82,10 @@ bool Rendering::Vulkan::Utils::IsPhysicalDeviceSuitable(VkPhysicalDevice device)
 		swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
 	}
 
-	return indices.IsComplete() && bAreExtensionSupported && swapChainAdequate;
+	VkPhysicalDeviceFeatures supportedFeatures;
+	vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
+
+	return indices.IsComplete() && bAreExtensionSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
 
@@ -203,6 +206,17 @@ void Rendering::Vulkan::Utils::CreateBuffer(VkDeviceSize size, VkBufferUsageFlag
 
 void Rendering::Vulkan::Utils::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
+	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+
+	VkBufferCopy copyRegion{};
+	copyRegion.size = size;
+	vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+	EndSingleTimeCommands(commandBuffer);
+}
+
+VkCommandBuffer Rendering::Vulkan::Utils::BeginSingleTimeCommands()
+{
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -218,11 +232,11 @@ void Rendering::Vulkan::Utils::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer
 
 	vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-	VkBufferCopy copyRegion{};
-	copyRegion.srcOffset = 0; // Optional
-	copyRegion.dstOffset = 0; // Optional
-	copyRegion.size = size;
-	vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+	return commandBuffer;
+}
+
+void Rendering::Vulkan::Utils::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
+{
 	vkEndCommandBuffer(commandBuffer);
 
 	VkSubmitInfo submitInfo{};
@@ -230,8 +244,56 @@ void Rendering::Vulkan::Utils::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &commandBuffer;
 
-	vkQueueSubmit(LogDevice::GetGraphicQueues(), 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueSubmit(LogDevice::GetGraphicQueues() , 1, &submitInfo, VK_NULL_HANDLE);
 	vkQueueWaitIdle(LogDevice::GetGraphicQueues());
 
 	vkFreeCommandBuffers(LogDevice::GetLogicalDevice(), CommandPool::GetCommandPool(), 1, &commandBuffer);
 }
+
+VkImageView Rendering::Vulkan::Utils::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
+{
+	VkImageViewCreateInfo viewInfo{};
+	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	viewInfo.image = image;
+	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	viewInfo.format = format;
+	viewInfo.subresourceRange.aspectMask = aspectFlags;
+	viewInfo.subresourceRange.baseMipLevel = 0;
+	viewInfo.subresourceRange.levelCount = 1;
+	viewInfo.subresourceRange.baseArrayLayer = 0;
+	viewInfo.subresourceRange.layerCount = 1;
+
+	VkImageView imageView;
+	if (vkCreateImageView(LogDevice::GetLogicalDevice(), &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+		LOG_ASSERT("Faileld to create view on texture image");
+	}
+
+	return imageView;
+}
+
+VkFormat Rendering::Vulkan::Utils::FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
+{
+	for (VkFormat format : candidates) {
+		VkFormatProperties props;
+		vkGetPhysicalDeviceFormatProperties(PhysDevice::GetPhysicalDevice(), format, &props);
+		if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+			return format;
+		}
+		else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
+			return format;
+		}
+	}
+
+	LOG_ASSERT("cannot support required format");
+}
+
+VkFormat Rendering::Vulkan::Utils::FindDepthFormat()
+{
+	return FindSupportedFormat(
+		{ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
+		VK_IMAGE_TILING_OPTIMAL,
+		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+	);
+}
+
+bool Rendering::Vulkan::Utils::HasStencilComponent(VkFormat format) { return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT; }

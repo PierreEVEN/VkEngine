@@ -6,3 +6,6 @@ project "Rendering"
 	includeModule("Core/Utils", "Utils")
 	includeVulkan()
 	includeGlfw()
+	includeGlm()
+	includeStb()
+	includeObjLoad()

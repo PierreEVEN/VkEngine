@@ -11,4 +11,5 @@ namespace Rendering::Vulkan::GraphicPipeline
 	void DestroyGraphicPipeline();
 
 	VkPipeline& GetGraphicPipeline();
+	VkPipelineLayout& GetPipelineLayout();
 }

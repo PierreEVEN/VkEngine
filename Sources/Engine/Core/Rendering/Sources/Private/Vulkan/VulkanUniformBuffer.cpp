@@ -85,7 +85,7 @@ void Rendering::Vulkan::UniformBuffer::UpdateUniformBuffer(uint32_t currentImage
 
 	float rotVelocity = 10.f;
 
-	float dist = (sin(time / 2) + 1.5f) / 8 + 0.3;
+	float dist = (float)(sin(time / 2) + 1.5f) / 8 + 0.3f;
 
 	UniformBufferObject ubo{};
 	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(rotVelocity), glm::vec3(0.0f, 0.0f, 1.0f));

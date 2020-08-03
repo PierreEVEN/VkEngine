@@ -23,6 +23,7 @@
 #include "Vulkan/VulkanDepthBuffer.h"
 #include <chrono>
 #include "Vulkan/VulkanMesh.h"
+#include "Vulkan/VulkanAntialiasing.h"
 
 size_t CURRENT_FRAME_ID = 0;
 bool HAS_FRAMEBUFFER_BEEN_RESIZED = false;
@@ -43,6 +44,7 @@ void Rendering::Vulkan::InitializeVulkan()
 	UniformBuffer::CreateDescriptorSetLayout();
 	GraphicPipeline::CreateGraphicPipeline();
 	CommandPool::CreateCommandPool();
+	Antialiasing::createColorResources();
 	DepthBuffer::CreateDepthRessources();
 	Framebuffer::CreateFramebuffers();
 	Image::CreateTextureImage();
@@ -65,6 +67,7 @@ void Rendering::Vulkan::DestroyRessources()
 	Semaphores::DestroySempahores();
 	CommandPool::DestroyCommandPool();
 	DepthBuffer::DestroyDepthRessources();
+	Antialiasing::DestroyColorRessources();
 	Framebuffer::DestroyFramebuffers();
 	GraphicPipeline::DestroyGraphicPipeline();
 	RenderPass::DestroyRenderPass();

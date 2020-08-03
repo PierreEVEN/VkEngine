@@ -13,6 +13,7 @@
 #include "Vulkan/VulkanRenderPass.h"
 #include "Vulkan/VulkanUniformBuffer.h"
 #include "Vulkan/VulkanDepthBuffer.h"
+#include "Vulkan/VulkanAntialiasing.h"
 
 VkSwapchainKHR swapChain;
 std::vector<VkImage> swapChainImages;
@@ -182,6 +183,7 @@ void Rendering::Vulkan::SwapChain::RecreateSwapChain()
 	UniformBuffer::DestroyUniformBuffer();
 	Framebuffer::DestroyFramebuffers();
 	DepthBuffer::DestroyDepthRessources();
+	Antialiasing::DestroyColorRessources();
 	GraphicPipeline::DestroyGraphicPipeline();
 	RenderPass::DestroyRenderPass();
 	SwapChain::DestroyImageViews();
@@ -191,6 +193,7 @@ void Rendering::Vulkan::SwapChain::RecreateSwapChain()
 	SwapChain::CreateImageViews();
 	RenderPass::CreateRenderPass();
 	GraphicPipeline::CreateGraphicPipeline();
+	Antialiasing::createColorResources();
 	DepthBuffer::CreateDepthRessources();
 	Framebuffer::CreateFramebuffers();
 	UniformBuffer::CreateUniformBuffer();

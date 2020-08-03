@@ -29,6 +29,7 @@ void Rendering::Vulkan::LogDevice::CreateLogicalDevice()
 
 	VkPhysicalDeviceFeatures deviceFeatures{};
 	deviceFeatures.samplerAnisotropy = VK_TRUE;
+	deviceFeatures.sampleRateShading = VK_TRUE; // Sample Shading
 	//deviceFeatures.fillModeNonSolid = VK_TRUE; // Wireframe
 
 	VkDeviceCreateInfo createInfo{};

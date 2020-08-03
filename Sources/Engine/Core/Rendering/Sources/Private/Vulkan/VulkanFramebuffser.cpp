@@ -5,6 +5,7 @@
 #include "Vulkan/VulkanLogicalDevice.h"
 #include <array>
 #include "Vulkan/VulkanDepthBuffer.h"
+#include "Vulkan/VulkanAntialiasing.h"
 
 std::vector<VkFramebuffer> swapChainFramebuffers;
 
@@ -14,9 +15,10 @@ void Rendering::Vulkan::Framebuffer::CreateFramebuffers()
 	swapChainFramebuffers.resize(SwapChain::GetImageViews().size());
 
 	for (size_t i = 0; i < SwapChain::GetImageViews().size(); i++) {
-		std::array<VkImageView, 2> attachments = {
-			SwapChain::GetImageViews()[i],
-			DepthBuffer::GetDepthImageView()
+		std::array<VkImageView, 3> attachments = {
+			Antialiasing::GetImageView(),
+			DepthBuffer::GetDepthImageView(),
+			SwapChain::GetImageViews()[i]
 		};
 
 		VkFramebufferCreateInfo framebufferInfo{};

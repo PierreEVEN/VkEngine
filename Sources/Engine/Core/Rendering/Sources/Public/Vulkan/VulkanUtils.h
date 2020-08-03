@@ -40,4 +40,5 @@ namespace Rendering::Vulkan::Utils
 	VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 	VkFormat FindDepthFormat();
 	bool HasStencilComponent(VkFormat format);
+	VkSampleCountFlagBits GetMaxUsableSampleCount();
 }

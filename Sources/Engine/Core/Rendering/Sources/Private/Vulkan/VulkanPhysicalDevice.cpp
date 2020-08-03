@@ -4,6 +4,7 @@
 #include "Vulkan/VulkanInstance.h"
 #include "IO/Log.h"
 #include "Vulkan/VulkanUtils.h"
+#include "Vulkan/VulkanAntialiasing.h"
 
 VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
@@ -32,6 +33,7 @@ void Rendering::Vulkan::PhysDevice::PickPhysicalDevice()
 	for (const auto& device : devices) {
 		if (Utils::IsPhysicalDeviceSuitable(device)) {
 			physicalDevice = device;
+			Antialiasing::SetMsaaSampleCOunt(Utils::GetMaxUsableSampleCount());
 			break;
 		}
 	}

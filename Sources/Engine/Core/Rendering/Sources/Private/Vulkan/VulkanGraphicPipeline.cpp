@@ -8,6 +8,7 @@
 #include "Vulkan/VulkanVertexBuffer.h"
 #include "Vulkan/VulkanUniformBuffer.h"
 #include "Vulkan/VulkanMesh.h"
+#include "Vulkan/VulkanAntialiasing.h"
 
 VkPipeline graphicsPipeline;
 VkPipelineLayout pipelineLayout;
@@ -102,11 +103,13 @@ void Rendering::Vulkan::GraphicPipeline::CreateGraphicPipeline()
 	VkPipelineMultisampleStateCreateInfo multisampling{};
 	multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 	multisampling.sampleShadingEnable = VK_FALSE;
-	multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+	multisampling.rasterizationSamples = Antialiasing::GetMsaaSampleCount();
 	multisampling.minSampleShading = 1.0f; // Optional
 	multisampling.pSampleMask = nullptr; // Optional
 	multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
 	multisampling.alphaToOneEnable = VK_FALSE; // Optional
+	multisampling.sampleShadingEnable = VK_TRUE;
+	multisampling.minSampleShading = .2f;
 
 	VkPipelineDepthStencilStateCreateInfo depthStencil{};
 	depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;

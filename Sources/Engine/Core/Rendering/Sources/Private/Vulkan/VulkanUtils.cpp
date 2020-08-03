@@ -250,7 +250,7 @@ void Rendering::Vulkan::Utils::EndSingleTimeCommands(VkCommandBuffer commandBuff
 	vkFreeCommandBuffers(LogDevice::GetLogicalDevice(), CommandPool::GetCommandPool(), 1, &commandBuffer);
 }
 
-VkImageView Rendering::Vulkan::Utils::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
+VkImageView Rendering::Vulkan::Utils::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
 {
 	VkImageViewCreateInfo viewInfo{};
 	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -262,6 +262,7 @@ VkImageView Rendering::Vulkan::Utils::CreateImageView(VkImage image, VkFormat fo
 	viewInfo.subresourceRange.levelCount = 1;
 	viewInfo.subresourceRange.baseArrayLayer = 0;
 	viewInfo.subresourceRange.layerCount = 1;
+	viewInfo.subresourceRange.levelCount = mipLevels;
 
 	VkImageView imageView;
 	if (vkCreateImageView(LogDevice::GetLogicalDevice(), &viewInfo, nullptr, &imageView) != VK_SUCCESS) {

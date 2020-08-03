@@ -13,8 +13,8 @@ void Rendering::Vulkan::DepthBuffer::CreateDepthRessources()
 {
 	LOG("create depth ressources");
 	VkFormat depthFormat = Utils::FindDepthFormat();
-	Image::CreateImage(SwapChain::GetSwapchainExtend().width, SwapChain::GetSwapchainExtend().height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
-	depthImageView = Utils::CreateImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+	Image::CreateImage(SwapChain::GetSwapchainExtend().width, SwapChain::GetSwapchainExtend().height, 1, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
+	depthImageView = Utils::CreateImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 }
 
 void Rendering::Vulkan::DepthBuffer::DestroyDepthRessources()

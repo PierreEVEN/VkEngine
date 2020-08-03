@@ -85,9 +85,11 @@ void Rendering::Vulkan::UniformBuffer::UpdateUniformBuffer(uint32_t currentImage
 
 	float rotVelocity = 10.f;
 
+	float dist = (sin(time / 2) + 1.5f) / 8 + 0.3;
+
 	UniformBufferObject ubo{};
 	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(rotVelocity), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.view = glm::lookAt(glm::vec3(dist, dist, dist), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	ubo.proj = glm::perspective(glm::radians(45.0f), SwapChain::GetSwapchainExtend().width / (float)SwapChain::GetSwapchainExtend().height, 0.1f, 10.0f);
 	ubo.proj[1][1] *= -1;
 

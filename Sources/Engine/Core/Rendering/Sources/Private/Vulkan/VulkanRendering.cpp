@@ -100,7 +100,7 @@ void Rendering::Vulkan::DrawFrame()
 	if (printTimer > 1000)
 	{
 		printTimer = 0.0;
-		LOG(String("DeltaTime : ") + String::ToString(deltaTime) + "ms\n" + String::ToString(1000 / deltaTime) + " fps");
+		LOG(String("DeltaTime : ") + String::ToString(deltaTime) + "ms  |  " + String::ToString(1000 / deltaTime) + " fps");
 	}
 
 	vkWaitForFences(LogDevice::GetLogicalDevice(), 1, &Semaphores::GetInFlightFence()[CURRENT_FRAME_ID], VK_TRUE, UINT64_MAX);

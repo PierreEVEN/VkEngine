@@ -32,4 +32,5 @@ namespace Rendering::Vulkan::UniformBuffer
 
 	VkDescriptorSetLayout& GetDescriptorSetLayout();
 	std::vector<VkDescriptorSet>& GetDescriptorSets();
+	VkBuffer& GetUniformBuffer();
 }

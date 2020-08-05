@@ -3,8 +3,8 @@
 #include "Vulkan/VulkanUtils.h"
 #include "IO/Log.h"
 #include <set>
+#include "Constants.h"
 
-VkDevice logicalDevice;
 VkQueue graphicsQueue;
 VkQueue presentQueue;
 
@@ -12,7 +12,7 @@ void Rendering::Vulkan::LogDevice::CreateLogicalDevice()
 {
 	LOG("Create logical device");
 
-	Utils::QueueFamilyIndices indices = Utils::FindQueueFamilies(PhysDevice::GetPhysicalDevice());
+	Utils::QueueFamilyIndices indices = Utils::FindDeviceQueueFamilies(PhysDevice::GetPhysicalDevice());
 
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 	std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
@@ -50,23 +50,23 @@ void Rendering::Vulkan::LogDevice::CreateLogicalDevice()
 		createInfo.enabledLayerCount = 0;
 	}
 
-	if (vkCreateDevice(PhysDevice::GetPhysicalDevice(), &createInfo, nullptr, &logicalDevice) != VK_SUCCESS) {
+	if (vkCreateDevice(PhysDevice::GetPhysicalDevice(), &createInfo, nullptr, &G_LOGICAL_DEVICE) != VK_SUCCESS) {
 		LOG_ASSERT("Failed to create logical device");
 	}
 
-	vkGetDeviceQueue(logicalDevice, indices.graphicsFamily.value(), 0, &graphicsQueue);
-	vkGetDeviceQueue(logicalDevice, indices.presentFamily.value(), 0, &presentQueue);
+	vkGetDeviceQueue(G_LOGICAL_DEVICE, indices.graphicsFamily.value(), 0, &graphicsQueue);
+	vkGetDeviceQueue(G_LOGICAL_DEVICE, indices.presentFamily.value(), 0, &presentQueue);
 }
 
 void Rendering::Vulkan::LogDevice::DestroyLogicalDevice()
 {
 	LOG("Destroy logical device");
-	vkDestroyDevice(logicalDevice, nullptr);
+	vkDestroyDevice(G_LOGICAL_DEVICE, nullptr);
 }
 
 VkDevice& Rendering::Vulkan::LogDevice::GetLogicalDevice()
 {
-	return logicalDevice;
+	return G_LOGICAL_DEVICE;
 }
 
 VkQueue& Rendering::Vulkan::LogDevice::GetGraphicQueues()

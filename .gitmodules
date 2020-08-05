@@ -7,3 +7,9 @@
 [submodule "Sources/ThirdParty/tinyobjloader"]
 	path = Sources/ThirdParty/tinyobjloader
 	url = https://github.com/tinyobjloader/tinyobjloader.git
+[submodule "Sources/ThirdParty/imgui"]
+	path = Sources/ThirdParty/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "Sources/ThirdParty/VulkanMemoryAllocator"]
+	path = Sources/ThirdParty/VulkanMemoryAllocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git

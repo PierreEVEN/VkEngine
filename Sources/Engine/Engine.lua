@@ -22,6 +22,10 @@ function defineProject(projectType, useReflection, projectName)
 	end
 end
 
+function includeVMA()
+	includedirs(LibDir.."VulkanMemoryAllocator/src");
+end
+
 function includeObjLoad()
 	includedirs(LibDir.."tinyobjloader");
 end

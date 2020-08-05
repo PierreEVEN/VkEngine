@@ -179,3 +179,8 @@ std::vector<VkDescriptorSet>& Rendering::Vulkan::UniformBuffer::GetDescriptorSet
 	return descriptorSets;
 }
 
+VkBuffer& Rendering::Vulkan::UniformBuffer::GetUniformBuffer()
+{
+	return uniformBuffers[0];
+}
+

@@ -71,7 +71,7 @@ bool Rendering::Vulkan::Utils::CheckValidationLayerSupport()
 
 bool Rendering::Vulkan::Utils::IsPhysicalDeviceSuitable(VkPhysicalDevice device)
 {
-	QueueFamilyIndices indices = FindQueueFamilies(device);
+	QueueFamilyIndices indices = FindDeviceQueueFamilies(device);
 
 	bool bAreExtensionSupported = CheckDeviceExtensionSupport(device);
 
@@ -89,7 +89,7 @@ bool Rendering::Vulkan::Utils::IsPhysicalDeviceSuitable(VkPhysicalDevice device)
 }
 
 
-Rendering::Vulkan::Utils::QueueFamilyIndices Rendering::Vulkan::Utils::FindQueueFamilies(VkPhysicalDevice device)
+Rendering::Vulkan::Utils::QueueFamilyIndices Rendering::Vulkan::Utils::FindDeviceQueueFamilies(VkPhysicalDevice device)
 {
 	QueueFamilyIndices indices;
 

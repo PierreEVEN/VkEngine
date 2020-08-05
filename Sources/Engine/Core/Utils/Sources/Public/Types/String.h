@@ -46,6 +46,9 @@ public:
 	/* Operator == */
 	bool operator==(const String& _Val) const;
 
+	/* Operator == */
+	bool operator<(const String& _Val) const;
+
 	/* Operator /= */
 	String& operator/=(const String& _Val) { return Append(String('/') + _Val); }
 

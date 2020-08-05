@@ -7,6 +7,8 @@
 #include "Vulkan/VulkanRendering.h"
 #include "Vulkan/VulkanLogicalDevice.h"
 #include "Types/Vector.h"
+#include "Vulkan/VulkanImguiIntegration.h"
+#include "Initialization.h"
 
 GLFWwindow* primaryWindow;
 
@@ -30,24 +32,24 @@ void Rendering::InitializeWindow()
 void Rendering::InitializeRendering()
 {
 	LOG("Initializing Rendering");
-	Rendering::Vulkan::InitializeVulkan();
+	Rendering::Initialization::Initialize();
 }
 
 void Rendering::ExecuteRenderLoop()
 {
-	LOG("Starting render loop...");
-	while (!glfwWindowShouldClose(primaryWindow)) {
-		glfwPollEvents();
-		Vulkan::DrawFrame();
-	}
-
-	vkDeviceWaitIdle(Vulkan::LogDevice::GetLogicalDevice());
+// 	LOG("Starting render loop...");
+// 	while (!glfwWindowShouldClose(primaryWindow)) {
+// 		glfwPollEvents();
+// 		Vulkan::DrawFrame();
+// 	}
+// 
+// 	vkDeviceWaitIdle(Vulkan::LogDevice::GetLogicalDevice());
 }
 
 void Rendering::CleanupRendering()
 {
 	LOG("Shuting down Rendering");
-	Rendering::Vulkan::DestroyRessources();
+	Rendering::Initialization::Shutdown();
 }
 
 void Rendering::CleaneupWindow()

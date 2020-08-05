@@ -5,8 +5,7 @@
 #include "IO/Log.h"
 #include "Vulkan/VulkanUtils.h"
 #include "Vulkan/VulkanAntialiasing.h"
-
-VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+#include "Constants.h"
 
 void Rendering::Vulkan::PhysDevice::PickPhysicalDevice()
 {
@@ -32,25 +31,25 @@ void Rendering::Vulkan::PhysDevice::PickPhysicalDevice()
 
 	for (const auto& device : devices) {
 		if (Utils::IsPhysicalDeviceSuitable(device)) {
-			physicalDevice = device;
+			G_PHYSICAL_DEVICE = device;
 			Antialiasing::SetMsaaSampleCOunt(Utils::GetMaxUsableSampleCount());
 			break;
 		}
 	}
 
-	if (physicalDevice == VK_NULL_HANDLE) {
+	if (G_PHYSICAL_DEVICE == VK_NULL_HANDLE) {
 		LOG_ASSERT("Cannot find any suitable GPU");
 	}
 
 
 	VkPhysicalDeviceProperties pDevProperties;
-	vkGetPhysicalDeviceProperties(physicalDevice, &pDevProperties);
+	vkGetPhysicalDeviceProperties(G_PHYSICAL_DEVICE, &pDevProperties);
 
 	LOG(String("Picking physical device ") + String::ToString(pDevProperties.deviceID) + " (" + pDevProperties.deviceName + ")");
 }
 
 VkPhysicalDevice& Rendering::Vulkan::PhysDevice::GetPhysicalDevice()
 {
-	return physicalDevice;
+	return G_PHYSICAL_DEVICE;
 }
 

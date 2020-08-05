@@ -14,11 +14,12 @@
 #include "Vulkan/VulkanUniformBuffer.h"
 #include "Vulkan/VulkanDepthBuffer.h"
 #include "Vulkan/VulkanAntialiasing.h"
+#include "Vulkan/VulkanImguiIntegration.h"
+#include "Constants.h"
 
 VkSwapchainKHR swapChain;
 std::vector<VkImage> swapChainImages;
 VkFormat swapChainImageFormat;
-VkExtent2D swapChainExtent;
 std::vector<VkImageView> swapChainImageViews;
 
 VkSurfaceFormatKHR Rendering::Vulkan::SwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
@@ -84,7 +85,7 @@ void Rendering::Vulkan::SwapChain::CreateSwapChain()
 	createInfo.imageArrayLayers = 1;
 	createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-	Utils::QueueFamilyIndices indices = Utils::FindQueueFamilies(PhysDevice::GetPhysicalDevice());
+	Utils::QueueFamilyIndices indices = Utils::FindDeviceQueueFamilies(PhysDevice::GetPhysicalDevice());
 	uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), indices.presentFamily.value() };
 
 	SwapChainLog += String("\t-Image format : ") + String::ToString((uint8_t)surfaceFormat.format) + "\n";
@@ -117,7 +118,7 @@ void Rendering::Vulkan::SwapChain::CreateSwapChain()
 	swapChainImages.resize(imageCount);
 	vkGetSwapchainImagesKHR(LogDevice::GetLogicalDevice(), swapChain, &imageCount, swapChainImages.data());
 	swapChainImageFormat = surfaceFormat.format;
-	swapChainExtent = extend;
+	G_SWAPCHAIN_EXTEND = extend;
 }
 
 VkSwapchainKHR& Rendering::Vulkan::SwapChain::GetSwapChain()
@@ -152,7 +153,7 @@ void Rendering::Vulkan::SwapChain::DestroyImageViews()
 
 const VkExtent2D& Rendering::Vulkan::SwapChain::GetSwapchainExtend()
 {
-	return swapChainExtent;
+	return G_SWAPCHAIN_EXTEND;
 }
 
 const VkFormat& Rendering::Vulkan::SwapChain::GetSwapChainImageFormat()
@@ -200,4 +201,5 @@ void Rendering::Vulkan::SwapChain::RecreateSwapChain()
 	UniformBuffer::CreateDescriptorPool();
 	UniformBuffer::CreateDescriptorSets();
 	CommandBuffer::CreateCommandBuffers();
+	ImGuiIntegration::Rebuild();
 }

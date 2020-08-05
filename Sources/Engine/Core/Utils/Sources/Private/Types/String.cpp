@@ -37,6 +37,11 @@ String::String(const IStringable& other)
 	CopyTo(other.ToString(), this);
 }
 
+bool String::operator<(const String& _Val) const
+{
+	return std::string(data) < std::string(_Val.data);
+}
+
 String String::ToString(int64_t value) {
 	return std::to_string(value).c_str();
 }

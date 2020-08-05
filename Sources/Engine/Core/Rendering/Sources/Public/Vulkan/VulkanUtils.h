@@ -29,7 +29,7 @@ namespace Rendering::Vulkan::Utils
 	std::vector<const char*> GetRequiredExtensions();
 	bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
 	bool IsPhysicalDeviceSuitable(VkPhysicalDevice device);
-	QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
+	QueueFamilyIndices FindDeviceQueueFamilies(VkPhysicalDevice device);
 	SwapChainSupportDetails GetSwapchainSupportDetails(VkPhysicalDevice device);
 	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);

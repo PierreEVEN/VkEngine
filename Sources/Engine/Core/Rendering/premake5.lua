@@ -9,3 +9,4 @@ project "Rendering"
 	includeGlm()
 	includeStb()
 	includeObjLoad()
+	includeVMA()

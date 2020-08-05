@@ -35,8 +35,6 @@ IF NOT DEFINED CMAKEPATH (
 SET GAINPUTPATH=%cd%\Sources\ThirdParty\gainput\
 SET GLFWPATH=%cd%\Sources\ThirdParty\glfw\
 
-
-
 REM BUILD GAINPUT
 echo Building GAINPUT
 mkdir %GAINPUTPATH%\build > NUL 2>&1

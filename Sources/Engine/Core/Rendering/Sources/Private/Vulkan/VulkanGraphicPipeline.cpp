@@ -9,9 +9,9 @@
 #include "Vulkan/VulkanUniformBuffer.h"
 #include "Vulkan/VulkanMesh.h"
 #include "Vulkan/VulkanAntialiasing.h"
+#include "Constants.h"
 
 VkPipeline graphicsPipeline;
-VkPipelineLayout pipelineLayout;
 
 static std::vector<char> ReadFile(const String& filename) {
 	std::ifstream file(filename.GetData(), std::ios::ate | std::ios::binary);
@@ -155,7 +155,7 @@ void Rendering::Vulkan::GraphicPipeline::CreateGraphicPipeline()
 	pipelineLayoutInfo.pSetLayouts = &UniformBuffer::GetDescriptorSetLayout();
 	pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
-	if (vkCreatePipelineLayout(LogDevice::GetLogicalDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+	if (vkCreatePipelineLayout(LogDevice::GetLogicalDevice(), &pipelineLayoutInfo, nullptr, &G_PIPELINE_LAYOUT) != VK_SUCCESS) {
 		LOG_ASSERT("Failed to create pipeline layout");
 	}
 
@@ -171,7 +171,7 @@ void Rendering::Vulkan::GraphicPipeline::CreateGraphicPipeline()
 	pipelineInfo.pDepthStencilState = nullptr; // Optional
 	pipelineInfo.pColorBlendState = &colorBlending;
 	pipelineInfo.pDynamicState = nullptr; // Optional
-	pipelineInfo.layout = pipelineLayout;
+	pipelineInfo.layout = G_PIPELINE_LAYOUT;
 	pipelineInfo.renderPass = RenderPass::GetRenderPass();
 	pipelineInfo.subpass = 0;
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
@@ -187,7 +187,7 @@ void Rendering::Vulkan::GraphicPipeline::DestroyGraphicPipeline()
 {
 	LOG("Destroy Graphic pipeline");
 	vkDestroyPipeline(LogDevice::GetLogicalDevice(), graphicsPipeline, nullptr);
-	vkDestroyPipelineLayout(LogDevice::GetLogicalDevice(), pipelineLayout, nullptr);
+	vkDestroyPipelineLayout(LogDevice::GetLogicalDevice(), G_PIPELINE_LAYOUT, nullptr);
 }
 
 VkPipeline& Rendering::Vulkan::GraphicPipeline::GetGraphicPipeline()
@@ -197,5 +197,5 @@ VkPipeline& Rendering::Vulkan::GraphicPipeline::GetGraphicPipeline()
 
 VkPipelineLayout& Rendering::Vulkan::GraphicPipeline::GetPipelineLayout()
 {
-	return pipelineLayout;
+	return G_PIPELINE_LAYOUT;
 }

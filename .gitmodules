@@ -13,3 +13,6 @@
 [submodule "Sources/ThirdParty/VulkanMemoryAllocator"]
 	path = Sources/ThirdParty/VulkanMemoryAllocator
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+[submodule "Sources/ThirdParty/glfw"]
+	path = Sources/ThirdParty/glfw
+	url = https://github.com/glfw/glfw

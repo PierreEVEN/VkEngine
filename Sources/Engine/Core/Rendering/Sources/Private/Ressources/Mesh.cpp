@@ -21,8 +21,8 @@ void Rendering::Mesh::CreateBuffers()
 	CreateBuffer(VertexBufferMemorySize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VertexBuffer, VertexBufferMemory);
 	CopyBuffer(stagingBuffer, VertexBuffer, VertexBufferMemorySize);
 
-	vkDestroyBuffer(G_LOGICAL_DEVICE, stagingBuffer, G_MEMORY_ALLOCATOR);
-	vkFreeMemory(G_LOGICAL_DEVICE, stagingBufferMemory, G_MEMORY_ALLOCATOR);
+	vkDestroyBuffer(G_LOGICAL_DEVICE, stagingBuffer, G_ALLOCATION_CALLBACK);
+	vkFreeMemory(G_LOGICAL_DEVICE, stagingBufferMemory, G_ALLOCATION_CALLBACK);
 
 
 	/* copy indices */
@@ -81,9 +81,9 @@ void Rendering::Mesh::Draw(VkCommandBuffer commandBuffer)
 
 void Rendering::Mesh::FreeBuffers()
 {
-	vkDestroyBuffer(G_LOGICAL_DEVICE, VertexBuffer, G_MEMORY_ALLOCATOR);
-	vkFreeMemory(G_LOGICAL_DEVICE, VertexBufferMemory, G_MEMORY_ALLOCATOR);
+	vkDestroyBuffer(G_LOGICAL_DEVICE, VertexBuffer, G_ALLOCATION_CALLBACK);
+	vkFreeMemory(G_LOGICAL_DEVICE, VertexBufferMemory, G_ALLOCATION_CALLBACK);
 
-	vkDestroyBuffer(G_LOGICAL_DEVICE, IndexBuffer, G_MEMORY_ALLOCATOR);
-	vkFreeMemory(G_LOGICAL_DEVICE, IndexBufferMemory, G_MEMORY_ALLOCATOR);
+	vkDestroyBuffer(G_LOGICAL_DEVICE, IndexBuffer, G_ALLOCATION_CALLBACK);
+	vkFreeMemory(G_LOGICAL_DEVICE, IndexBufferMemory, G_ALLOCATION_CALLBACK);
 }

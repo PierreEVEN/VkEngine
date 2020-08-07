@@ -2,6 +2,9 @@
 #include "Utils.h"
 #include "ValidationLayers.h"
 #include "Rendering.h"
+#include "Viewport/ViewportInstance.h"
+
+Rendering::ViewportInstance* viewportInstance;
 
 void Rendering::Initialization::Initialize()
 {
@@ -13,10 +16,13 @@ void Rendering::Initialization::Initialize()
 	PickPhysicalDevice();
 	CreateLogicalDevice();
 	CreateAllocators();
+	InitializeSwapchainProperties();
+	viewportInstance = new ViewportInstance();
 }
 
 void Rendering::Initialization::Shutdown()
 {
+	delete viewportInstance;
 	DestroyAllocators();
 	DestroyLogicalDevice();
 	DestroySurface();
@@ -58,7 +64,7 @@ void Rendering::Initialization::CreateInstance()
 		vkInstanceCreateInfo.pNext = nullptr;
 	}
 
-	VK_ENSURE(vkCreateInstance(&vkInstanceCreateInfo, G_MEMORY_ALLOCATOR, &G_INSTANCE), "Failed to create vulkan instance");
+	VK_ENSURE(vkCreateInstance(&vkInstanceCreateInfo, G_ALLOCATION_CALLBACK, &G_INSTANCE), "Failed to create vulkan instance");
 	VK_CHECK(G_INSTANCE, "VkInstance is null");
 }
 
@@ -148,7 +154,7 @@ void Rendering::Initialization::CreateLogicalDevice()
 		createInfo.enabledLayerCount = 0;
 	}
 
-	VK_ENSURE(vkCreateDevice(G_PHYSICAL_DEVICE, &createInfo, G_MEMORY_ALLOCATOR, &G_LOGICAL_DEVICE), "Failed to create logical device");
+	VK_ENSURE(vkCreateDevice(G_PHYSICAL_DEVICE, &createInfo, G_ALLOCATION_CALLBACK, &G_LOGICAL_DEVICE), "Failed to create logical device");
 
 	vkGetDeviceQueue(G_LOGICAL_DEVICE, G_QUEUE_FAMILY_INDICES.graphicsFamily.value(), 0, &G_GRAPHIC_QUEUE);
 	vkGetDeviceQueue(G_LOGICAL_DEVICE, G_QUEUE_FAMILY_INDICES.presentFamily.value(), 0, &G_PRESENT_QUEUE);
@@ -178,16 +184,33 @@ void Rendering::Initialization::DestroyAllocators()
 void Rendering::Initialization::DestroyLogicalDevice()
 {
 	LOG("Destroy logical device");
-	vkDestroyDevice(G_LOGICAL_DEVICE, G_MEMORY_ALLOCATOR);
+	vkDestroyDevice(G_LOGICAL_DEVICE, G_ALLOCATION_CALLBACK);
 }
 
 void Rendering::Initialization::DestroySurface() {
 	LOG("Destroy window surface");
-	vkDestroySurfaceKHR(G_INSTANCE, G_SURFACE, G_MEMORY_ALLOCATOR);
+	vkDestroySurfaceKHR(G_INSTANCE, G_SURFACE, G_ALLOCATION_CALLBACK);
 }
 
 void Rendering::Initialization::DestroyInstance()
 {
 	LOG("Destroy Vulkan instance");
-	vkDestroyInstance(G_INSTANCE, G_MEMORY_ALLOCATOR);
+	vkDestroyInstance(G_INSTANCE, G_ALLOCATION_CALLBACK);
+}
+
+void Rendering::Initialization::InitializeSwapchainProperties()
+{
+	LOG("Initialize swapchain properties");
+	G_SWAPCHAIN_SUPPORT_DETAILS = GetSwapchainSupportDetails(G_PHYSICAL_DEVICE);
+	G_SWAPCHAIN_SURFACE_FORMAT = ChooseSwapSurfaceFormat(G_SWAPCHAIN_SUPPORT_DETAILS.formats);
+	G_SWAPCHAIN_PRESENT_MODE = ChooseSwapPresentMode(G_SWAPCHAIN_SUPPORT_DETAILS.presentModes);
+	if (G_ENABLE_MULTISAMPLING)
+	{
+		G_MSAA_SAMPLE_COUNT = GetMaxUsableSampleCount();
+		if (G_MSAA_SAMPLE_COUNT == VK_SAMPLE_COUNT_1_BIT)
+		{
+			G_ENABLE_MULTISAMPLING = false;
+			LOG_WARNING("Cannot enable multisampling on this device");
+		}
+	}
 }

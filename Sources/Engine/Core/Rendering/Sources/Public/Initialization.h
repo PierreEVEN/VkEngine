@@ -14,6 +14,7 @@ namespace Rendering::Initialization
 	void PickPhysicalDevice();
 	void CreateLogicalDevice();
 	void CreateAllocators();
+	void InitializeSwapchainProperties();
 
 	void DestroyAllocators();
 	void DestroyLogicalDevice();

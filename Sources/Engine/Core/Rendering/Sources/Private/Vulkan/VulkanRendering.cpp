@@ -43,8 +43,10 @@ void Rendering::Vulkan::InitializeVulkan()
 	PhysDevice::PickPhysicalDevice();
 	LogDevice::CreateLogicalDevice();
 	SwapChain::CreateSwapChain();
+
 	SwapChain::CreateImageViews();
 	RenderPass::CreateRenderPass();
+
 	UniformBuffer::CreateDescriptorSetLayout();
 	GraphicPipeline::CreateGraphicPipeline();
 	CommandPool::CreateCommandPool();

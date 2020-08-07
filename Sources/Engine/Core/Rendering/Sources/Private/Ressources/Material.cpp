@@ -217,7 +217,7 @@ void Rendering::Material::CreateOrUpdateDescriptorSets()
 
 void Rendering::Material::DestroyShaderPipeline()
 {
-	vkDestroyPipeline(G_LOGICAL_DEVICE, shaderPipeline, G_MEMORY_ALLOCATOR);
+	vkDestroyPipeline(G_LOGICAL_DEVICE, shaderPipeline, G_ALLOCATION_CALLBACK);
 }
 
 void Rendering::CreateDescriptorPool()
@@ -251,7 +251,7 @@ void Rendering::DestroyPipelineLayout()
 void Rendering::DestroyDescriptorPool()
 {
 	LOG("Destroy Descriptor pool");
-	vkDestroyDescriptorPool(G_LOGICAL_DEVICE, G_DESCRIPTOR_POOL, G_MEMORY_ALLOCATOR);
+	vkDestroyDescriptorPool(G_LOGICAL_DEVICE, G_DESCRIPTOR_POOL, G_ALLOCATION_CALLBACK);
 }
 
 Rendering::Material::Material()

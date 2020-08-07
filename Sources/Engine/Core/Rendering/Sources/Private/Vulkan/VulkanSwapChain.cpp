@@ -16,6 +16,7 @@
 #include "Vulkan/VulkanAntialiasing.h"
 #include "Vulkan/VulkanImguiIntegration.h"
 #include "Constants.h"
+#include "Ressources/Material.h"
 
 VkSwapchainKHR swapChain;
 std::vector<VkImage> swapChainImages;

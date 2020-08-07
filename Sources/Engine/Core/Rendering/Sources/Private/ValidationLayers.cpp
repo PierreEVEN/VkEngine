@@ -72,6 +72,6 @@ void Rendering::DestroyValidationLayers()
 	LOG("Destroy validation layers");
 	auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(G_INSTANCE, "vkDestroyDebugUtilsMessengerEXT");
 	if (func != nullptr) {
-		func(G_INSTANCE, debugMessenger, G_MEMORY_ALLOCATOR);
+		func(G_INSTANCE, debugMessenger, G_ALLOCATION_CALLBACK);
 	}
 }

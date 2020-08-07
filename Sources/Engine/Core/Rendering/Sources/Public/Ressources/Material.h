@@ -6,6 +6,8 @@ struct Texture2D;
 
 namespace Rendering
 {
+	inline VkExtent2D G_SWAPCHAIN_EXTEND = { 0, 0 };
+
 	struct Material : public Ressource
 	{
 		Material();

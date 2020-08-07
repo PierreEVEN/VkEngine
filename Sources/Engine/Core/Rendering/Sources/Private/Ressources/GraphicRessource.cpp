@@ -21,7 +21,7 @@ void Rendering::Ressource::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags us
 	allocInfo.allocationSize = memRequirements.size;
 	allocInfo.memoryTypeIndex = Rendering::Vulkan::Utils::FindMemoryType(memRequirements.memoryTypeBits, properties);
 
-	if (vkAllocateMemory(G_LOGICAL_DEVICE, &allocInfo, G_MEMORY_ALLOCATOR, &bufferMemory) != VK_SUCCESS) {
+	if (vkAllocateMemory(G_LOGICAL_DEVICE, &allocInfo, G_ALLOCATION_CALLBACK, &bufferMemory) != VK_SUCCESS) {
 		LOG_ASSERT("Failled to allocate buffer memory");
 	}
 

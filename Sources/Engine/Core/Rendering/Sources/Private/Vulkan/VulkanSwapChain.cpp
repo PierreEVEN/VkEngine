@@ -2,14 +2,11 @@
 #include "Rendering.h"
 #include "Maths.h"
 #include "Vulkan/VulkanUtils.h"
-#include "Vulkan/VulkanPhysicalDevice.h"
 #include "Vulkan/VulkanSurface.h"
 #include "IO/Log.h"
-#include "Vulkan/VulkanLogicalDevice.h"
 #include "Types/Vector.h"
 #include "Vulkan/VulkanCommandBuffer.h"
 #include "Vulkan/VulkanFramebuffser.h"
-#include "Vulkan/VulkanGraphicPipeline.h"
 #include "Vulkan/VulkanRenderPass.h"
 #include "Vulkan/VulkanUniformBuffer.h"
 #include "Vulkan/VulkanDepthBuffer.h"
@@ -66,7 +63,7 @@ void Rendering::Vulkan::SwapChain::CreateSwapChain()
 {
 	String SwapChainLog = "Create Swap chain :\n";
 
-	Utils::SwapChainSupportDetails swapChainSupport = Utils::GetSwapchainSupportDetails(PhysDevice::GetPhysicalDevice());
+	Utils::SwapChainSupportDetails swapChainSupport = Utils::GetSwapchainSupportDetails(G_PHYSICAL_DEVICE);
 
 	VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
 	VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
@@ -78,7 +75,7 @@ void Rendering::Vulkan::SwapChain::CreateSwapChain()
 
 	VkSwapchainCreateInfoKHR createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-	createInfo.surface = Surface::GetSurface();
+	createInfo.surface = G_SURFACE;
 	createInfo.minImageCount = imageCount;
 	createInfo.imageFormat = surfaceFormat.format;
 	createInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -86,7 +83,7 @@ void Rendering::Vulkan::SwapChain::CreateSwapChain()
 	createInfo.imageArrayLayers = 1;
 	createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-	Utils::QueueFamilyIndices indices = Utils::FindDeviceQueueFamilies(PhysDevice::GetPhysicalDevice());
+	Utils::QueueFamilyIndices indices = Utils::FindDeviceQueueFamilies(G_PHYSICAL_DEVICE);
 	uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), indices.presentFamily.value() };
 
 	SwapChainLog += String("\t-Image format : ") + String::ToString((uint8_t)surfaceFormat.format) + "\n";
@@ -110,16 +107,15 @@ void Rendering::Vulkan::SwapChain::CreateSwapChain()
 	createInfo.clipped = VK_TRUE;
 	createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-	if (vkCreateSwapchainKHR(LogDevice::GetLogicalDevice(), &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
+	if (vkCreateSwapchainKHR(G_LOGICAL_DEVICE, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
 		LOG_ASSERT("Failed to create swap chain");
 	}
 	LOG(SwapChainLog);
 
-	vkGetSwapchainImagesKHR(LogDevice::GetLogicalDevice(), swapChain, &imageCount, nullptr);
+	vkGetSwapchainImagesKHR(G_LOGICAL_DEVICE, swapChain, &imageCount, nullptr);
 	swapChainImages.resize(imageCount);
-	vkGetSwapchainImagesKHR(LogDevice::GetLogicalDevice(), swapChain, &imageCount, swapChainImages.data());
+	vkGetSwapchainImagesKHR(G_LOGICAL_DEVICE, swapChain, &imageCount, swapChainImages.data());
 	swapChainImageFormat = surfaceFormat.format;
-	G_SWAPCHAIN_EXTEND = extend;
 }
 
 VkSwapchainKHR& Rendering::Vulkan::SwapChain::GetSwapChain()
@@ -131,7 +127,7 @@ void Rendering::Vulkan::SwapChain::DestroySwapchain()
 {
 	LOG("Destroy swap chain");
 
-	vkDestroySwapchainKHR(LogDevice::GetLogicalDevice(), swapChain, nullptr);
+	vkDestroySwapchainKHR(G_LOGICAL_DEVICE, swapChain, nullptr);
 }
 
 void Rendering::Vulkan::SwapChain::CreateImageViews()
@@ -148,13 +144,14 @@ void Rendering::Vulkan::SwapChain::DestroyImageViews()
 {
 	LOG("Destroy image views");
 	for (auto imageView : swapChainImageViews) {
-		vkDestroyImageView(LogDevice::GetLogicalDevice(), imageView, nullptr);
+		vkDestroyImageView(G_LOGICAL_DEVICE, imageView, nullptr);
 	}
 }
 
+VkExtent2D ___ext;
 const VkExtent2D& Rendering::Vulkan::SwapChain::GetSwapchainExtend()
 {
-	return G_SWAPCHAIN_EXTEND;
+	return ___ext;
 }
 
 const VkFormat& Rendering::Vulkan::SwapChain::GetSwapChainImageFormat()
@@ -176,7 +173,7 @@ void Rendering::Vulkan::SwapChain::RecreateSwapChain()
 		glfwWaitEvents();
 	}
 
-	vkDeviceWaitIdle(LogDevice::GetLogicalDevice());
+	vkDeviceWaitIdle(G_LOGICAL_DEVICE);
 
 	LOG("Recreate swapchain");
 
@@ -186,7 +183,7 @@ void Rendering::Vulkan::SwapChain::RecreateSwapChain()
 	Framebuffer::DestroyFramebuffers();
 	DepthBuffer::DestroyDepthRessources();
 	Antialiasing::DestroyColorRessources();
-	GraphicPipeline::DestroyGraphicPipeline();
+/*	GraphicPipeline::DestroyGraphicPipeline();*/
 	RenderPass::DestroyRenderPass();
 	SwapChain::DestroyImageViews();
 	SwapChain::DestroySwapchain();
@@ -194,7 +191,7 @@ void Rendering::Vulkan::SwapChain::RecreateSwapChain()
 	SwapChain::CreateSwapChain();
 	SwapChain::CreateImageViews();
 	RenderPass::CreateRenderPass();
-	GraphicPipeline::CreateGraphicPipeline();
+/*	GraphicPipeline::CreateGraphicPipeline();*/
 	Antialiasing::createColorResources();
 	DepthBuffer::CreateDepthRessources();
 	Framebuffer::CreateFramebuffers();

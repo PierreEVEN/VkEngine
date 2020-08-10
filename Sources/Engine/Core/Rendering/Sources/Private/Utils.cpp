@@ -225,6 +225,29 @@ VkFormat Rendering::FindDepthFormat()
 	);
 }
 
+void Rendering::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+{
+	VkBufferCreateInfo bufferInfo{};
+	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferInfo.size = size;
+	bufferInfo.usage = usage;
+	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	VK_ENSURE(vkCreateBuffer(G_LOGICAL_DEVICE, &bufferInfo, nullptr, &buffer), "Failed to create buffer");
+
+	VkMemoryRequirements memRequirements;
+	vkGetBufferMemoryRequirements(G_LOGICAL_DEVICE, buffer, &memRequirements);
+
+	VkMemoryAllocateInfo allocInfo{};
+	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.allocationSize = memRequirements.size;
+	allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
+
+	VK_ENSURE(vkAllocateMemory(G_LOGICAL_DEVICE, &allocInfo, nullptr, &bufferMemory), "Failled to allocate buffer memory");
+
+	vkBindBufferMemory(G_LOGICAL_DEVICE, buffer, bufferMemory, 0);
+}
+
 VkSampleCountFlagBits Rendering::GetMaxUsableSampleCount()
 {
 	VK_CHECK(G_PHYSICAL_DEVICE, "Cannot find physical device");
@@ -241,4 +264,55 @@ VkSampleCountFlagBits Rendering::GetMaxUsableSampleCount()
 	if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
 
 	return VK_SAMPLE_COUNT_1_BIT;
+}
+
+uint32_t Rendering::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+{
+	VkPhysicalDeviceMemoryProperties memProperties;
+	vkGetPhysicalDeviceMemoryProperties(G_PHYSICAL_DEVICE, &memProperties);
+
+	for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+		if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+			return i;
+		}
+	}
+
+	LOG_ASSERT("Failed to find appropriated memory for buffer");
+	return -1;
+}
+
+
+VkCommandBuffer Rendering::BeginSingleTimeCommands()
+{
+	VkCommandBufferAllocateInfo allocInfo{};
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandPool = G_COMMAND_POOL;
+	allocInfo.commandBufferCount = 1;
+
+	VkCommandBuffer commandBuffer;
+	vkAllocateCommandBuffers(G_LOGICAL_DEVICE, &allocInfo, &commandBuffer);
+
+	VkCommandBufferBeginInfo beginInfo{};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+	return commandBuffer;
+}
+
+void Rendering::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
+{
+	vkEndCommandBuffer(commandBuffer);
+
+	VkSubmitInfo submitInfo{};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffer;
+
+	vkQueueSubmit(G_GRAPHIC_QUEUE, 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueWaitIdle(G_GRAPHIC_QUEUE);
+
+	vkFreeCommandBuffers(G_LOGICAL_DEVICE, G_COMMAND_POOL, 1, &commandBuffer);
 }

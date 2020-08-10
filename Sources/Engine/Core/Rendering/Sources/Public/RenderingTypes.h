@@ -12,6 +12,11 @@
 
 #include <vk_mem_alloc.h>
 
+#include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
+#include <imgui/examples/imgui_impl_glfw.h>
+#include <imgui/examples/imgui_impl_vulkan.h>
+
 #include <set>
 #include <array>
 #include <optional>
@@ -21,13 +26,19 @@
 #define VERTEX_ENABLE_LOCATION
 #define VERTEX_ENABLE_TEX_COORD
 #define VERTEX_ENABLE_COLOR
-//#define VERTEX_ENABLE_NORMAL
-//#define VERTEX_ENABLE_TANGENT
+#define VERTEX_ENABLE_NORMAL
+#define VERTEX_ENABLE_TANGENT
 //#define VERTEX_ENABLE_BITANGENT
 
 
 namespace Rendering
 {
+	struct MatrixUniformBufferObject {
+		alignas(16) glm::mat4 model;
+		alignas(16) glm::mat4 view;
+		alignas(16) glm::mat4 proj;
+	};
+
 	struct SwapChainSupportDetails {
 		VkSurfaceCapabilitiesKHR capabilities;
 		std::vector<VkSurfaceFormatKHR> formats;

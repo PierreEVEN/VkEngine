@@ -4,18 +4,17 @@
 #include <GLFW/glfw3.h>
 
 #include "IO/Log.h"
-#include "Vulkan/VulkanRendering.h"
-#include "Vulkan/VulkanLogicalDevice.h"
 #include "Types/Vector.h"
-#include "Vulkan/VulkanImguiIntegration.h"
 #include "Initialization.h"
 
 GLFWwindow* primaryWindow;
 
 SIntVector2D FRAME_SIZE(800, 600);
+constexpr bool G_ENABLE_FULLSCREEN = true;
+
 
 static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
-	Rendering::Vulkan::SetFramebufferResized();
+	Rendering::G_ON_WINDOW_RESIZED.Execute(window, width, height);
 }
 
 void Rendering::InitializeWindow()
@@ -25,6 +24,13 @@ void Rendering::InitializeWindow()
 
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+	glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+	if (G_ENABLE_FULLSCREEN)
+	{
+		glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+		glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+	}
 	primaryWindow = glfwCreateWindow(FRAME_SIZE.X(), FRAME_SIZE.Y(), "Vulkan window", nullptr, nullptr);
 	glfwSetFramebufferSizeCallback(primaryWindow, framebufferResizeCallback);
 }
@@ -37,13 +43,13 @@ void Rendering::InitializeRendering()
 
 void Rendering::ExecuteRenderLoop()
 {
-// 	LOG("Starting render loop...");
-// 	while (!glfwWindowShouldClose(primaryWindow)) {
-// 		glfwPollEvents();
-// 		Vulkan::DrawFrame();
-// 	}
-// 
-// 	vkDeviceWaitIdle(Vulkan::LogDevice::GetLogicalDevice());
+	LOG("Starting render loop...");
+	while (!glfwWindowShouldClose(primaryWindow)) {
+		glfwPollEvents();
+		Initialization::Draw();
+	}
+
+	vkDeviceWaitIdle(G_LOGICAL_DEVICE);
 }
 
 void Rendering::CleanupRendering()

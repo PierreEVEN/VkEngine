@@ -3,6 +3,14 @@
 #include "ValidationLayers.h"
 #include "Rendering.h"
 #include "Viewport/ViewportInstance.h"
+#include "Ressources/Material.h"
+#include <fstream>
+#include "Ressources/Texture.h"
+#include "Ressources/Mesh.h"
+#include "UI/ImGuiInstance.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 Rendering::ViewportInstance* viewportInstance;
 
@@ -16,13 +24,31 @@ void Rendering::Initialization::Initialize()
 	PickPhysicalDevice();
 	CreateLogicalDevice();
 	CreateAllocators();
+	CreateDescriptorPool();
+	CreateCommandPool();
 	InitializeSwapchainProperties();
-	viewportInstance = new ViewportInstance();
+	CreateRenderPass();
+	PreInitializeImGui();
+
+	CreateDefaultObjects();
+
+
+
+	int sizeX, sizeY;
+	glfwGetWindowSize(GetPrimaryWindow(), &sizeX, &sizeY);
+
+	viewportInstance = new ViewportInstance(SIntVector2D(sizeX, sizeY));
 }
 
 void Rendering::Initialization::Shutdown()
 {
 	delete viewportInstance;
+
+	DestroyImGuiRessources();
+	DestroyDefaultObjects();
+	DestroyRenderPass();
+	DestroyCommandPool();
+	DestroyDescriptorPool();
 	DestroyAllocators();
 	DestroyLogicalDevice();
 	DestroySurface();
@@ -64,7 +90,10 @@ void Rendering::Initialization::CreateInstance()
 		vkInstanceCreateInfo.pNext = nullptr;
 	}
 
+	LOG("try to create instance");
+
 	VK_ENSURE(vkCreateInstance(&vkInstanceCreateInfo, G_ALLOCATION_CALLBACK, &G_INSTANCE), "Failed to create vulkan instance");
+	LOG("created instance");
 	VK_CHECK(G_INSTANCE, "VkInstance is null");
 }
 
@@ -111,6 +140,8 @@ void Rendering::Initialization::PickPhysicalDevice()
 	VkPhysicalDeviceProperties pDevProperties;
 	vkGetPhysicalDeviceProperties(G_PHYSICAL_DEVICE, &pDevProperties);
 
+	glfwSetWindowTitle(GetPrimaryWindow(), String(String("Vulkan Engine - ") + String(pDevProperties.deviceName)).GetData());
+
 	LOG(String("Picking physical device ") + String::ToString(pDevProperties.deviceID) + " (" + pDevProperties.deviceName + ")");
 }
 
@@ -136,7 +167,7 @@ void Rendering::Initialization::CreateLogicalDevice()
 	VkPhysicalDeviceFeatures deviceFeatures{};
 	deviceFeatures.samplerAnisotropy = VK_TRUE;
 	deviceFeatures.sampleRateShading = VK_TRUE; // Sample Shading
-	//deviceFeatures.fillModeNonSolid = VK_TRUE; // Wireframe
+	deviceFeatures.fillModeNonSolid = VK_TRUE; // Wireframe
 
 	VkDeviceCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -204,6 +235,7 @@ void Rendering::Initialization::InitializeSwapchainProperties()
 	G_SWAPCHAIN_SUPPORT_DETAILS = GetSwapchainSupportDetails(G_PHYSICAL_DEVICE);
 	G_SWAPCHAIN_SURFACE_FORMAT = ChooseSwapSurfaceFormat(G_SWAPCHAIN_SUPPORT_DETAILS.formats);
 	G_SWAPCHAIN_PRESENT_MODE = ChooseSwapPresentMode(G_SWAPCHAIN_SUPPORT_DETAILS.presentModes);
+	G_SWAP_CHAIN_IMAGE_COUNT = G_SWAPCHAIN_SUPPORT_DETAILS.capabilities.minImageCount + 1;
 	if (G_ENABLE_MULTISAMPLING)
 	{
 		G_MSAA_SAMPLE_COUNT = GetMaxUsableSampleCount();
@@ -213,4 +245,227 @@ void Rendering::Initialization::InitializeSwapchainProperties()
 			LOG_WARNING("Cannot enable multisampling on this device");
 		}
 	}
+}
+
+void Rendering::Initialization::CreateRenderPass()
+{
+	LOG("Create render pass");
+	VkAttachmentDescription colorAttachment{};
+	colorAttachment.format = G_SWAPCHAIN_SURFACE_FORMAT.format;
+	colorAttachment.samples = G_ENABLE_MULTISAMPLING ? G_MSAA_SAMPLE_COUNT : VK_SAMPLE_COUNT_1_BIT;
+	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	colorAttachment.finalLayout = G_ENABLE_MULTISAMPLING ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+	VkAttachmentDescription depthAttachment{};
+	depthAttachment.format = FindDepthFormat();
+	depthAttachment.samples = G_ENABLE_MULTISAMPLING ? G_MSAA_SAMPLE_COUNT : VK_SAMPLE_COUNT_1_BIT;
+	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+	VkAttachmentDescription colorAttachmentResolve{};
+	colorAttachmentResolve.format = G_SWAPCHAIN_SURFACE_FORMAT.format;
+	colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
+	colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+	VkAttachmentReference colorAttachmentRef{};
+	colorAttachmentRef.attachment = 0;
+	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkAttachmentReference depthAttachmentRef{};
+	depthAttachmentRef.attachment = 1;
+	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+	VkAttachmentReference colorAttachmentResolveRef{};
+	colorAttachmentResolveRef.attachment = 2;
+	colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkSubpassDescription subpass{};
+	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpass.colorAttachmentCount = 1;
+	subpass.pColorAttachments = &colorAttachmentRef;
+	subpass.pDepthStencilAttachment = &depthAttachmentRef;
+	subpass.pResolveAttachments = G_ENABLE_MULTISAMPLING ? &colorAttachmentResolveRef : nullptr;
+	subpass.inputAttachmentCount = 0;                            // Input attachments can be used to sample from contents of a previous subpass
+	subpass.pInputAttachments = nullptr;                         // (Input attachments not used by this example)
+	subpass.preserveAttachmentCount = 0;                         // Preserved attachments can be used to loop (and preserve) attachments through subpasses
+	subpass.pPreserveAttachments = nullptr;                      // (Preserve attachments not used by this example)
+
+	std::array<VkSubpassDependency, 2> dependencies;
+	dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;                             // Producer of the dependency
+	dependencies[0].dstSubpass = 0;                                               // Consumer is our single subpass that will wait for the execution depdendency
+	dependencies[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; // Match our pWaitDstStageMask when we vkQueueSubmit
+	dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; // is a loadOp stage for color attachments
+	dependencies[0].srcAccessMask = 0;                                            // semaphore wait already does memory dependency for us
+	dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;         // is a loadOp CLEAR access mask for color attachments
+	dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+	dependencies[1].srcSubpass = 0;                                               // Producer of the dependency is our single subpass
+	dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;                             // Consumer are all commands outside of the renderpass
+	dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; // is a storeOp stage for color attachments
+	dependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;          // Do not block any subsequent work
+	dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;         // is a storeOp `STORE` access mask for color attachments
+	dependencies[1].dstAccessMask = 0;
+	dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+	std::vector<VkAttachmentDescription> attachments;
+
+	if (G_ENABLE_MULTISAMPLING)
+	{
+		attachments.push_back(colorAttachment);
+		attachments.push_back(depthAttachment);
+		attachments.push_back(colorAttachmentResolve);
+	}
+	else
+	{
+		attachments.push_back(colorAttachment);
+		attachments.push_back(depthAttachment);
+	}
+	VkRenderPassCreateInfo renderPassInfo{};
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+	renderPassInfo.pAttachments = attachments.data();
+	renderPassInfo.subpassCount = 1;
+	renderPassInfo.pSubpasses = &subpass;
+	renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());
+	renderPassInfo.pDependencies = dependencies.data();
+	VK_ENSURE(vkCreateRenderPass(G_LOGICAL_DEVICE, &renderPassInfo, G_ALLOCATION_CALLBACK, &G_RENDER_PASS), "Failed to create render pass");
+}
+
+void Rendering::Initialization::DestroyRenderPass()
+{
+	LOG("Destroy Render pass");
+
+	/*Destroy render pass*/
+	vkDestroyRenderPass(G_LOGICAL_DEVICE, G_RENDER_PASS, G_ALLOCATION_CALLBACK);
+}
+
+
+static std::vector<char> ReadFile(const String& filename) {
+	std::ifstream file(filename.GetData(), std::ios::ate | std::ios::binary);
+
+	if (!file.is_open()) {
+		LOG_ASSERT(String("Failed to open shader file ") + filename);
+	}
+	size_t fileSize = (size_t)file.tellg();
+	std::vector<char> buffer(fileSize);
+	file.seekg(0);
+	file.read(buffer.data(), fileSize);
+	file.close();
+
+	return buffer;
+}
+
+void Rendering::Initialization::CreateDescriptorPool(const uint32_t& materialCount)
+{
+	VK_CHECK(G_LOGICAL_DEVICE, "Cannot create descriptor pool before logical device");
+
+	LOG(String("Create Descriptor pool for ") + String::ToString(materialCount) + " differents materials");
+
+	/** Descriptor count per pool is static. Can be optimized later */
+	std::array<VkDescriptorPoolSize, 11> poolSizes;
+	poolSizes[0] = { VK_DESCRIPTOR_TYPE_SAMPLER, G_MAX_DESCRIPTOR_PER_POOL };
+	poolSizes[1] = { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, G_MAX_DESCRIPTOR_PER_POOL };
+	poolSizes[2] = { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, G_MAX_DESCRIPTOR_PER_POOL };
+	poolSizes[3] = { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, G_MAX_DESCRIPTOR_PER_POOL };
+	poolSizes[4] = { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, G_MAX_DESCRIPTOR_PER_POOL };
+	poolSizes[5] = { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, G_MAX_DESCRIPTOR_PER_POOL };
+	poolSizes[6] = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, G_MAX_DESCRIPTOR_PER_POOL };
+	poolSizes[7] = { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, G_MAX_DESCRIPTOR_PER_POOL };
+	poolSizes[8] = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, G_MAX_DESCRIPTOR_PER_POOL };
+	poolSizes[9] = { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, G_MAX_DESCRIPTOR_PER_POOL };
+	poolSizes[10] = { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, G_MAX_DESCRIPTOR_PER_POOL };
+
+	VkDescriptorPoolCreateInfo poolInfo{};
+	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+	poolInfo.pPoolSizes = poolSizes.data();
+	poolInfo.maxSets = materialCount;
+	VK_ENSURE(vkCreateDescriptorPool(G_LOGICAL_DEVICE, &poolInfo, G_ALLOCATION_CALLBACK, &G_DESCRIPTOR_POOL), "Failed to create descriptor pool");
+}
+
+void Rendering::Initialization::DestroyDescriptorPool()
+{
+	LOG("Destroy Descriptor pool");
+	vkDestroyDescriptorPool(G_LOGICAL_DEVICE, G_DESCRIPTOR_POOL, G_ALLOCATION_CALLBACK);
+}
+
+void Rendering::Initialization::CreateDefaultObjects()
+{
+	LOG("Create default objects");
+
+	/** Global matrices */
+	VkDescriptorSetLayoutBinding uboLayoutBinding{};
+	uboLayoutBinding.binding = 0;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uboLayoutBinding.descriptorCount = 1;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	uboLayoutBinding.pImmutableSamplers = nullptr;
+
+	/** Color texture */
+	VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+	samplerLayoutBinding.binding = 1;
+	samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerLayoutBinding.descriptorCount = 1;
+	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	samplerLayoutBinding.pImmutableSamplers = nullptr;
+
+	G_MATERIAL_OPAQUE = new Material(ReadFile("Shaders/vert.spv"), ReadFile("Shaders/frag.spv"), { uboLayoutBinding, samplerLayoutBinding }, EMATERIAL_CREATION_FLAG_NONE);
+	G_MATERIAL_WIREFRAME = new Material(ReadFile("Shaders/vert.spv"), ReadFile("Shaders/frag.spv"), { uboLayoutBinding, samplerLayoutBinding }, EMATERIAL_CREATION_FLAG_WIREFRAME);
+
+	int texWidth, texHeight, texChannels;
+	stbi_uc* pixels = stbi_load("Assets/viking_room.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	G_DEFAULT_TEXTURE = new Texture2D(pixels, SIntVector2D(texWidth, texHeight), texChannels);
+
+	G_DEFAULT_MATERIAL = new MaterialInstance({ }, G_MATERIAL_OPAQUE);
+
+	std::vector<Vertex> vertices;
+	std::vector<uint32_t> indices;
+	Mesh::LoadFromFile("Assets/viking_room.obj", vertices, indices);
+	G_DEFAULT_MESH = new Mesh(vertices, indices);
+
+}
+
+void Rendering::Initialization::DestroyDefaultObjects()
+{
+	LOG("Destroy default objects");
+	delete G_DEFAULT_MESH;
+	delete G_DEFAULT_TEXTURE;
+	delete G_DEFAULT_MATERIAL;
+	delete G_MATERIAL_OPAQUE;
+	delete G_MATERIAL_WIREFRAME;
+}
+
+void Rendering::Initialization::CreateCommandPool()
+{
+	LOG("Create command pool");
+
+	VkCommandPoolCreateInfo poolInfo{};
+	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	poolInfo.queueFamilyIndex = G_QUEUE_FAMILY_INDICES.graphicsFamily.value();
+	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT; // Optional
+	VK_ENSURE(vkCreateCommandPool(G_LOGICAL_DEVICE, &poolInfo, G_ALLOCATION_CALLBACK, &G_COMMAND_POOL), "Failed to create command pool");
+}
+
+void Rendering::Initialization::DestroyCommandPool()
+{
+	LOG("Destroy command pool");
+	vkDestroyCommandPool(G_LOGICAL_DEVICE, G_COMMAND_POOL, G_ALLOCATION_CALLBACK);
+}
+
+void Rendering::Initialization::Draw()
+{
+	viewportInstance->DrawViewport();
 }

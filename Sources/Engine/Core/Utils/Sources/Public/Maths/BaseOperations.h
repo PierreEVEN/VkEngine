@@ -14,7 +14,7 @@ namespace Maths
 	}
 
 	template<typename T>
-	inline const T Clamp(const T& inValue, const T& max, const T& min) {
+	inline const T Clamp(const T& inValue, const T& min, const T& max) {
 		return inValue > max ? max : inValue < min ? min : inValue;
 	}
 

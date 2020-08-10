@@ -47,19 +47,19 @@ std::vector<VkVertexInputAttributeDescription> Rendering::Vertex::GetAttributeDe
 	attributeDescriptions.push_back(newAttribute);
 	currentLocation++;
 #endif
-#ifdef VERTEX_ENABLE_TEX_COORD
-	newAttribute.binding = 0;
-	newAttribute.location = currentLocation;
-	newAttribute.format = VK_FORMAT_R32G32_SFLOAT;
-	newAttribute.offset = offsetof(Vertex, texCoord);
-	attributeDescriptions.push_back(newAttribute);
-	currentLocation++;
-#endif
 #ifdef VERTEX_ENABLE_COLOR
 	newAttribute.binding = 0;
 	newAttribute.location = currentLocation;
 	newAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
 	newAttribute.offset = offsetof(Vertex, color);
+	attributeDescriptions.push_back(newAttribute);
+	currentLocation++;
+#endif
+#ifdef VERTEX_ENABLE_TEX_COORD
+	newAttribute.binding = 0;
+	newAttribute.location = currentLocation;
+	newAttribute.format = VK_FORMAT_R32G32_SFLOAT;
+	newAttribute.offset = offsetof(Vertex, texCoord);
 	attributeDescriptions.push_back(newAttribute);
 	currentLocation++;
 #endif

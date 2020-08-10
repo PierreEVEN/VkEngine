@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Constants.h"
+#include "Types/Vector.h"
 
 namespace Rendering
 {
@@ -8,22 +9,22 @@ namespace Rendering
 	{
 	public:
 
-		SwapChain(VkExtent2D inSwapChainExtend);
+		SwapChain(const SIntVector2D& inSwapChainExtend);
 		~SwapChain();
 
+		inline const VkSwapchainKHR& GetSwapChainKhr() const { return swapChain; }
 		inline const VkExtent2D& GetSwapChainExtend() const { return swapChainExtend; }
-		inline const VkImage& GetSwapChainImage(const size_t& ImageIndex) const { return swapChainImages[ImageIndex]; }
+
+		void ResizeSwapchain(const SIntVector2D& inSwapChainExtend, bool forceRecreate = false, bool clampVal = false);
 
 	private:
 
-		void CreateSwapChain();
-		void CreateRenderPass();
+		void CreateOrRecreateSwapchain();
 		void DestroySwapChain();
 
+		VkViewport viewport;
 		VkExtent2D swapChainExtend;
+		VkRect2D scissor;
 		VkSwapchainKHR swapChain = VK_NULL_HANDLE;
-		VkRenderPass renderPass = VK_NULL_HANDLE;
-		std::vector<VkImage> swapChainImages;
-		std::vector<VkImageView> swapChainImageViews;
 	};
 }

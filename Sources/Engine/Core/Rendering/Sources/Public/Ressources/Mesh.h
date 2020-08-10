@@ -8,11 +8,13 @@ namespace Rendering
 	struct Mesh : public Ressource
 	{
 		Mesh(std::vector<Vertex> inVertices, std::vector<uint32_t> inIndices);
-		Mesh();
 
 		virtual ~Mesh();
 
 		void Draw(VkCommandBuffer commandBuffer);
+
+
+		static void LoadFromFile(String FilePath, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
 
 	protected:
 

@@ -6,6 +6,10 @@ struct GLFWwindow;
 
 namespace Rendering
 {
+	DECLARE_DELEGATE_MULTICAST(Del_OnWindowResized, GLFWwindow*, int, int);
+
+	inline Del_OnWindowResized G_ON_WINDOW_RESIZED;
+
 	void InitializeWindow();
 	void InitializeRendering();
 

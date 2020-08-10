@@ -9,7 +9,7 @@
 template<typename R, typename... Args>
 class DelegateFunctionPtrWrapper {
 public:
-	inline virtual R Execute(Args&&...) = 0;
+	inline virtual R Execute(Args&...) = 0;
 	inline virtual bool operator==(const void*) const = 0;
 };
 
@@ -23,7 +23,7 @@ public:
 
 	DelegateFunctionPtr(Class* objPtr, R (Class::* funcPtr)(Args...)) : objectPtr(objPtr), functionPtr(funcPtr) {}
 
-	inline R Execute(Args&&... inArgs) { return (objectPtr->*functionPtr)(std::forward<Args>(inArgs)...); }
+	inline R Execute(Args&... inArgs) { return (objectPtr->*functionPtr)(inArgs...); }
 
 	inline bool operator==(const void* objPtr) const { return objectPtr == objPtr; }
 };
@@ -50,9 +50,9 @@ public:
 		}
 	}
 
-	inline R Execute(Args&&... inArgs) {
+	inline R Execute(Args&... inArgs) {
 		assert(functionPtr);
-		return functionPtr->Execute(std::forward<Args>(inArgs)...);
+		return functionPtr->Execute(inArgs...);
 	}
 };
 
@@ -84,10 +84,10 @@ public:
 		}
 	}
 
-	inline void Execute(Args&&... inArgs) {
+	inline void Execute(Args&... inArgs) {
 		for (const auto& fct : functions)
 		{
-			fct->Execute(std::forward<Args>(inArgs)...);
+			fct->Execute(inArgs...);
 		}
 	}
 };

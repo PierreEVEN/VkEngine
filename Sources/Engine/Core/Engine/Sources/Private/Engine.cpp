@@ -9,6 +9,6 @@ void Engine::Initialize()
 	{
 		j += 2;
 	}
-	LOG(String("complete ") << String::ToString(j));
+	LOG(String("complete ") << ToString(j));
 }
 

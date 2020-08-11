@@ -12,16 +12,17 @@
 
 #include <vk_mem_alloc.h>
 
-#include <imgui/imgui.h>
-#include <imgui/imgui_internal.h>
-#include <imgui/examples/imgui_impl_glfw.h>
-#include <imgui/examples/imgui_impl_vulkan.h>
+#include <imgui.h>
+#include <imgui_internal.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_vulkan.h>
 
 #include <set>
 #include <array>
 #include <optional>
 
 #include "IO/Log.h"
+#include "EngineTypes.h"
 
 #define VERTEX_ENABLE_LOCATION
 #define VERTEX_ENABLE_TEX_COORD
@@ -37,6 +38,7 @@ namespace Rendering
 		alignas(16) glm::mat4 model;
 		alignas(16) glm::mat4 view;
 		alignas(16) glm::mat4 proj;
+		alignas(16) float time;
 	};
 
 	struct SwapChainSupportDetails {

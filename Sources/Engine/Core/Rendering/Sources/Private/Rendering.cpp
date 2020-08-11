@@ -1,16 +1,9 @@
 #include "Rendering.h"
-
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
-#include "IO/Log.h"
-#include "Types/Vector.h"
 #include "Initialization.h"
 
 GLFWwindow* primaryWindow;
 
 SIntVector2D FRAME_SIZE(800, 600);
-constexpr bool G_ENABLE_FULLSCREEN = true;
 
 
 static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
@@ -19,19 +12,20 @@ static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
 
 void Rendering::InitializeWindow()
 {
+	Initialization::LoadIniConfig();
 	LOG("Initializing GLFW");
 	glfwInit();
 
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 	glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-	if (G_ENABLE_FULLSCREEN)
+	if (G_FULSCREEN_MODE)
 	{
 		glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 		glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 	}
-	primaryWindow = glfwCreateWindow(FRAME_SIZE.X(), FRAME_SIZE.Y(), "Vulkan window", nullptr, nullptr);
+	primaryWindow = glfwCreateWindow(FRAME_SIZE.x, FRAME_SIZE.y, "Vulkan window", nullptr, nullptr);
 	glfwSetFramebufferSizeCallback(primaryWindow, framebufferResizeCallback);
 }
 
@@ -63,6 +57,7 @@ void Rendering::CleaneupWindow()
 	LOG("Destroy glfw window");
 	glfwDestroyWindow(primaryWindow);
 	glfwTerminate();
+	Initialization::SaveIniConfig();
 }
 
 const SIntVector2D& Rendering::GetFrameSize()

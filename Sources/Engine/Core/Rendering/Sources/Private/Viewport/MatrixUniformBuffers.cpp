@@ -28,6 +28,7 @@ void Rendering::MatrixUniformBuffer::UpdateUniformBuffers(ViewportInstance* pare
 	ubo.view = glm::lookAt(glm::vec3(dist, dist, dist), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	ubo.proj = glm::perspective(glm::radians(45.0f), parentViewport->GetViewportWidth() / (float)parentViewport->GetViewportHeight(), 0.1f, 10.0f);
 	ubo.proj[1][1] *= -1;
+	ubo.time = (float)glfwGetTime();
 
 	void* data;
 	vkMapMemory(G_LOGICAL_DEVICE, uniformBuffersMemory[ImageIndex], 0, sizeof(ubo), 0, &data);

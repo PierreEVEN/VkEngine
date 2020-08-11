@@ -5,8 +5,8 @@
 
 namespace Rendering
 {
-	struct Texture2D;
-	struct Material;
+	struct TextureRessource;
+	struct MaterialRessource;
 	class ViewportInstance;
 
 	typedef int EMaterialCreationFlags;
@@ -21,18 +21,18 @@ namespace Rendering
 	};
 
 	struct MaterialInterface {
-		inline virtual Material* GetMaterial() = 0;
+		inline virtual MaterialRessource* GetMaterial() = 0;
 	};
 
-	struct Material : public MaterialInterface, public Ressource
+	struct MaterialRessource : public MaterialInterface, public Ressource
 	{
-		Material(const std::vector<char>& vertexShaderCode, const std::vector<char>& fragmentShaderCode, std::vector<VkDescriptorSetLayoutBinding> layoutBindings, EMaterialCreationFlags creationFlags);
-		virtual ~Material();
+		MaterialRessource(const std::vector<char>& vertexShaderCode, const std::vector<char>& fragmentShaderCode, std::vector<VkDescriptorSetLayoutBinding> layoutBindings, EMaterialCreationFlags creationFlags);
+		virtual ~MaterialRessource();
 		
 		void Use(VkCommandBuffer commandBuffer, const size_t& imageIndex);
 		void UpdateDescriptorSets(std::vector<VkWriteDescriptorSet> descriptorWrites);
 		inline VkDescriptorSet& GetDescriptorSet(const size_t& imageIndex) { return descriptorSets[imageIndex]; }
-		inline virtual Material* GetMaterial() { return this; }
+		inline virtual MaterialRessource* GetMaterial() { return this; }
 	private:
 
 		void CreatePipeline(const std::vector<char>& vertexShaderCode, const std::vector<char>& fragmentShaderCode, EMaterialCreationFlags creationFlags = EMATERIAL_CREATION_FLAG_NONE);
@@ -47,15 +47,15 @@ namespace Rendering
 
 	struct MaterialInstance : public MaterialInterface
 	{
-		MaterialInstance(const std::vector<VkWriteDescriptorSet>& inDescriptorSetInfos, Material* inMaterial);
+		MaterialInstance(const std::vector<VkWriteDescriptorSet>& inDescriptorSetInfos, MaterialRessource* inMaterial);
 
 		void Use(VkCommandBuffer commandBuffer, ViewportInstance* writeViewport, const size_t& imageIndex);
 
-		inline virtual Material* GetMaterial() override { return parent; }
+		inline virtual MaterialRessource* GetMaterial() override { return parent; }
 
 	private:
 
 		std::vector<VkWriteDescriptorSet> DescriptorSetInfos;
-		Material* parent;
+		MaterialRessource* parent;
 	};
 }

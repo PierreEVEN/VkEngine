@@ -11,6 +11,7 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+#include "DescriptorPool.h"
 
 Rendering::ViewportInstance* viewportInstance;
 
@@ -24,7 +25,6 @@ void Rendering::Initialization::Initialize()
 	PickPhysicalDevice();
 	CreateLogicalDevice();
 	CreateAllocators();
-	CreateDescriptorPool();
 	CreateCommandPool();
 	InitializeSwapchainProperties();
 	CreateRenderPass();
@@ -48,7 +48,7 @@ void Rendering::Initialization::Shutdown()
 	DestroyDefaultObjects();
 	DestroyRenderPass();
 	DestroyCommandPool();
-	DestroyDescriptorPool();
+	DescriptorPoolDynamicHandle::ClearPools();
 	DestroyAllocators();
 	DestroyLogicalDevice();
 	DestroySurface();
@@ -117,12 +117,12 @@ void Rendering::Initialization::PickPhysicalDevice()
 	std::vector<VkPhysicalDevice> devices(deviceCount);
 	vkEnumeratePhysicalDevices(G_INSTANCE, &deviceCount, devices.data());
 
-	String PhysLog = String("Found ") + String::ToString(deviceCount) + " graphical devices : \n";
+	String PhysLog = String("Found ") + ToString(deviceCount) + " graphical devices : \n";
 
 	for (const VkPhysicalDevice& device : devices) {
 		VkPhysicalDeviceProperties pProperties;
 		vkGetPhysicalDeviceProperties(device, &pProperties);
-		PhysLog += String("\t-") + pProperties.deviceName + " (driver version : " + String::ToString(pProperties.driverVersion) + ")\n";
+		PhysLog += String("\t-") + pProperties.deviceName + " (driver version : " + ToString(pProperties.driverVersion) + ")\n";
 	}
 
 	LOG(PhysLog);
@@ -142,7 +142,7 @@ void Rendering::Initialization::PickPhysicalDevice()
 
 	glfwSetWindowTitle(GetPrimaryWindow(), String(String("Vulkan Engine - ") + String(pDevProperties.deviceName)).GetData());
 
-	LOG(String("Picking physical device ") + String::ToString(pDevProperties.deviceID) + " (" + pDevProperties.deviceName + ")");
+	LOG(String("Picking physical device ") + ToString(pDevProperties.deviceID) + " (" + pDevProperties.deviceName + ")");
 }
 
 void Rendering::Initialization::CreateLogicalDevice()
@@ -368,40 +368,6 @@ static std::vector<char> ReadFile(const String& filename) {
 	return buffer;
 }
 
-void Rendering::Initialization::CreateDescriptorPool(const uint32_t& materialCount)
-{
-	VK_CHECK(G_LOGICAL_DEVICE, "Cannot create descriptor pool before logical device");
-
-	LOG(String("Create Descriptor pool for ") + String::ToString(materialCount) + " differents materials");
-
-	/** Descriptor count per pool is static. Can be optimized later */
-	std::array<VkDescriptorPoolSize, 11> poolSizes;
-	poolSizes[0] = { VK_DESCRIPTOR_TYPE_SAMPLER, G_MAX_DESCRIPTOR_PER_POOL };
-	poolSizes[1] = { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, G_MAX_DESCRIPTOR_PER_POOL };
-	poolSizes[2] = { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, G_MAX_DESCRIPTOR_PER_POOL };
-	poolSizes[3] = { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, G_MAX_DESCRIPTOR_PER_POOL };
-	poolSizes[4] = { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, G_MAX_DESCRIPTOR_PER_POOL };
-	poolSizes[5] = { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, G_MAX_DESCRIPTOR_PER_POOL };
-	poolSizes[6] = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, G_MAX_DESCRIPTOR_PER_POOL };
-	poolSizes[7] = { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, G_MAX_DESCRIPTOR_PER_POOL };
-	poolSizes[8] = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, G_MAX_DESCRIPTOR_PER_POOL };
-	poolSizes[9] = { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, G_MAX_DESCRIPTOR_PER_POOL };
-	poolSizes[10] = { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, G_MAX_DESCRIPTOR_PER_POOL };
-
-	VkDescriptorPoolCreateInfo poolInfo{};
-	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-	poolInfo.pPoolSizes = poolSizes.data();
-	poolInfo.maxSets = materialCount;
-	VK_ENSURE(vkCreateDescriptorPool(G_LOGICAL_DEVICE, &poolInfo, G_ALLOCATION_CALLBACK, &G_DESCRIPTOR_POOL), "Failed to create descriptor pool");
-}
-
-void Rendering::Initialization::DestroyDescriptorPool()
-{
-	LOG("Destroy Descriptor pool");
-	vkDestroyDescriptorPool(G_LOGICAL_DEVICE, G_DESCRIPTOR_POOL, G_ALLOCATION_CALLBACK);
-}
-
 void Rendering::Initialization::CreateDefaultObjects()
 {
 	LOG("Create default objects");
@@ -422,19 +388,19 @@ void Rendering::Initialization::CreateDefaultObjects()
 	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	samplerLayoutBinding.pImmutableSamplers = nullptr;
 
-	G_MATERIAL_OPAQUE = new Material(ReadFile("Shaders/vert.spv"), ReadFile("Shaders/frag.spv"), { uboLayoutBinding, samplerLayoutBinding }, EMATERIAL_CREATION_FLAG_NONE);
-	G_MATERIAL_WIREFRAME = new Material(ReadFile("Shaders/vert.spv"), ReadFile("Shaders/frag.spv"), { uboLayoutBinding, samplerLayoutBinding }, EMATERIAL_CREATION_FLAG_WIREFRAME);
+	G_MATERIAL_OPAQUE = new MaterialRessource(ReadFile(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultVertexShaderPath", "Shaders/DefaultShader.vert.spv")), ReadFile(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultFragmentShaderPath", "Shaders/DefaultShader.frag.spv")), { uboLayoutBinding, samplerLayoutBinding }, EMATERIAL_CREATION_FLAG_NONE);
+	G_MATERIAL_WIREFRAME = new MaterialRessource(ReadFile(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "WireframeVertexShaderPath", "Shaders/WireframeShader.vert.spv")), ReadFile(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "WireframeFragmentShaderPath", "Shaders/WireframeShader.frag.spv")), { uboLayoutBinding, samplerLayoutBinding }, EMATERIAL_CREATION_FLAG_WIREFRAME);
 
 	int texWidth, texHeight, texChannels;
-	stbi_uc* pixels = stbi_load("Assets/viking_room.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-	G_DEFAULT_TEXTURE = new Texture2D(pixels, SIntVector2D(texWidth, texHeight), texChannels);
+	stbi_uc* pixels = stbi_load(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultTexturePath", "Assets/DefaultTexture.png").GetData(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	G_DEFAULT_TEXTURE = new TextureRessource(pixels, SIntVector2D(texWidth, texHeight), texChannels);
 
 	G_DEFAULT_MATERIAL = new MaterialInstance({ }, G_MATERIAL_OPAQUE);
 
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
-	Mesh::LoadFromFile("Assets/viking_room.obj", vertices, indices);
-	G_DEFAULT_MESH = new Mesh(vertices, indices);
+	MeshRessource::LoadFromFile(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultMeshPath", "Assets/DefaultMesh.obj"), vertices, indices);
+	G_DEFAULT_MESH = new MeshRessource(vertices, indices);
 
 }
 
@@ -468,4 +434,26 @@ void Rendering::Initialization::DestroyCommandPool()
 void Rendering::Initialization::Draw()
 {
 	viewportInstance->DrawViewport();
+}
+
+void Rendering::Initialization::LoadIniConfig()
+{
+	LOG("Load ini properties");
+	G_MAX_FRAMERATE = G_RENDERING_INI.GetPropertyAsInt("Rendering", "GlobalMaxFramerate", 60);
+	G_ENABLE_MULTISAMPLING = G_RENDERING_INI.GetPropertyAsBool("Rendering", "EnableMultisampling", true);
+	G_FULSCREEN_MODE = G_RENDERING_INI.GetPropertyAsBool("Rendering", "FullScreen", false);
+
+	G_ENABLE_VALIDATION_LAYERS = G_RENDERING_INI.GetPropertyAsBool("Rendering:Vulkan", "EnableValidationLayer", false);
+	G_MAX_SET_PER_POOL = G_RENDERING_INI.GetPropertyAsInt("Rendering:Vulkan", "MaxSetPerPool", 64);
+	G_POOL_DESCRIPTOR_COUNT_PER_TYPE = G_RENDERING_INI.GetPropertyAsInt("Rendering:Vulkan", "PoolDescriptorCountPerType", 16);
+
+	G_DEFAULT_FONT_PATH = G_RENDERING_INI.GetPropertyAsString("Rendering:ImGui", "DefaultFontPath", "");
+}
+
+void Rendering::Initialization::SaveIniConfig()
+{
+	LOG("Save ini config");
+	G_RENDERING_INI.SetPropertyAsInt("Rendering", "GlobalMaxFramerate", (int)G_MAX_FRAMERATE);
+	G_RENDERING_INI.SetPropertyAsBool("Rendering", "EnableMultisampling", (int)G_ENABLE_MULTISAMPLING);
+	G_RENDERING_INI.SetPropertyAsBool("Rendering", "FullScreen", G_FULSCREEN_MODE);
 }

@@ -1,15 +1,14 @@
 #pragma once 
 
 #include "GraphicRessource.h"
-#include "RenderingTypes.h"
 
 namespace Rendering
 {
-	struct Mesh : public Ressource
+	struct MeshRessource : public Ressource
 	{
-		Mesh(std::vector<Vertex> inVertices, std::vector<uint32_t> inIndices);
+		MeshRessource(std::vector<Vertex> inVertices, std::vector<uint32_t> inIndices);
 
-		virtual ~Mesh();
+		virtual ~MeshRessource();
 
 		void Draw(VkCommandBuffer commandBuffer);
 
@@ -22,12 +21,12 @@ namespace Rendering
 		std::vector<uint32_t> indices;
 
 		VkBuffer VertexBuffer = VK_NULL_HANDLE;
-		VkDeviceMemory VertexBufferMemory = VK_NULL_HANDLE;
-		VkDeviceSize VertexBufferMemorySize = 0;
+		VmaAllocation VertexBufferAllocation = VK_NULL_HANDLE;
+		VmaAllocationInfo VertexBufferAllocationInfos;
 
 		VkBuffer IndexBuffer = VK_NULL_HANDLE;
-		VkDeviceMemory IndexBufferMemory = VK_NULL_HANDLE;
-		VkDeviceSize IndexBufferMemorySize = 0;
+		VmaAllocation IndexBufferAllocation = VK_NULL_HANDLE;
+		VmaAllocationInfo IndexBufferAllocationInfos;
 
 	private:
 

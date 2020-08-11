@@ -1,43 +1,66 @@
 #pragma once
 
-#include "Types\String.refl.h"
+#include <vector>
+#include <inttypes.h>
+#include <cstdlib>
 
 #ifndef STRING_MINIMAL_LENGTH
 	#define STRING_MINIMAL_LENGTH 16
 #endif
 
-
-
 class String;
-class IStringable : public IReflectable
+class IStringable
 {
 public:
 	virtual String ToString() const = 0;
 };
 
-REFLECT()
+class String;
+
+/* Value To String */
+String ToString(int64_t value);
+String ToString(uint64_t value);
+String ToString(int32_t value);
+String ToString(uint32_t value);
+String ToString(double value);
+String ToString(float value);
+
+int32_t Atoi(const String& value);
+double Atof(const String& value);
+
 class String
 {
-	REFLECT_BODY()
-
 public:
 	static const String ENDL;
 
 	/* Constructors */
-	RCONSTRUCTOR()
 	String() = default;
 	~String();
-	String(const char* value);
-	String(const char& value);
-	String(String&& other);
-	String(const String& other);
-	String(const IStringable& other);
-	String(int32_t other) : String(ToString(other)) {}
-	String(uint32_t other) : String(ToString(other)) {}
-	String(int64_t other) : String(ToString(other)) {}
-	String(uint64_t other) : String(ToString(other)) {}
-	String(float other) : String(ToString(other)) {}
-	String(double other) : String(ToString(other)) {}
+
+	inline String(const char* value) {
+		if (value)
+		{
+			length = 0;
+			while (value[length] != '\0')
+				length++;
+
+			SetLength(length);
+
+			for (int i = 0; i < length; ++i)
+				data[i] = value[i];
+		}
+	}
+
+	inline String(const char& value) { SetLength(1); data[length - 1] = value; }
+	inline String(String&& other) {	CopyTo(other, this); }
+	inline String(const String& other) { CopyTo(other, this); }
+	inline String(const IStringable& other) { CopyTo(other.ToString(), this); }
+	inline String(int32_t other) : String(ToString(other)) {}
+	inline String(uint32_t other) : String(ToString(other)) {}
+	inline String(int64_t other) : String(ToString(other)) {}
+	inline String(uint64_t other) : String(ToString(other)) {}
+	inline String(float other) : String(ToString(other)) {}
+	inline String(double other) : String(ToString(other)) {}
 
 	/* Getters */
 	inline const size_t& Length() const { return length; }
@@ -46,11 +69,14 @@ public:
 	/* Operator == */
 	bool operator==(const String& _Val) const;
 
-	/* Operator == */
+	/* Operator != */
+	bool operator!=(const String& _Val) const;
+
+	/* Operator < */
 	bool operator<(const String& _Val) const;
 
 	/* Operator /= */
-	String& operator/=(const String& _Val) { return Append(String('/') + _Val); }
+	inline String& operator/=(const String& _Val) { return Append(String('/') + _Val); }
 
 	/* Operator / */
 	inline String operator/(const String& _Val) const { return Concatenate(String(GetData()), String(String('/') + _Val)); }
@@ -62,33 +88,33 @@ public:
 	inline const char& operator[](size_t pos) const { return data[pos]; }
 
 	/* Operator -= */
-	String& operator-=(const size_t& _Val) { SetLength(length - _Val); return *this; }
+	inline String& operator-=(const size_t& _Val) { SetLength(length - _Val); return *this; }
 
 	/* Operator << */
-	String& operator<<(const String& _Val) { return Append(_Val); }
-	String& operator<<(const char* _Val) { return Append(_Val); }
-	String& operator<<(const char& _Val) { return Append(_Val); }
-	String& operator<<(void* _Val) { return Append("ptr"); }
-	String& operator<<(const int64_t& _Val) { return Append(ToString(_Val)); }
-	String& operator<<(const uint64_t& _Val) { return Append(ToString(_Val)); }
-	String& operator<<(const int32_t& _Val) { return Append(ToString(_Val)); }
-	String& operator<<(const uint32_t& _Val) { return Append(ToString(_Val)); }
-	String& operator<<(const float& _Val) { return Append(ToString(_Val)); }
-	String& operator<<(const double& _Val) { return Append(ToString(_Val)); }
-	String& operator<<(const IStringable& _Val) { return Append(_Val.ToString()); }
+	inline String& operator<<(const String& _Val) { return Append(_Val); }
+	inline String& operator<<(const char* _Val) { return Append(_Val); }
+	inline String& operator<<(const char& _Val) { return Append(_Val); }
+	inline String& operator<<(void* _Val) { return Append("ptr"); }
+	inline String& operator<<(const int64_t& _Val) { return Append(ToString(_Val)); }
+	inline String& operator<<(const uint64_t& _Val) { return Append(ToString(_Val)); }
+	inline String& operator<<(const int32_t& _Val) { return Append(ToString(_Val)); }
+	inline String& operator<<(const uint32_t& _Val) { return Append(ToString(_Val)); }
+	inline String& operator<<(const float& _Val) { return Append(ToString(_Val)); }
+	inline String& operator<<(const double& _Val) { return Append(ToString(_Val)); }
+	inline String& operator<<(const IStringable& _Val) { return Append(_Val.ToString()); }
 
 	/* Operator += */
-	String& operator+=(const String& _Val) { return Append(_Val); }
-	String& operator+=(const char* _Val) { return Append(_Val); }
-	String& operator+=(const char& _Val) { return Append(_Val); }
-	String& operator+=(void* _Val) { return Append("ptr"); }
-	String& operator+=(const int64_t& _Val) { return Append(ToString(_Val)); }
-	String& operator+=(const uint64_t& _Val) { return Append(ToString(_Val)); }
-	String& operator+=(const int32_t& _Val) { return Append(ToString(_Val)); }
-	String& operator+=(const uint32_t& _Val) { return Append(ToString(_Val)); }
-	String& operator+=(const float& _Val) { return Append(ToString(_Val)); }
-	String& operator+=(const double& _Val) { return Append(ToString(_Val)); }
-	String& operator+=(const IStringable& _Val) { return Append(_Val.ToString()); }
+	inline String& operator+=(const String& _Val) { return Append(_Val); }
+	inline String& operator+=(const char* _Val) { return Append(_Val); }
+	inline String& operator+=(const char& _Val) { return Append(_Val); }
+	inline String& operator+=(void* _Val) { return Append("ptr"); }
+	inline String& operator+=(const int64_t& _Val) { return Append(ToString(_Val)); }
+	inline String& operator+=(const uint64_t& _Val) { return Append(ToString(_Val)); }
+	inline String& operator+=(const int32_t& _Val) { return Append(ToString(_Val)); }
+	inline String& operator+=(const uint32_t& _Val) { return Append(ToString(_Val)); }
+	inline String& operator+=(const float& _Val) { return Append(ToString(_Val)); }
+	inline String& operator+=(const double& _Val) { return Append(ToString(_Val)); }
+	inline String& operator+=(const IStringable& _Val) { return Append(_Val.ToString()); }
 
 	/* Operator + */
 	inline String operator+(const String& _Val) const { return Concatenate(String(GetData()), String(_Val)); }
@@ -112,18 +138,10 @@ public:
 	inline String operator=(const float& other) { return CopyTo(ToString(other), this); }
 	inline String operator=(const IStringable& other) { return CopyTo(other.ToString(), this); }
 
-	/* Value To String */
-	static String ToString(int64_t value);
-	static String ToString(uint64_t value);
-	static String ToString(int32_t value);
-	static String ToString(uint32_t value);
-	static String ToString(double value);
-	static String ToString(float value);
-
 	/* Tests */
 	inline static bool IsAlpha(const char& chr) { return (chr >= 'a' && chr <= 'z') || (chr >= 'A' && chr <= 'Z'); }
 	inline static bool IsNumeric(const char& chr) { return (chr >= '0' && chr <= '9'); }
-	inline static bool IsAlphanumeric(const char& chr) { IsAlpha(chr) || IsNumeric(chr); }
+	inline static bool IsAlphanumeric(const char& chr) { return IsAlpha(chr) || IsNumeric(chr); }
 
 	/* String operations */
 	inline static const String Concatenate(const String& left, const String& right) {
@@ -166,6 +184,25 @@ public:
 		return result;
 	}
 
+	static bool SplitString(const String& lineData, std::vector<char> separators, String& left, String& right, bool bFromStart = true);
+
+	inline static bool const IsStartingWith(const String& base, const String& start) {
+		if (start.length > base.length) return false;
+		for (int i = 0; i < start.length; ++i)
+			if (base[i] != start[i])
+				return false;
+		return true;
+	}
+
+	inline static bool const IsEndingWith(const String& base, const String& end) {
+		if (end.length > base.length) return false;
+		for (int i = 1; i <= end.length; ++i)
+			if (base[base.length - i] != end[end.length - i])
+				return false;
+		return true;
+	}
+
+	static String RemoveBorderSpaces(const String& line);
 private:
 
 	inline static const String& CopyTo(const String& from, String* to) {
@@ -192,3 +229,6 @@ private:
 	size_t length = 0;
 	size_t allocLength = STRING_MINIMAL_LENGTH;
 };
+
+inline String operator+(const char& chr, const String& str) { return String(chr) + str; }
+inline String operator+(const char* chr, const String& str) { return String(chr) + str; }

@@ -1,4 +1,4 @@
-//VERSION : Friday, 07 August 2020 13:05:24
+//VERSION : Monday, 10 August 2020 16:19:48
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 #include "C:/Users/pierre/Documents/Engine/Sources/Engine/Core/Engine/Sources/Public\Object\Serializer.h"

@@ -35,12 +35,12 @@ public:
 	EngineInputOutput& operator<<(const char* _Val);
 	EngineInputOutput& operator<<(char _Val);
 	EngineInputOutput& operator<<(const String& _Val);
-	EngineInputOutput& operator<<(const int32_t& _Val) { OutputText(String::ToString(_Val)); return IO; }
-	EngineInputOutput& operator<<(const uint32_t& _Val) { OutputText(String::ToString(_Val)); return IO; }
-	EngineInputOutput& operator<<(const int64_t& _Val) { OutputText(String::ToString(_Val)); return IO; }
-	EngineInputOutput& operator<<(const uint64_t& _Val) { OutputText(String::ToString(_Val)); return IO; }
-	EngineInputOutput& operator<<(const float& _Val) { OutputText(String::ToString(_Val)); return IO; }
-	EngineInputOutput& operator<<(const double& _Val) { OutputText(String::ToString(_Val)); return IO; }
+	EngineInputOutput& operator<<(const int32_t& _Val) { OutputText(ToString(_Val)); return IO; }
+	EngineInputOutput& operator<<(const uint32_t& _Val) { OutputText(ToString(_Val)); return IO; }
+	EngineInputOutput& operator<<(const int64_t& _Val) { OutputText(ToString(_Val)); return IO; }
+	EngineInputOutput& operator<<(const uint64_t& _Val) { OutputText(ToString(_Val)); return IO; }
+	EngineInputOutput& operator<<(const float& _Val) { OutputText(ToString(_Val)); return IO; }
+	EngineInputOutput& operator<<(const double& _Val) { OutputText(ToString(_Val)); return IO; }
 
 	EngineInputOutput& operator<<(const IStringable& _Val);
 

@@ -40,7 +40,7 @@ void Logger::Log(const String& logText, LogVerbosity verbosity)
 void Logger::LogDetailed(const String& logText, LogVerbosity verbosity, const int& line, String fct) {
 	if (DISPLAY_CODE_LOCATION)
 	{
-		Log(String("(") + fct + ":" + String::ToString(line) + ") : " + logText, verbosity);
+		Log(String("(") + fct + ":" + ToString(line) + ") : " + logText, verbosity);
 	}
 	else
 	{

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Types/Color.h"
 #include "Types/Vector.h"
 #include "Types/Rotator.h"

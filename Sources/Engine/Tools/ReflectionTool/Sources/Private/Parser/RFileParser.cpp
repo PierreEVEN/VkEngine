@@ -25,7 +25,7 @@ RFileParser::RFileParser(const std::string& inFilePath)
 	char* line = new char[1000];
 	while (fs.getline(line, 1000, '\n'))
 		fileData.AddLine(line);
-
+	delete line;
 	fileClasses = fileData.ExtractClasses(filePath, fileUniqueID);
 	fs.close();
 }

@@ -8,13 +8,12 @@ namespace Rendering::Initialization
 	void Shutdown();
 
 
-
+	void LoadIniConfig();
 	void CreateInstance();
 	void CreateSurface();
 	void PickPhysicalDevice();
 	void CreateLogicalDevice();
 	void CreateAllocators();
-	void CreateDescriptorPool(const uint32_t& materialCount = 32);
 	void CreateRenderPass();
 	void InitializeSwapchainProperties();
 	void CreateDefaultObjects();
@@ -27,9 +26,9 @@ namespace Rendering::Initialization
 	void DestroyCommandPool();
 	void DestroyDefaultObjects();
 	void DestroyRenderPass();
-	void DestroyDescriptorPool();
 	void DestroyAllocators();
 	void DestroyLogicalDevice();
 	void DestroySurface();
 	void DestroyInstance();
+	void SaveIniConfig();
 }

@@ -1,19 +1,21 @@
 #include "Ressources/Texture.h"
 #include "Maths/BaseOperations.h"
 #include "Utils.h"
+#include "DescriptorPool.h"
 
-Rendering::Texture2D::Texture2D(unsigned char* textureData, SIntVector2D imageResolution, uint8_t channelsCount)
+Rendering::TextureRessource::TextureRessource(unsigned char* textureData, SIntVector2D imageResolution, uint8_t channelsCount)
 {
 	CreateTextureImage(textureData, imageResolution, channelsCount);
 	CreateTextureSampler();
+	InitializeUIObjects();
 }
 
-Rendering::Texture2D::~Texture2D()
+Rendering::TextureRessource::~TextureRessource()
 {
 	DestroyImage();
 }
 
-void Rendering::Texture2D::CreateImageView(VkImage image, VkImageView& view, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
+void Rendering::TextureRessource::CreateImageView(VkImage image, VkImageView& view, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
 {
 	VkImageViewCreateInfo viewInfo{};
 	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -32,7 +34,7 @@ void Rendering::Texture2D::CreateImageView(VkImage image, VkImageView& view, VkF
 }
 
 
-void Rendering::Texture2D::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
+void Rendering::TextureRessource::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
 {
 	VkImageCreateInfo imageInfo{};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -64,7 +66,7 @@ void Rendering::Texture2D::CreateImage(uint32_t width, uint32_t height, uint32_t
 	vkBindImageMemory(G_LOGICAL_DEVICE, image, imageMemory, 0);
 }
 
-void Rendering::Texture2D::GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels)
+void Rendering::TextureRessource::GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels)
 
 {
 
@@ -140,7 +142,7 @@ void Rendering::Texture2D::GenerateMipmaps(VkImage image, VkFormat imageFormat, 
 	EndSingleTimeCommands(commandBuffer);
 }
 
-void Rendering::Texture2D::CreateTextureImage(unsigned char* textureData, SIntVector2D imageResolution, uint8_t channelsCount)
+void Rendering::TextureRessource::CreateTextureImage(unsigned char* textureData, SIntVector2D imageResolution, uint8_t channelsCount)
 {
 
 	channelsCount = 4;
@@ -160,10 +162,10 @@ void Rendering::Texture2D::CreateTextureImage(unsigned char* textureData, SIntVe
 		break;
 	}
 
-	VkDeviceSize imageSize = imageResolution.X() * imageResolution.Y() * channelsCount;
+	VkDeviceSize imageSize = imageResolution.x * imageResolution.y * channelsCount;
 
 
-	textureMipsLevels = static_cast<uint32_t>(Maths::Floor(log2(Maths::GetMax(imageResolution.X(), imageResolution.Y())))) + 1;
+	textureMipsLevels = static_cast<uint32_t>(Maths::Floor(log2(Maths::GetMax(imageResolution.x, imageResolution.y)))) + 1;
 
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingBufferMemory;
@@ -174,12 +176,12 @@ void Rendering::Texture2D::CreateTextureImage(unsigned char* textureData, SIntVe
 	memcpy(data, textureData, static_cast<size_t>(imageSize));
 	vkUnmapMemory(G_LOGICAL_DEVICE, stagingBufferMemory);
 
-	CreateImage(imageResolution.X(), imageResolution.Y(), textureMipsLevels, VK_SAMPLE_COUNT_1_BIT, imageFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
+	CreateImage(imageResolution.x, imageResolution.y, textureMipsLevels, VK_SAMPLE_COUNT_1_BIT, imageFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
 
 	TransitionImageLayout(textureImage, imageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, textureMipsLevels);
-	CopyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(imageResolution.X()), static_cast<uint32_t>(imageResolution.Y()));
+	CopyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(imageResolution.x), static_cast<uint32_t>(imageResolution.y));
 
-	GenerateMipmaps(textureImage, imageFormat, imageResolution.X(), imageResolution.Y(), textureMipsLevels);
+	GenerateMipmaps(textureImage, imageFormat, imageResolution.x, imageResolution.y, textureMipsLevels);
 
 	CreateImageView(textureImage, textureImageView, imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, textureMipsLevels);
 
@@ -187,7 +189,7 @@ void Rendering::Texture2D::CreateTextureImage(unsigned char* textureData, SIntVe
 	vkFreeMemory(G_LOGICAL_DEVICE, stagingBufferMemory, G_ALLOCATION_CALLBACK);
 }
 
-void Rendering::Texture2D::CreateTextureSampler()
+void Rendering::TextureRessource::CreateTextureSampler()
 {
 	LOG("Create texture sampler");
 	VkSamplerCreateInfo samplerInfo{};
@@ -211,16 +213,18 @@ void Rendering::Texture2D::CreateTextureSampler()
 	VK_ENSURE(vkCreateSampler(G_LOGICAL_DEVICE, &samplerInfo, G_ALLOCATION_CALLBACK, &textureSampler), "failed to create sampler");
 }
 
-void Rendering::Texture2D::DestroyImage()
+void Rendering::TextureRessource::DestroyImage()
 {
 	vkDestroySampler(G_LOGICAL_DEVICE, textureSampler, G_ALLOCATION_CALLBACK);
 	vkDestroyImageView(G_LOGICAL_DEVICE, textureImageView, G_ALLOCATION_CALLBACK);
 
 	vkDestroyImage(G_LOGICAL_DEVICE, textureImage, G_ALLOCATION_CALLBACK);
 	vkFreeMemory(G_LOGICAL_DEVICE, textureImageMemory, G_ALLOCATION_CALLBACK);
+
+	vkDestroyDescriptorSetLayout(G_LOGICAL_DEVICE, uiDisplayLayout, G_ALLOCATION_CALLBACK);
 }
 
-void Rendering::Texture2D::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevel)
+void Rendering::TextureRessource::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevel)
 {
 	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
@@ -265,7 +269,7 @@ void Rendering::Texture2D::TransitionImageLayout(VkImage image, VkFormat format,
 }
 
 
-void Rendering::Texture2D::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
+void Rendering::TextureRessource::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
 {
 	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
@@ -285,4 +289,42 @@ void Rendering::Texture2D::CopyBufferToImage(VkBuffer buffer, VkImage image, uin
 	vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
 	EndSingleTimeCommands(commandBuffer);
+}
+
+void Rendering::TextureRessource::InitializeUIObjects()
+{
+	VkDescriptorSetLayoutBinding binding[1] = {};
+	binding[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	binding[0].descriptorCount = 1;
+	binding[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	VkDescriptorSetLayoutCreateInfo info = {};
+	info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	info.bindingCount = 1;
+	info.pBindings = binding;
+	vkCreateDescriptorSetLayout(Rendering::G_LOGICAL_DEVICE, &info, nullptr, &uiDisplayLayout);
+
+	uiDisplaySet.resize(G_SWAP_CHAIN_IMAGE_COUNT);
+	for (int i = 0; i < Rendering::G_SWAP_CHAIN_IMAGE_COUNT; ++i)
+	{
+		// Create Descriptor Set:
+		VkDescriptorSetAllocateInfo alloc_info = {};
+		alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		alloc_info.descriptorSetCount = 1;
+		alloc_info.pSetLayouts = &uiDisplayLayout;
+		ReserveDescriptorPoolMemory(alloc_info);
+		vkAllocateDescriptorSets(Rendering::G_LOGICAL_DEVICE, &alloc_info, &uiDisplaySet[i]);
+
+		// Update the Descriptor Set:
+		VkDescriptorImageInfo desc_image[1] = {};
+		desc_image[0].sampler = textureSampler;
+		desc_image[0].imageView = textureImageView;
+		desc_image[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		VkWriteDescriptorSet write_desc[1] = {};
+		write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		write_desc[0].dstSet = uiDisplaySet[i];
+		write_desc[0].descriptorCount = 1;
+		write_desc[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		write_desc[0].pImageInfo = desc_image;
+		vkUpdateDescriptorSets(Rendering::G_LOGICAL_DEVICE, 1, write_desc, 0, NULL);
+	}
 }

@@ -2,26 +2,27 @@
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
+#include "Utils.h"
 
-void Rendering::Mesh::CreateBuffers()
+void Rendering::MeshRessource::CreateBuffers()
 {
 	void* data;
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingBufferMemory;
 
-	VertexBufferMemorySize = sizeof(Vertex) * vertices.size();
-	IndexBufferMemorySize = sizeof(uint32_t) * indices.size();
+	VkDeviceSize vBufferSize = sizeof(Vertex) * vertices.size();
+	VkDeviceSize iBufferSize = sizeof(uint32_t) * indices.size();
 
 	/* Copy vertices */
 
-	CreateBuffer(VertexBufferMemorySize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+	CreateBuffer(vBufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
-	vkMapMemory(G_LOGICAL_DEVICE, stagingBufferMemory, 0, VertexBufferMemorySize, 0, &data);
-	memcpy(data, vertices.data(), (size_t)VertexBufferMemorySize);
+	vkMapMemory(G_LOGICAL_DEVICE, stagingBufferMemory, 0, vBufferSize, 0, &data);
+	memcpy(data, vertices.data(), (size_t)vBufferSize);
 	vkUnmapMemory(G_LOGICAL_DEVICE, stagingBufferMemory);
 
-	CreateBuffer(VertexBufferMemorySize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VertexBuffer, VertexBufferMemory);
-	CopyBuffer(stagingBuffer, VertexBuffer, VertexBufferMemorySize);
+	CreateVmaBuffer(vBufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VertexBuffer, VertexBufferAllocation, VertexBufferAllocationInfos);
+	CopyBuffer(stagingBuffer, VertexBuffer, vBufferSize);
 
 	vkDestroyBuffer(G_LOGICAL_DEVICE, stagingBuffer, G_ALLOCATION_CALLBACK);
 	vkFreeMemory(G_LOGICAL_DEVICE, stagingBufferMemory, G_ALLOCATION_CALLBACK);
@@ -29,31 +30,31 @@ void Rendering::Mesh::CreateBuffers()
 
 	/* copy indices */
 
-	CreateBuffer(IndexBufferMemorySize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+	CreateBuffer(iBufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
-	vkMapMemory(G_LOGICAL_DEVICE, stagingBufferMemory, 0, IndexBufferMemorySize, 0, &data);
-	memcpy(data, indices.data(), (size_t)IndexBufferMemorySize);
+	vkMapMemory(G_LOGICAL_DEVICE, stagingBufferMemory, 0, iBufferSize, 0, &data);
+	memcpy(data, indices.data(), (size_t)iBufferSize);
 	vkUnmapMemory(G_LOGICAL_DEVICE, stagingBufferMemory);
 
-	CreateBuffer(IndexBufferMemorySize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, IndexBuffer, IndexBufferMemory);
-	CopyBuffer(stagingBuffer, IndexBuffer, IndexBufferMemorySize);
+	CreateVmaBuffer(iBufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, IndexBuffer, IndexBufferAllocation, IndexBufferAllocationInfos);
+	CopyBuffer(stagingBuffer, IndexBuffer, iBufferSize);
 
 	vkDestroyBuffer(G_LOGICAL_DEVICE, stagingBuffer, nullptr);
 	vkFreeMemory(G_LOGICAL_DEVICE, stagingBufferMemory, nullptr);
 }
 
-Rendering::Mesh::Mesh(std::vector<Vertex> inVertices, std::vector<uint32_t> inIndices)
+Rendering::MeshRessource::MeshRessource(std::vector<Vertex> inVertices, std::vector<uint32_t> inIndices)
 	: vertices(inVertices), indices(inIndices)
 {
 	CreateBuffers();
 }
 
-Rendering::Mesh::~Mesh()
+Rendering::MeshRessource::~MeshRessource()
 {
 	FreeBuffers();
 }
 
-void Rendering::Mesh::Draw(VkCommandBuffer commandBuffer)
+void Rendering::MeshRessource::Draw(VkCommandBuffer commandBuffer)
 {
 	VkBuffer vertexBuffers[] = { VertexBuffer };
 	VkDeviceSize offsets[] = { 0 };
@@ -64,7 +65,7 @@ void Rendering::Mesh::Draw(VkCommandBuffer commandBuffer)
 	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 }
 
-void Rendering::Mesh::LoadFromFile(String FilePath, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
+void Rendering::MeshRessource::LoadFromFile(String FilePath, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
 {
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
@@ -87,10 +88,13 @@ void Rendering::Mesh::LoadFromFile(String FilePath, std::vector<Vertex>& vertice
 				attrib.vertices[3 * index.vertex_index + 2]
 			};
 
-			vertex.texCoord = {
-				attrib.texcoords[2 * index.texcoord_index + 0],
-				1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
-			};
+			if (attrib.texcoords.size() > 0)
+			{
+				vertex.texCoord = {
+					attrib.texcoords[2 * index.texcoord_index + 0],
+					1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
+				};
+			}
 
 			vertex.color = { 0, 0, 0 };
 
@@ -105,11 +109,7 @@ void Rendering::Mesh::LoadFromFile(String FilePath, std::vector<Vertex>& vertice
 	}
 }
 
-void Rendering::Mesh::FreeBuffers()
-{
-	vkDestroyBuffer(G_LOGICAL_DEVICE, VertexBuffer, G_ALLOCATION_CALLBACK);
-	vkFreeMemory(G_LOGICAL_DEVICE, VertexBufferMemory, G_ALLOCATION_CALLBACK);
-
-	vkDestroyBuffer(G_LOGICAL_DEVICE, IndexBuffer, G_ALLOCATION_CALLBACK);
-	vkFreeMemory(G_LOGICAL_DEVICE, IndexBufferMemory, G_ALLOCATION_CALLBACK);
+void Rendering::MeshRessource::FreeBuffers() {
+	vmaDestroyBuffer(G_VMA_ALLOCATOR, VertexBuffer, VertexBufferAllocation);
+	vmaDestroyBuffer(G_VMA_ALLOCATOR, IndexBuffer, IndexBufferAllocation);
 }

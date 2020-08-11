@@ -16,8 +16,8 @@ Rendering::SwapChain::~SwapChain()
 void Rendering::SwapChain::ResizeSwapchain(const SIntVector2D& inSwapChainExtend, bool forceRecreate, bool clampVal)
 {
 	VkExtent2D newExtend;
-	newExtend.width = inSwapChainExtend.X();
-	newExtend.height = inSwapChainExtend.Y();
+	newExtend.width = inSwapChainExtend.x;
+	newExtend.height = inSwapChainExtend.y;
 
 	if (clampVal) newExtend = ChooseSwapExtent(G_SWAPCHAIN_SUPPORT_DETAILS.capabilities, newExtend);
 
@@ -35,7 +35,7 @@ void Rendering::SwapChain::CreateOrRecreateSwapchain()
 
 	String SwapChainLog = "Create new Swap chain :\n";
 
-	SwapChainLog += String("\t-Swap chain extend : ") + String::ToString(swapChainExtend.width) / String::ToString(swapChainExtend.height) + "\n";
+	SwapChainLog += String("\t-Swap chain extend : ") + ToString(swapChainExtend.width) / ToString(swapChainExtend.height) + "\n";
 
 	VkSwapchainCreateInfoKHR createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -49,7 +49,7 @@ void Rendering::SwapChain::CreateOrRecreateSwapchain()
 
 	uint32_t queueFamilyIndices[] = { G_QUEUE_FAMILY_INDICES.graphicsFamily.value(), G_QUEUE_FAMILY_INDICES.presentFamily.value() };
 
-	SwapChainLog += String("\t-Image format : ") + String::ToString((uint8_t)G_SWAPCHAIN_SURFACE_FORMAT.format) + "\n";
+	SwapChainLog += String("\t-Image format : ") + ToString((uint8_t)G_SWAPCHAIN_SURFACE_FORMAT.format) + "\n";
 
 	if (G_QUEUE_FAMILY_INDICES.graphicsFamily != G_QUEUE_FAMILY_INDICES.presentFamily) {
 		createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;

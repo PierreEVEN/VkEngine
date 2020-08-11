@@ -26,7 +26,7 @@ public:
 
 	static void LogDetailedFull(const String& logText, LogVerbosity verbosity, const int& line, String fct, String File)
 	{
-		Log(String("(") + fct + ":" + line + ") : " + logText + String::ENDL + File, verbosity);
+		Log("(" + fct + ":" + line + ") : " + logText + String::ENDL + File, verbosity);
 	}
 
 };

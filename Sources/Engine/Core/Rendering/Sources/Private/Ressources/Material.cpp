@@ -2,8 +2,9 @@
 #include "Viewport/ViewportInstance.h"
 #include "Viewport/MatrixUniformBuffers.h"
 #include "Ressources/Texture.h"
+#include "DescriptorPool.h"
 
-Rendering::Material::Material(
+Rendering::MaterialRessource::MaterialRessource(
 	const std::vector<char>& vertexShaderModule,
 	const std::vector<char>& fragmentShaderModule,
 	std::vector<VkDescriptorSetLayoutBinding> layoutBindings,
@@ -13,23 +14,23 @@ Rendering::Material::Material(
  	CreatePipeline(vertexShaderModule, fragmentShaderModule, creationFlags);
 }
 
-Rendering::Material::~Material()
+Rendering::MaterialRessource::~MaterialRessource()
 {
 	DestroyShadersObjects();
 }
 
-void Rendering::Material::Use(VkCommandBuffer commandBuffer, const size_t& imageIndex)
+void Rendering::MaterialRessource::Use(VkCommandBuffer commandBuffer, const size_t& imageIndex)
 {
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[imageIndex], 0, nullptr);
 	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shaderPipeline);
 }
 
-void Rendering::Material::UpdateDescriptorSets(std::vector<VkWriteDescriptorSet> descriptorWrites)
+void Rendering::MaterialRessource::UpdateDescriptorSets(std::vector<VkWriteDescriptorSet> descriptorWrites)
 {
 	vkUpdateDescriptorSets(G_LOGICAL_DEVICE, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 }
 
-void Rendering::Material::CreatePipeline(const std::vector<char>& vertexShaderCode, const std::vector<char>& fragmentShaderCode, EMaterialCreationFlags creationFlags)
+void Rendering::MaterialRessource::CreatePipeline(const std::vector<char>& vertexShaderCode, const std::vector<char>& fragmentShaderCode, EMaterialCreationFlags creationFlags)
 {
 	VK_CHECK(descriptorSetLayout, "Descriptor set layout should be initialized before graphic pipeline");
 	VK_CHECK(G_RENDER_PASS, "Render pass should be initialized before graphic pipeline");
@@ -174,10 +175,8 @@ void Rendering::Material::CreatePipeline(const std::vector<char>& vertexShaderCo
 	vkDestroyShaderModule(G_LOGICAL_DEVICE, fragmentShaderModule, G_ALLOCATION_CALLBACK);
 }
 
-void Rendering::Material::CreateDescriptorSets(std::vector<VkDescriptorSetLayoutBinding> layoutBindings)
+void Rendering::MaterialRessource::CreateDescriptorSets(std::vector<VkDescriptorSetLayoutBinding> layoutBindings)
 {
-	VK_CHECK(G_DESCRIPTOR_POOL, "Descriptor pool is null. Cannot create material before initializing descriptor pool");
-
 	/** Create descriptor set layout */
 	VkDescriptorSetLayoutCreateInfo layoutInfo{};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -190,20 +189,21 @@ void Rendering::Material::CreateDescriptorSets(std::vector<VkDescriptorSetLayout
 	descriptorSets.resize(G_SWAP_CHAIN_IMAGE_COUNT);
 	VkDescriptorSetAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = G_DESCRIPTOR_POOL;
 	allocInfo.descriptorSetCount = static_cast<uint32_t>(G_SWAP_CHAIN_IMAGE_COUNT);
 	allocInfo.pSetLayouts = layouts.data();
+	allocInfo.descriptorPool = VK_NULL_HANDLE;
+	ReserveDescriptorPoolMemory(allocInfo);
 	VK_ENSURE(vkAllocateDescriptorSets(G_LOGICAL_DEVICE, &allocInfo, descriptorSets.data()), "Failed to allocate descriptor sets");
 }
 
-void Rendering::Material::DestroyShadersObjects()
+void Rendering::MaterialRessource::DestroyShadersObjects()
 {
 	vkDestroyPipeline(G_LOGICAL_DEVICE, shaderPipeline, G_ALLOCATION_CALLBACK);
 	vkDestroyPipelineLayout(G_LOGICAL_DEVICE, pipelineLayout, G_ALLOCATION_CALLBACK);
 	vkDestroyDescriptorSetLayout(G_LOGICAL_DEVICE, descriptorSetLayout, G_ALLOCATION_CALLBACK);
 }
 
-Rendering::MaterialInstance::MaterialInstance(const std::vector<VkWriteDescriptorSet>& inDescriptorSetInfos, Material* inMaterial)
+Rendering::MaterialInstance::MaterialInstance(const std::vector<VkWriteDescriptorSet>& inDescriptorSetInfos, MaterialRessource* inMaterial)
 	: DescriptorSetInfos(inDescriptorSetInfos), parent(inMaterial)
 {
 

@@ -1,4 +1,4 @@
-//VERSION : Friday, 07 August 2020 13:05:24
+//VERSION : Monday, 10 August 2020 16:19:48
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 
@@ -19,7 +19,7 @@
 
 class Serializable; // Forward declaration
 
-#define _REFLECTION_BODY_RUID_6_LINE_116 REFL_DECLARE_CLASS(Serializable)
+#define _REFLECTION_BODY_RUID_6_LINE_115 REFL_DECLARE_CLASS(Serializable)
 
 REFL_DECLARE_TYPENAME(Serializable); // Declare typename
 

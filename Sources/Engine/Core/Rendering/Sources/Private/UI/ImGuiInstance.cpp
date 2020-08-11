@@ -6,7 +6,7 @@
 
 void ImGuiVkResultDelegate(VkResult err)
 {
-	if (err != VK_SUCCESS) { LOG_ASSERT(String("ImGui initialization error : ") + String::ToString((int32_t)err)); }
+	if (err != VK_SUCCESS) { LOG_ASSERT(String("ImGui initialization error : ") + ToString((int32_t)err)); }
 }
 
 void Rendering::PreInitializeImGui()
@@ -18,6 +18,8 @@ void Rendering::PreInitializeImGui()
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Game pad Controls
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
 	ImGuiStyle& style = ImGui::GetStyle();
 	style.WindowRounding = 0;
@@ -36,7 +38,7 @@ void Rendering::PreInitializeImGui()
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 
-	G_IMGUI_DEFAULT_FONT = io.Fonts->AddFontFromFileTTF(G_DEFAULT_FONT_PATH, 20.f);
+	G_IMGUI_DEFAULT_FONT = io.Fonts->AddFontFromFileTTF(G_DEFAULT_FONT_PATH.GetData(), 20.f);
 
 
 	const size_t descPoolCount = 20;

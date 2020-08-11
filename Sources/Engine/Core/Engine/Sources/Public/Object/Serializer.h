@@ -2,8 +2,7 @@
 #include <type_traits>
 #include <fstream>
 #include <assert.h>
-#include "Types/String.h"
-#include "Types/Vector.h"
+#include "EngineTypes.h"
 #include "Object\Serializer.refl.h" // automatically generated reflection header
 
 #define ARCHIVE_FILE_VERSION 1

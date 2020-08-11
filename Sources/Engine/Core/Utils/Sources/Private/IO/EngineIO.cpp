@@ -78,7 +78,7 @@ String EngineInputOutput::FindNewLogfileName() const
 		}
 		else
 		{
-			fileName = String(DEFAULT_LOG_DIRECTORY) / String("Log Engine ") + String::ToString(LogIndex) + String(" - ") + String(buf) + ".log";
+			fileName = String(DEFAULT_LOG_DIRECTORY) / String("Log Engine ") + ToString(LogIndex) + String(" - ") + String(buf) + ".log";
 		}
 	} while (std::filesystem::exists(fileName.GetData()));
 

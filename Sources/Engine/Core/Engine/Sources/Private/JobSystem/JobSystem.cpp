@@ -23,7 +23,7 @@ Worker& GetCurrentWorker()
 
 void JobSystem::Initialize()
 {
-	LOG(String("Initializing ") + String::ToString(CPU_THREAD_COUNT) + " workers");
+	LOG(String("Initializing ") + ToString(CPU_THREAD_COUNT) + " workers");
 
 	for (size_t i = 0; i < JobSystem::CPU_THREAD_COUNT; ++i)
 	{

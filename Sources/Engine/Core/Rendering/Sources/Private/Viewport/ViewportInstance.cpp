@@ -8,6 +8,13 @@
 #include "Ressources/Mesh.h"
 #include "Ressources/Material.h"
 #include "Viewport/MatrixUniformBuffers.h"
+#include "Ressources/Texture.h"
+#include "DescriptorPool.h"
+
+
+#include <stb_image.h>
+#include "Viewport/Camera.h"
+
 
 Rendering::ViewportInstance::ViewportInstance(const SIntVector2D& inDesiredViewportSize)
 	: desiredViewportSize(inDesiredViewportSize)
@@ -19,6 +26,7 @@ Rendering::ViewportInstance::ViewportInstance(const SIntVector2D& inDesiredViewp
 	commandBuffer = new CommandBuffer(this);
 	frameObjects = new FrameObjects(this);
 	viewportMatrices = new MatrixUniformBuffer(this);
+	viewportCamera = new Camera();
 
 	G_ON_WINDOW_RESIZED.Add(this, &ViewportInstance::RequestViewportResize);
 }
@@ -29,6 +37,7 @@ Rendering::ViewportInstance::~ViewportInstance()
 
 	G_ON_WINDOW_RESIZED.UnbindObj(this);
 
+	delete viewportCamera;
 	delete viewportMatrices;
 	delete frameObjects;
 	delete commandBuffer;
@@ -36,34 +45,21 @@ Rendering::ViewportInstance::~ViewportInstance()
 	delete viewportSwapChain;
 }
 
-size_t CURRENT_FRAME_ID = 0;
-std::chrono::steady_clock::time_point lastTime = std::chrono::steady_clock::now();
-double printTimer = 0.0;
-uint64_t frameNum = 0;
-int bDoOnce = 0;
-bool bShowDemo = false;
 
 void Rendering::ViewportInstance::DrawViewport()
 {
 	double deltaTime;
-	deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - lastTime).count() / 1000000.0;
+	deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - LastFrameTime).count() / 1000000.0;
 
-	lastTime = std::chrono::steady_clock::now();
-	printTimer += deltaTime;
-	if (printTimer > 1.0)
-	{
-		printTimer = 0.0;
-		LOG(String("DeltaTime : ") + String::ToString(deltaTime) + "ms  |  " + String::ToString(1 / deltaTime) + " fps");
-	}
-	frameNum++;
+	if (G_MAX_FRAMERATE != 0 && (1.0 / deltaTime > G_MAX_FRAMERATE)) return;
+	LastFrameTime = std::chrono::steady_clock::now();
 
 
-
-	vkWaitForFences(G_LOGICAL_DEVICE, 1, &frameObjects->GetInFlightFence(CURRENT_FRAME_ID), VK_TRUE, UINT64_MAX);
+	vkWaitForFences(G_LOGICAL_DEVICE, 1, &frameObjects->GetInFlightFence(CurrentFrameId), VK_TRUE, UINT64_MAX);
 
 	uint32_t imageIndex;
 
-	VkResult result = vkAcquireNextImageKHR(G_LOGICAL_DEVICE, viewportSwapChain->GetSwapChainKhr(), UINT64_MAX, frameObjects->GetImageAvailableAvailableSemaphore(CURRENT_FRAME_ID), VK_NULL_HANDLE, &imageIndex);
+	VkResult result = vkAcquireNextImageKHR(G_LOGICAL_DEVICE, viewportSwapChain->GetSwapChainKhr(), UINT64_MAX, frameObjects->GetImageAvailableAvailableSemaphore(CurrentFrameId), VK_NULL_HANDLE, &imageIndex);
 
 	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
 		LOG_ASSERT("should recreate swapchain here");
@@ -76,97 +72,125 @@ void Rendering::ViewportInstance::DrawViewport()
 	if (frameObjects->GetImageInFlightFence(imageIndex) != VK_NULL_HANDLE) {
 		vkWaitForFences(G_LOGICAL_DEVICE, 1, &frameObjects->GetImageInFlightFence(imageIndex), VK_TRUE, UINT64_MAX);
 	}
-	frameObjects->GetImageInFlightFence(imageIndex) = frameObjects->GetInFlightFence(CURRENT_FRAME_ID);
-
-
-
+	frameObjects->GetImageInFlightFence(imageIndex) = frameObjects->GetInFlightFence(CurrentFrameId);
 
 	viewportMatrices->UpdateUniformBuffers(this, imageIndex);
 
+	VkCommandBufferBeginInfo beginInfo{};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = 0; // Optional
+	beginInfo.pInheritanceInfo = nullptr; // Optional
 
-	if (bDoOnce ||true)
+
+	std::array<VkClearValue, 2> clearValues{};
+	clearValues[0].color = { 0.0f, 0.0f, 0.0f, 0.f };
+	clearValues[1].depthStencil = { 1.0f, 0 };
+
+	VkRenderPassBeginInfo renderPassInfo{};
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderPassInfo.renderPass = G_RENDER_PASS;
+	renderPassInfo.framebuffer = frameBuffers->GetFrameBuffer(imageIndex);
+	renderPassInfo.renderArea.offset = { 0, 0 };
+	renderPassInfo.renderArea.extent = GetViewportExtend();
+	renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+	renderPassInfo.pClearValues = clearValues.data();
+
+	VkViewport viewport;
+	viewport.x = 0;
+	viewport.y = 0;
+	viewport.width = static_cast<float>(GetViewportWidth());
+	viewport.height = static_cast<float>(GetViewportHeight());
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
+	VkRect2D scissor;
+	scissor.extent = GetViewportExtend();
+	scissor.offset.x = 0;
+	scissor.offset.y = 0;
+
+	VkCommandBuffer currentCommandBfr = commandBuffer->GetCommandBuffer(imageIndex);
+
+	if (vkBeginCommandBuffer(currentCommandBfr, &beginInfo) != VK_SUCCESS) { LOG_ASSERT(String("Failed to create command buffer #") + ToString(imageIndex)); }
+	vkCmdBeginRenderPass(currentCommandBfr, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+	vkCmdSetViewport(currentCommandBfr, 0, 1, &viewport);
+	vkCmdSetScissor(currentCommandBfr, 0, 1, &scissor);
+
+	G_DEFAULT_MATERIAL->Use(currentCommandBfr, this, imageIndex);
+	G_DEFAULT_MESH->Draw(currentCommandBfr);
+
+	// Start the Dear ImGui frame
+	ImGui_ImplVulkan_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+	ImGui::PushFont(G_IMGUI_DEFAULT_FONT);
+
+
+
+	if (ImGui::BeginMainMenuBar())
 	{
-		bDoOnce++;
-
-		VkCommandBufferBeginInfo beginInfo{};
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		beginInfo.flags = 0; // Optional
-		beginInfo.pInheritanceInfo = nullptr; // Optional
-
-
-		std::array<VkClearValue, 2> clearValues{};
-		clearValues[0].color = { 0.0f, 0.0f, 0.0f, 0.f };
-		clearValues[1].depthStencil = { 1.0f, 0 };
-
-		VkRenderPassBeginInfo renderPassInfo{};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = G_RENDER_PASS;
-		renderPassInfo.framebuffer = frameBuffers->GetFrameBuffer(imageIndex);
-		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = GetViewportExtend();
-		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-		renderPassInfo.pClearValues = clearValues.data();
-
-		VkViewport viewport;
-		viewport.x = 0;
-		viewport.y = 0;
-		viewport.width = static_cast<float>(GetViewportWidth());
-		viewport.height = static_cast<float>(GetViewportHeight());
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
-		VkRect2D scissor;
-		scissor.extent = GetViewportExtend();
-		scissor.offset.x = 0;
-		scissor.offset.y = 0;
-
-		VkCommandBuffer currentCommandBfr = commandBuffer->GetCommandBuffer(imageIndex);
-
-		if (vkBeginCommandBuffer(currentCommandBfr, &beginInfo) != VK_SUCCESS) { LOG_ASSERT(String("Failed to create command buffer #") + String::ToString(imageIndex)); }
-		vkCmdBeginRenderPass(currentCommandBfr, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-		vkCmdSetViewport(currentCommandBfr, 0, 1, &viewport);
-		vkCmdSetScissor(currentCommandBfr, 0, 1, &scissor);
-
-		G_DEFAULT_MATERIAL->Use(currentCommandBfr, this, imageIndex);
-		G_DEFAULT_MESH->Draw(currentCommandBfr);
-
-		// Start the Dear ImGui frame
-		ImGui_ImplVulkan_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-
-		ImGui::PushFont(G_IMGUI_DEFAULT_FONT);
-		if (ImGui::BeginMainMenuBar())
+		if (ImGui::BeginMenu("Files"))
 		{
-			if (ImGui::BeginMenu("Files"))
-			{
-				if (ImGui::MenuItem("quit")) glfwSetWindowShouldClose(GetPrimaryWindow(), 1);
-				ImGui::EndMenu();
-			}
-			if (ImGui::BeginMenu("Window"))
-			{
-				if (ImGui::Checkbox("Demo window", &bShowDemo)) bShowDemo = true;
-				ImGui::EndMenu();
-			}
-			ImGui::EndMainMenuBar();
+			if (ImGui::MenuItem("quit")) glfwSetWindowShouldClose(GetPrimaryWindow(), 1);
+			ImGui::EndMenu();
 		}
-		if (bShowDemo) ImGui::ShowDemoWindow(&bShowDemo);
-		ImGui::PopFont();
-
-		ImGui::EndFrame();
-
-		ImGui::Render();
-		ImDrawData* draw_data = ImGui::GetDrawData();
-		ImGui_ImplVulkan_RenderDrawData(draw_data, currentCommandBfr);
-
-		vkCmdEndRenderPass(currentCommandBfr);
-		VK_ENSURE(vkEndCommandBuffer(currentCommandBfr), String("Failed to register command buffer #") + String::ToString(imageIndex));
+		if (ImGui::BeginMenu("Window"))
+		{
+			if (ImGui::Checkbox("Demo window", &bShowDemo)) bShowDemo = true;
+			ImGui::EndMenu();
+		}
+		ImGui::EndMainMenuBar();
 	}
+	ImGui::SetNextWindowSize(ImVec2((float)GetViewportExtend().width, (float)GetViewportExtend().height - 25));
+	ImGui::SetNextWindowPos(ImVec2(0, 25));
+	if (ImGui::Begin("__BackgroundLayout__", nullptr, ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground))
+	{
+		ImGuiID dockspace_id = ImGui::GetID("__BackgroundLayout_Dockspace__");
+		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode); ImGui::End();
+		ImGui::End();
+	}
+
+
+	if (ImGui::Begin("test"))
+	{
+		float avgFps = 0;
+
+		fpsHistory[fpsFrameIndex] = 1 / (float)deltaTime;
+
+		for (int i = 200; i >= 0; --i)
+		{
+			avgFps += fpsHistory[(fpsFrameIndex - i + 1000) % 1000];
+		}
+		avgFps /= 201;
+		ImGui::Text(String(String("Framerate : ") + ToString(1 / deltaTime) + " fps").GetData());
+		if ((1 / deltaTime > maxFpsHistory)) maxFpsHistory = 1 / (float(deltaTime));
+		ImGui::SliderInt("max framerate", (int*)&G_MAX_FRAMERATE, 0, 500);
+		fpsFrameIndex = (fpsFrameIndex + 1) % 1000;
+		ImGui::PlotLines("framerate", fpsHistory, IM_ARRAYSIZE(fpsHistory), fpsFrameIndex, String(String("average : ") + ToString(avgFps) + String(" / max : ") + ToString(maxFpsHistory)).GetData(), 0, maxFpsHistory, ImVec2(0, 80.0f));
+		ImGui::Checkbox("Enable multisampling", &G_ENABLE_MULTISAMPLING);
+		ImGui::Checkbox("Fullscreen mode", &G_FULSCREEN_MODE);
+
+		ImGui::Image(G_DEFAULT_TEXTURE->GetTextureID(imageIndex), ImVec2(512, 512));
+
+
+		ImGui::End();
+	}
+
+	if (bShowDemo) ImGui::ShowDemoWindow(&bShowDemo);
+	ImGui::PopFont();
+
+	ImGui::EndFrame();
+
+	ImGui::Render();
+	ImDrawData* draw_data = ImGui::GetDrawData();
+	ImGui_ImplVulkan_RenderDrawData(draw_data, currentCommandBfr);
+
+	vkCmdEndRenderPass(currentCommandBfr);
+	VK_ENSURE(vkEndCommandBuffer(currentCommandBfr), String("Failed to register command buffer #") + ToString(imageIndex));
 
 	VkSubmitInfo submitInfo{};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-	VkSemaphore waitSemaphores[] = { frameObjects->GetImageAvailableAvailableSemaphore(CURRENT_FRAME_ID) };
+	VkSemaphore waitSemaphores[] = { frameObjects->GetImageAvailableAvailableSemaphore(CurrentFrameId) };
 	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	submitInfo.waitSemaphoreCount = 1;
 	submitInfo.pWaitSemaphores = waitSemaphores;
@@ -175,13 +199,13 @@ void Rendering::ViewportInstance::DrawViewport()
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &commandBuffer->GetCommandBuffer(imageIndex);
 
-	VkSemaphore signalSemaphores[] = { frameObjects->GetRenderFinnishedSemaphore(CURRENT_FRAME_ID) };
+	VkSemaphore signalSemaphores[] = { frameObjects->GetRenderFinnishedSemaphore(CurrentFrameId) };
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = signalSemaphores;
 
-	vkResetFences(G_LOGICAL_DEVICE, 1, &frameObjects->GetInFlightFence(CURRENT_FRAME_ID));
+	vkResetFences(G_LOGICAL_DEVICE, 1, &frameObjects->GetInFlightFence(CurrentFrameId));
 
-	VK_ENSURE(vkQueueSubmit(G_GRAPHIC_QUEUE, 1, &submitInfo, frameObjects->GetInFlightFence(CURRENT_FRAME_ID)), "Failed to send command buffer");
+	VK_ENSURE(vkQueueSubmit(G_GRAPHIC_QUEUE, 1, &submitInfo, frameObjects->GetInFlightFence(CurrentFrameId)), "Failed to send command buffer");
 
 	VkPresentInfoKHR presentInfo{};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -197,14 +221,13 @@ void Rendering::ViewportInstance::DrawViewport()
 	result = vkQueuePresentKHR(G_PRESENT_QUEUE, &presentInfo);
 
 	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || bHasViewportBeenResized) {
-		bDoOnce = 0;
 		ResizeViewport();
 	}
 	else if (result != VK_SUCCESS) {
 		LOG_ASSERT("Failed to present image to swap chain");
 	}
 
-	CURRENT_FRAME_ID = (CURRENT_FRAME_ID + 1) % G_MAX_FRAME_IN_FLIGHT;
+	CurrentFrameId = (CurrentFrameId + 1) % G_MAX_FRAME_IN_FLIGHT;
 }
 
 void Rendering::ViewportInstance::ResizeViewport()

@@ -27,9 +27,9 @@ void Rendering::FrameObjects::CreateSemaphores(ViewportInstance* viewportInstanc
 	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
 	for (size_t i = 0; i < G_MAX_FRAME_IN_FLIGHT; i++) {
-		VK_ENSURE(vkCreateSemaphore(G_LOGICAL_DEVICE, &semaphoreInfo, G_ALLOCATION_CALLBACK, &imageAvailableSemaphores[i]), String("Failed to create image available semaphore #") + String::ToString(i));
-		VK_ENSURE(vkCreateSemaphore(G_LOGICAL_DEVICE, &semaphoreInfo, G_ALLOCATION_CALLBACK, &renderFinishedSemaphores[i]), String("Failed to create render finnished semaphore #") + String::ToString(i));
-		VK_ENSURE(vkCreateFence(G_LOGICAL_DEVICE, &fenceInfo, G_ALLOCATION_CALLBACK, &inFlightFences[i]), String("Failed to create fence #") + String::ToString(i));
+		VK_ENSURE(vkCreateSemaphore(G_LOGICAL_DEVICE, &semaphoreInfo, G_ALLOCATION_CALLBACK, &imageAvailableSemaphores[i]), String("Failed to create image available semaphore #") + ToString(i));
+		VK_ENSURE(vkCreateSemaphore(G_LOGICAL_DEVICE, &semaphoreInfo, G_ALLOCATION_CALLBACK, &renderFinishedSemaphores[i]), String("Failed to create render finnished semaphore #") + ToString(i));
+		VK_ENSURE(vkCreateFence(G_LOGICAL_DEVICE, &fenceInfo, G_ALLOCATION_CALLBACK, &inFlightFences[i]), String("Failed to create fence #") + ToString(i));
 	}
 }
 

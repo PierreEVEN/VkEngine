@@ -17,11 +17,6 @@ template<typename T, typename U> constexpr size_t offsetOf(U T::* member)
 	return (char*)&((T*)nullptr->*member) - (char*)nullptr;
 }
 
-void* To(IReflectable* from) {
-	return static_cast<OObject*>(from);
-}
-
-
 void SArchiveWriter::Serialize(Serializable* serializable) {
 	RClass* serializableClass = serializable->GetClass();
 

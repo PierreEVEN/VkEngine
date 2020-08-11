@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Constants.h"
-#include "Types/Vector.h"
 
 namespace Rendering
 {

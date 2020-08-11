@@ -13,8 +13,8 @@ namespace Rendering
 		~FramebufferGroup();
 
 		inline const VkImageView& GetColorView() const { return colorImageView; }
-		VkFramebuffer& GetFrameBuffer(const size_t& imageIndex) { return frameBuffers[imageIndex]; }
-
+		inline VkFramebuffer& GetFrameBuffer(const size_t& imageIndex) { return frameBuffers[imageIndex]; }
+		inline VkImageView& GetColorView() { return colorImageView; }
 		void Resize(SwapChain* inSwapChain);
 
 	private:

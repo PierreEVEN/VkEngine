@@ -1,6 +1,7 @@
 #pragma once
+
 #include "Events/EventManager.h"
-#include "Types/Vector.h"
+#include "EngineTypes.h"
 
 struct GLFWwindow;
 

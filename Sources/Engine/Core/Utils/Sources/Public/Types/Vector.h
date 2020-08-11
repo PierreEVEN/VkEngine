@@ -16,14 +16,6 @@ struct IVector
 	IVector(const T& value) : x(value), y(value), z(value) {}
 	IVector(const T& inX, const T& inY, const T& inZ) : x(inX), y(inY), z(inZ) {}
 
-	inline const T& X() const { return x; }
-	inline const T& Y() const { return y; }
-	inline const T& Z() const { return z; }
-
-	inline void SetX(const T& value) { x = value; }
-	inline void SetY(const T& value) { y = value; }
-	inline void SetZ(const T& value) { z = value; }
-
 	inline const bool operator==(const IVector<T>& other) const	{
 		return x == other.x && y == other.y && z == other.z;
 	}
@@ -94,7 +86,51 @@ struct IVector
 		return IVector<T>(x /= other, y /= other, z /= other);
 	}
 
-private:
+	inline const T Length() const { return sqrt(x * x + y * y + z * z); }
+
+	inline const T& GetMax() const {
+		if (x > y && x > z)
+			return x;
+		else if (y > x && y > z)
+			return y;
+		else
+			return z;
+	}
+
+	inline const T& GetMin() const
+	{
+		if (x < y && x < z)
+			return x;
+		else if (y < x && y < z)
+			return y;
+		else
+			return z;
+	}
+
+	inline void Normalize()	{
+		T length = Length();
+		x /= length;
+		y /= length;
+		z /= length;
+	}
+
+	inline static const IVector<T> Normalize(const IVector<T> inVector) {
+		double length = inVector.Length();
+		return IVector<T>(inVector.x / length, inVector.y / length, inVector.z / length)
+	}
+
+	inline static const IVector<T> Cross(const IVector<T>& a, const IVector<T>& b) {
+		return IVector<T>(
+			a.y * b.z - a.z * b.y,
+			a.z * b.x - a.x * b.z,
+			a.x * b.y - a.y * b.x
+			);
+	}
+
+	inline static const T Dot(const IVector<T>& a, const IVector<T>& b) {
+		return a.x * b.x + a.y * b.y + a.z * b.z;
+	}
+
 	union
 	{
 		struct	{
@@ -112,17 +148,17 @@ struct IVector2D
 	IVector2D(const T& value) : x(value), y(value) {}
 	IVector2D(const T& inX, const T& inY) : x(inX), y(inY) {}
 
-	inline const T& X() const { return x; }
-	inline const T& Y() const { return y; }
-
-	inline void SetX(const T& value) { x = value; }
-	inline void SetY(const T& value) { y = value; }
-
 	inline const bool operator==(const IVector<T>& other) const {
 		return x == other.x && y == other.y;
 	}
 	inline const bool operator!=(const IVector<T>& other) const {
 		return x != other.x || y != other.y;
+	}
+
+
+	/* [] operator */
+	inline const IVector<T> operator[](const EVectorAxis& axis) const {
+		return coords[axis];
 	}
 
 	/* X IVector Operators */
@@ -184,8 +220,43 @@ struct IVector2D
 		return IVector<T>(x /= other, y /= other);
 	}
 
-private:
-	T x, y;
+	inline const T Length() const { return sqrt(x * x + y * y); }
+
+	inline const T& GetMax() const {
+		if (x > y)
+			return x;
+		return y;
+	}
+
+	inline const T& GetMin() const
+	{
+		if (x < y)
+			return x;
+		return y;
+	}
+
+	inline void Normalize() {
+		T length = Length();
+		x /= length;
+		y /= length;
+	}
+
+	inline static const IVector2D<T> Normalize(const IVector2D<T> inVector) {
+		double length = inVector.Length();
+		return IVector2D<T>(inVector.x / length, inVector.y / length, inVector.z / length)
+	}
+
+	inline static const T Dot(const IVector2D<T>& a, const IVector2D<T>& b) {
+		return a.x * b.x + a.y * b.y;
+	}
+
+
+	union {
+		struct {
+			T x, y;
+		};
+		T coords[2];
+	};
 };
 
 typedef IVector<float> SVector;

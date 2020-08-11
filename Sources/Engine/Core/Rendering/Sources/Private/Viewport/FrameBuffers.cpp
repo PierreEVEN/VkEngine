@@ -27,13 +27,13 @@ void Rendering::FramebufferGroup::CreateFrameBufferImages(SwapChain* swapChain)
 {
 	/** Color buffer */
 	VkFormat colorFormat = G_SWAPCHAIN_SURFACE_FORMAT.format;
-	Texture2D::CreateImage(swapChain->GetSwapChainExtend().width, swapChain->GetSwapChainExtend().height, 1, G_MSAA_SAMPLE_COUNT, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
-	Texture2D::CreateImageView(colorImage, colorImageView, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+	TextureRessource::CreateImage(swapChain->GetSwapChainExtend().width, swapChain->GetSwapChainExtend().height, 1, G_MSAA_SAMPLE_COUNT, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
+	TextureRessource::CreateImageView(colorImage, colorImageView, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 
 	/** Depth buffer */
 	VkFormat depthFormat = FindDepthFormat();
-	Texture2D::CreateImage(swapChain->GetSwapChainExtend().width, swapChain->GetSwapChainExtend().height, 1, G_MSAA_SAMPLE_COUNT, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
-	Texture2D::CreateImageView(depthImage, depthImageView, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
+	TextureRessource::CreateImage(swapChain->GetSwapChainExtend().width, swapChain->GetSwapChainExtend().height, 1, G_MSAA_SAMPLE_COUNT, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
+	TextureRessource::CreateImageView(depthImage, depthImageView, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 
 	/** Swap chain buffer */
 	uint32_t swapChainImageCount = G_SWAP_CHAIN_IMAGE_COUNT;
@@ -42,7 +42,7 @@ void Rendering::FramebufferGroup::CreateFrameBufferImages(SwapChain* swapChain)
 	vkGetSwapchainImagesKHR(G_LOGICAL_DEVICE, swapChain->GetSwapChainKhr(), &swapChainImageCount, swapChainImages.data());
 	swapChainImageViews.resize(swapChainImages.size());
 	for (size_t i = 0; i < swapChainImages.size(); i++)
-		Texture2D::CreateImageView(swapChainImages[i], swapChainImageViews[i], G_SWAPCHAIN_SURFACE_FORMAT.format, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+		TextureRessource::CreateImageView(swapChainImages[i], swapChainImageViews[i], G_SWAPCHAIN_SURFACE_FORMAT.format, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 }
 
 void Rendering::FramebufferGroup::CreateFrameBuffer(SwapChain* swapChain)
@@ -72,7 +72,7 @@ void Rendering::FramebufferGroup::CreateFrameBuffer(SwapChain* swapChain)
 		framebufferInfo.height = swapChain->GetSwapChainExtend().height;
 		framebufferInfo.layers = 1;
 
-		VK_ENSURE(vkCreateFramebuffer(G_LOGICAL_DEVICE, &framebufferInfo, nullptr, &frameBuffers[i]), String("Failed to create framebuffer #") + String::ToString(i));
+		VK_ENSURE(vkCreateFramebuffer(G_LOGICAL_DEVICE, &framebufferInfo, nullptr, &frameBuffers[i]), String("Failed to create framebuffer #") + ToString(i));
 	}
 }
 

@@ -9,7 +9,7 @@ void Rendering::CheckExtensions()
 	std::vector<VkExtensionProperties> extensions(extensionCount);
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
 
-	String ExtLog = String::ToString(extensionCount) + " extensions supported : \n";
+	String ExtLog = ToString(extensionCount) + " extensions supported : \n";
 
 	for (const VkExtensionProperties& extension : extensions) {
 		ExtLog += String("\t-") + String(extension.extensionName) + "\n";
@@ -246,6 +246,23 @@ void Rendering::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemo
 	VK_ENSURE(vkAllocateMemory(G_LOGICAL_DEVICE, &allocInfo, nullptr, &bufferMemory), "Failled to allocate buffer memory");
 
 	vkBindBufferMemory(G_LOGICAL_DEVICE, buffer, bufferMemory, 0);
+}
+
+void Rendering::CreateVmaBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VmaAllocation& allocation, VmaAllocationInfo& allocInfos)
+{
+	VkBufferCreateInfo bufferInfo{};
+	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferInfo.size = size;
+	bufferInfo.usage = usage;
+	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	VkMemoryRequirements memRequirements;
+	//vkGetBufferMemoryRequirements(G_LOGICAL_DEVICE, buffer, &memRequirements);
+
+	VmaAllocationCreateInfo vmaInfos{};
+	//vmaInfos.memoryTypeBits = FindMemoryType(memRequirements.memoryTypeBits, properties);
+	vmaInfos.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+	vmaCreateBuffer(G_VMA_ALLOCATOR, &bufferInfo, &vmaInfos, &buffer, &allocation, &allocInfos);
 }
 
 VkSampleCountFlagBits Rendering::GetMaxUsableSampleCount()

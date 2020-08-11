@@ -1,7 +1,6 @@
 #pragma once
 
 #include "SwapChain.h"
-#include "Types/Vector.h"
 
 namespace Rendering
 {
@@ -9,6 +8,7 @@ namespace Rendering
 	class CommandBuffer;
 	class FrameObjects;
 	class MatrixUniformBuffer;
+	class Camera;
 
 	class ViewportInstance
 	{
@@ -26,20 +26,28 @@ namespace Rendering
 
 	private:
 
-		void RequestViewportResize(GLFWwindow* window, int sizeX, int sizeY) {
-			desiredViewportSize = SIntVector2D(sizeX, sizeY);
-			bHasViewportBeenResized = true;
-		}
-
-		void ResizeViewport();
-
 		SwapChain* viewportSwapChain;
 		FramebufferGroup* frameBuffers;
 		CommandBuffer* commandBuffer;
 		FrameObjects* frameObjects;
 		MatrixUniformBuffer* viewportMatrices;
+		Camera* viewportCamera;
 
+
+		/** Resize framebuffer */
+		void RequestViewportResize(GLFWwindow* window, int sizeX, int sizeY) { desiredViewportSize = SIntVector2D(sizeX, sizeY); bHasViewportBeenResized = true; }
+		void ResizeViewport();
 		bool bHasViewportBeenResized = false;
 		SIntVector2D desiredViewportSize;
+
+		/** FrameProperties */
+		size_t CurrentFrameId = 0;
+		std::chrono::steady_clock::time_point LastFrameTime = std::chrono::steady_clock::now();
+
+
+		float fpsHistory[1000];
+		int fpsFrameIndex = 0;
+		float maxFpsHistory = 0;
+		bool bShowDemo = false;
 	};
 }

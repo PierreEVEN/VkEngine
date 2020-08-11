@@ -32,21 +32,25 @@ IF NOT DEFINED CMAKEPATH (
 	EXIT 3
 )
 
-SET GAINPUTPATH=%cd%\Sources\ThirdParty\gainput\
 SET GLFWPATH=%cd%\Sources\ThirdParty\glfw\
+SET SHADERCPATH=%cd%\Sources\ThirdParty\shaderc\
 
-REM BUILD GAINPUT
-echo Building GAINPUT
-mkdir %GAINPUTPATH%\build > NUL 2>&1
-CD %GAINPUTPATH%\build
+REM BUILD SHADERC
+echo Downloading shaderc dependencies...
+python %SHADERCPATH%\utils\git-sync-deps
 
-echo building GAINPUT x64...
-cmake -G "Visual Studio 16 2019" -A x64 %GAINPUTPATH%
-IF NOT %errorLevel% == 0 ECHO failed to generate vs files for GAINPUT.
+echo Building SHADERC
+mkdir %SHADERCPATH%\build > NUL 2>&1
+CD %SHADERCPATH%\build
 
-echo compiling GAINPUT for Release x64...
+echo building SHADERC x64...
+cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE={Release} %SHADERCPATH%
+IF NOT %errorLevel% == 0 ECHO failed to generate vs files for SHADERC.
+
+pause
+echo compiling SHADERC for Release x64...
 "%VSPATH%" lib/gainputstatic.vcxproj /t:build /p:Configuration="Release" /p:Platform="x64" /p:BuildInParallel=true /p:OutDir=%LIBPATH%\GaInput\Release
-IF NOT %errorLevel% == 0 ECHO failed to compile GAINPUT.
+IF NOT %errorLevel% == 0 ECHO failed to compile SHADERC.
 
 
 REM BUILD GLFW

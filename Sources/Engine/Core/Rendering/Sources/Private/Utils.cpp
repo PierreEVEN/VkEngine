@@ -163,15 +163,49 @@ Rendering::QueueFamilyIndices Rendering::FindDeviceQueueFamilies(VkPhysicalDevic
 	return indices;
 }
 
-VkSurfaceFormatKHR Rendering::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+VkSurfaceFormatKHR Rendering::ChooseSwapSurfaceFormat()
 {
-	for (const auto& availableFormat : availableFormats) {
-		if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-			return availableFormat;
+	uint32_t formatCount;
+	vkGetPhysicalDeviceSurfaceFormatsKHR(G_PHYSICAL_DEVICE, G_SURFACE, &formatCount, NULL);
+	assert(formatCount > 0);
+
+	std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
+	vkGetPhysicalDeviceSurfaceFormatsKHR(G_PHYSICAL_DEVICE, G_SURFACE, &formatCount, surfaceFormats.data());
+
+	VkSurfaceFormatKHR format;
+
+	// If the surface format list only includes one entry with VK_FORMAT_UNDEFINED,
+	// there is no preferered format, so we assume VK_FORMAT_B8G8R8A8_UNORM
+	if ((formatCount == 1) && (surfaceFormats[0].format == VK_FORMAT_UNDEFINED))
+	{
+		format.format = VK_FORMAT_B8G8R8A8_UNORM;
+		format.colorSpace = surfaceFormats[0].colorSpace;
+	}
+	else
+	{
+		// iterate over the list of available surface format and
+		// check for the presence of VK_FORMAT_B8G8R8A8_UNORM
+		bool found_B8G8R8A8_UNORM = false;
+		for (auto&& surfaceFormat : surfaceFormats)
+		{
+			if (surfaceFormat.format == VK_FORMAT_B8G8R8A8_UNORM)
+			{
+				format.format = surfaceFormat.format;
+				format.colorSpace = surfaceFormat.colorSpace;
+				found_B8G8R8A8_UNORM = true;
+				break;
+			}
+		}
+
+		// in case VK_FORMAT_B8G8R8A8_UNORM is not available
+		// select the first available color format
+		if (!found_B8G8R8A8_UNORM)
+		{
+			format.format = surfaceFormats[0].format;
+			format.colorSpace = surfaceFormats[0].colorSpace;
 		}
 	}
-
-	return availableFormats[0];
+	return format;
 }
 
 VkPresentModeKHR Rendering::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
@@ -256,11 +290,7 @@ void Rendering::CreateVmaBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkM
 	bufferInfo.usage = usage;
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	VkMemoryRequirements memRequirements;
-	//vkGetBufferMemoryRequirements(G_LOGICAL_DEVICE, buffer, &memRequirements);
-
 	VmaAllocationCreateInfo vmaInfos{};
-	//vmaInfos.memoryTypeBits = FindMemoryType(memRequirements.memoryTypeBits, properties);
 	vmaInfos.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 	vmaCreateBuffer(G_VMA_ALLOCATOR, &bufferInfo, &vmaInfos, &buffer, &allocation, &allocInfos);
 }

@@ -107,11 +107,12 @@ struct IVector
 			return z;
 	}
 
-	inline void Normalize()	{
+	inline IVector<T>& Normalize()	{
 		T length = Length();
 		x /= length;
 		y /= length;
 		z /= length;
+		return *this;
 	}
 
 	inline static const IVector<T> Normalize(const IVector<T> inVector) {

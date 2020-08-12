@@ -1,6 +1,7 @@
 #include "Viewport/MatrixUniformBuffers.h"
 #include "Utils.h"
 #include "Viewport/ViewportInstance.h"
+#include "Viewport/Camera.h"
 
 Rendering::MatrixUniformBuffer::MatrixUniformBuffer(ViewportInstance* parentViewport)
 {
@@ -14,20 +15,10 @@ Rendering::MatrixUniformBuffer::~MatrixUniformBuffer()
 
 void Rendering::MatrixUniformBuffer::UpdateUniformBuffers(ViewportInstance* parentViewport, const size_t& ImageIndex)
 {
-	static auto startTime = std::chrono::high_resolution_clock::now();
-
-	auto currentTime = std::chrono::high_resolution_clock::now();
-	float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
-	float rotVelocity = 10.f;
-
-	float dist = (float)(sin(time / 2) + 1.5f) / 8 + 1.8f;
-
 	MatrixUniformBufferObject ubo{};
-	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(rotVelocity), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.view = glm::lookAt(glm::vec3(dist, dist, dist), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.proj = glm::perspective(glm::radians(45.0f), parentViewport->GetViewportWidth() / (float)parentViewport->GetViewportHeight(), 0.1f, 10.0f);
-	ubo.proj[1][1] *= -1;
+	ubo.viewMatrix = parentViewport->GetCamera()->GetViewMatrix();
+	ubo.worldProjection = parentViewport->GetProjection();
+	ubo.cameraLocation = glm::vec4(parentViewport->GetCamera()->GetPosition(), 0);
 	ubo.time = (float)glfwGetTime();
 
 	void* data;

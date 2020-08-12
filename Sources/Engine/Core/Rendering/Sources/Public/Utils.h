@@ -15,7 +15,7 @@ namespace Rendering
 	bool IsPhysicalDeviceSuitable(VkPhysicalDevice device);
 	QueueFamilyIndices FindDeviceQueueFamilies(VkPhysicalDevice device);
 
-	VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+	VkSurfaceFormatKHR ChooseSwapSurfaceFormat();
 	VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 	VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, const VkExtent2D& initalExtend);
 

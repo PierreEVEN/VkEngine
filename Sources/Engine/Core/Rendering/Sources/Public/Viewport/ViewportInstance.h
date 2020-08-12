@@ -21,6 +21,9 @@ namespace Rendering
 		inline const uint32_t& GetViewportWidth() const { return viewportSwapChain->GetSwapChainExtend().width; }
 		inline const uint32_t& GetViewportHeight() const { return viewportSwapChain->GetSwapChainExtend().height; }
 		inline MatrixUniformBuffer* GetViewportUbos() const { return viewportMatrices; }
+		inline Camera* GetCamera() const { return viewportCamera; }
+
+		glm::mat4 GetProjection() const;
 
 		void DrawViewport();
 

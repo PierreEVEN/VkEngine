@@ -60,12 +60,18 @@ void Rendering::MaterialRessource::CreatePipeline(const std::vector<char>& verte
 	fragShaderStageInfo.module = fragmentShaderModule;
 	fragShaderStageInfo.pName = "main";
 
+	VkPushConstantRange pushConstantRange;
+	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	pushConstantRange.offset = 0;
+	pushConstantRange.size = sizeof(glm::mat4);
+
 	/** Pipeline layout */
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = 1;            // Optional
 	pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
-	pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
+	pipelineLayoutInfo.pushConstantRangeCount = 1;
+	pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange; // Optional
 	VK_ENSURE(vkCreatePipelineLayout(G_LOGICAL_DEVICE, &pipelineLayoutInfo, nullptr, &pipelineLayout), "Failed to create pipeline layout");
 
 	VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
@@ -96,7 +102,7 @@ void Rendering::MaterialRessource::CreatePipeline(const std::vector<char>& verte
 	rasterizer.rasterizerDiscardEnable = VK_FALSE;
 	rasterizer.polygonMode = creationFlags & EMATERIAL_CREATION_FLAG_WIREFRAME ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
 	rasterizer.lineWidth = 1.0f;
-	rasterizer.cullMode = creationFlags & EMATERIAL_CREATION_FLAG_DOUBLESIDED ? VK_CULL_MODE_NONE : VK_CULL_MODE_BACK_BIT;
+	rasterizer.cullMode = creationFlags & EMATERIAL_CREATION_FLAG_DOUBLESIDED ? VK_CULL_MODE_NONE : VK_CULL_MODE_FRONT_BIT;
 	rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterizer.depthBiasEnable = VK_FALSE;
 	rasterizer.depthBiasConstantFactor = 0.0f; // Optional
@@ -209,7 +215,7 @@ Rendering::MaterialInstance::MaterialInstance(const std::vector<VkWriteDescripto
 
 }
 
-void Rendering::MaterialInstance::Use(VkCommandBuffer commandBuffer, ViewportInstance* writeViewport, const size_t& imageIndex)
+void Rendering::MaterialInstance::Use(VkCommandBuffer commandBuffer, ViewportInstance* writeViewport, const size_t& imageIndex, glm::mat4 objectTransform)
 {
 	VkDescriptorBufferInfo bufferInfo{};
 	bufferInfo.buffer = writeViewport->GetViewportUbos()->GetBuffer(imageIndex);
@@ -253,5 +259,6 @@ void Rendering::MaterialInstance::Use(VkCommandBuffer commandBuffer, ViewportIns
 
 	parent->UpdateDescriptorSets(wDescSet);
 
+	vkCmdPushConstants(commandBuffer, parent->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &objectTransform);
 	parent->Use(commandBuffer, imageIndex);
 }

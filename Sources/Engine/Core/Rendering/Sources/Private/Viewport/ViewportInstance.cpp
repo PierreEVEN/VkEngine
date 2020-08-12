@@ -14,6 +14,7 @@
 
 #include <stb_image.h>
 #include "Viewport/Camera.h"
+#include <thread>
 
 
 Rendering::ViewportInstance::ViewportInstance(const SIntVector2D& inDesiredViewportSize)
@@ -45,13 +46,25 @@ Rendering::ViewportInstance::~ViewportInstance()
 	delete viewportSwapChain;
 }
 
+glm::mat4 Rendering::ViewportInstance::GetProjection() const
+{
+	return glm::perspective(glm::radians(viewportCamera->fieldOfView), (float)GetViewportWidth() / (float)GetViewportHeight(), viewportCamera->nearClipPlane, viewportCamera->farClipPlane);
+}
+
+SVector cameraPositon;
+SVector objectpos;
+float camR = 0, camP = 0, camY = 0, fov = 45, mi = 0.1f, mx = 1000.f;
 
 void Rendering::ViewportInstance::DrawViewport()
 {
 	double deltaTime;
 	deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - LastFrameTime).count() / 1000000.0;
 
-	if (G_MAX_FRAMERATE != 0 && (1.0 / deltaTime > G_MAX_FRAMERATE)) return;
+	if (G_MAX_FRAMERATE != 0 && (1.0 / deltaTime > G_MAX_FRAMERATE))
+	{
+		if (G_SLEEP_HIDLE_THREADS) std::this_thread::sleep_for(std::chrono::nanoseconds(static_cast<uint64_t>((1.0 / G_MAX_FRAMERATE - deltaTime) * 1000000000)));
+		return;
+	}
 	LastFrameTime = std::chrono::steady_clock::now();
 
 
@@ -74,6 +87,11 @@ void Rendering::ViewportInstance::DrawViewport()
 	}
 	frameObjects->GetImageInFlightFence(imageIndex) = frameObjects->GetInFlightFence(CurrentFrameId);
 
+
+
+
+
+
 	viewportMatrices->UpdateUniformBuffers(this, imageIndex);
 
 	VkCommandBufferBeginInfo beginInfo{};
@@ -83,7 +101,7 @@ void Rendering::ViewportInstance::DrawViewport()
 
 
 	std::array<VkClearValue, 2> clearValues{};
-	clearValues[0].color = { 0.0f, 0.0f, 0.0f, 0.f };
+	clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
 	clearValues[1].depthStencil = { 1.0f, 0 };
 
 	VkRenderPassBeginInfo renderPassInfo{};
@@ -115,7 +133,22 @@ void Rendering::ViewportInstance::DrawViewport()
 	vkCmdSetViewport(currentCommandBfr, 0, 1, &viewport);
 	vkCmdSetScissor(currentCommandBfr, 0, 1, &scissor);
 
-	G_DEFAULT_MATERIAL->Use(currentCommandBfr, this, imageIndex);
+	glm::mat4 MeshTransformMatrix = glm::mat4(1.f);
+	MeshTransformMatrix = glm::translate(MeshTransformMatrix, glm::make_vec3(objectpos.coords));
+	SRotator objectRotation;
+	MeshTransformMatrix = MeshTransformMatrix * glm::mat4(glm::make_quat(objectRotation.coords));
+	MeshTransformMatrix = glm::scale(MeshTransformMatrix, glm::make_vec3(SVector(1).coords));
+
+	
+
+	viewportCamera->location = cameraPositon;
+	viewportCamera->rotation = SRotator(camR, camP, camY);
+	viewportCamera->fieldOfView = fov;
+	viewportCamera->nearClipPlane = mi;
+	viewportCamera->farClipPlane = mx;
+
+
+	G_DEFAULT_MATERIAL->Use(currentCommandBfr, this, imageIndex, MeshTransformMatrix);
 	G_DEFAULT_MESH->Draw(currentCommandBfr);
 
 	// Start the Dear ImGui frame
@@ -163,12 +196,22 @@ void Rendering::ViewportInstance::DrawViewport()
 		avgFps /= 201;
 		ImGui::Text(String(String("Framerate : ") + ToString(1 / deltaTime) + " fps").GetData());
 		if ((1 / deltaTime > maxFpsHistory)) maxFpsHistory = 1 / (float(deltaTime));
-		ImGui::SliderInt("max framerate", (int*)&G_MAX_FRAMERATE, 0, 500);
+		ImGui::SliderInt("max framerate", (int*)&G_MAX_FRAMERATE, 0, 3000);
 		fpsFrameIndex = (fpsFrameIndex + 1) % 1000;
 		ImGui::PlotLines("framerate", fpsHistory, IM_ARRAYSIZE(fpsHistory), fpsFrameIndex, String(String("average : ") + ToString(avgFps) + String(" / max : ") + ToString(maxFpsHistory)).GetData(), 0, maxFpsHistory, ImVec2(0, 80.0f));
 		ImGui::Checkbox("Enable multisampling", &G_ENABLE_MULTISAMPLING);
+		ImGui::Checkbox("Sleep hidle threads", &G_SLEEP_HIDLE_THREADS);
 		ImGui::Checkbox("Fullscreen mode", &G_FULSCREEN_MODE);
 
+		ImGui::SliderFloat3("position", cameraPositon.coords, -10, 10);
+		ImGui::SliderFloat3("object position", objectpos.coords, -10, 10);
+
+		ImGui::SliderFloat("roll", &camR, -180, 180);
+		ImGui::SliderFloat("pitch", &camP, -180, 180);
+		ImGui::SliderFloat("yaw", &camY, 0, 360);
+		ImGui::SliderFloat("fov", &fov, 1, 179);
+		ImGui::SliderFloat("clip min", &mi, 0, 1);
+		ImGui::SliderFloat("clip max", &mx, 0, 10);
 		ImGui::Image(G_DEFAULT_TEXTURE->GetTextureID(imageIndex), ImVec2(512, 512));
 
 

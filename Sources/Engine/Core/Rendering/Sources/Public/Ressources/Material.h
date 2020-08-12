@@ -33,6 +33,9 @@ namespace Rendering
 		void UpdateDescriptorSets(std::vector<VkWriteDescriptorSet> descriptorWrites);
 		inline VkDescriptorSet& GetDescriptorSet(const size_t& imageIndex) { return descriptorSets[imageIndex]; }
 		inline virtual MaterialRessource* GetMaterial() { return this; }
+		inline VkPipelineLayout& GetPipelineLayout() { return pipelineLayout; }
+
+
 	private:
 
 		void CreatePipeline(const std::vector<char>& vertexShaderCode, const std::vector<char>& fragmentShaderCode, EMaterialCreationFlags creationFlags = EMATERIAL_CREATION_FLAG_NONE);
@@ -49,7 +52,7 @@ namespace Rendering
 	{
 		MaterialInstance(const std::vector<VkWriteDescriptorSet>& inDescriptorSetInfos, MaterialRessource* inMaterial);
 
-		void Use(VkCommandBuffer commandBuffer, ViewportInstance* writeViewport, const size_t& imageIndex);
+		void Use(VkCommandBuffer commandBuffer, ViewportInstance* writeViewport, const size_t& imageIndex, glm::mat4 objectTransform);
 
 		inline virtual MaterialRessource* GetMaterial() override { return parent; }
 

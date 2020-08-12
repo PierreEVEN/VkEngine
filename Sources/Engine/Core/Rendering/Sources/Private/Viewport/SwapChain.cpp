@@ -43,6 +43,9 @@ void Rendering::SwapChain::CreateOrRecreateSwapchain()
 	createInfo.minImageCount = G_SWAP_CHAIN_IMAGE_COUNT;
 	createInfo.imageFormat = G_SWAPCHAIN_SURFACE_FORMAT.format;
 	createInfo.imageColorSpace = G_SWAPCHAIN_SURFACE_FORMAT.colorSpace;
+
+	//LOG_ASSERT(ToString((int)G_SWAPCHAIN_SURFACE_FORMAT.format));
+
 	createInfo.imageExtent = swapChainExtend;
 	createInfo.imageArrayLayers = 1;
 	createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;

@@ -11,6 +11,7 @@ namespace Rendering
 	inline IniLoader									G_RENDERING_INI("config/Rendering.ini");
 
 	inline bool											G_FULSCREEN_MODE = false;
+	inline bool											G_SLEEP_HIDLE_THREADS = true;
 
 	/** Static components */
 	inline VkAllocationCallbacks*						G_ALLOCATION_CALLBACK = nullptr;

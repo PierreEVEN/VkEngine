@@ -233,7 +233,7 @@ void Rendering::Initialization::InitializeSwapchainProperties()
 {
 	LOG("Initialize swapchain properties");
 	G_SWAPCHAIN_SUPPORT_DETAILS = GetSwapchainSupportDetails(G_PHYSICAL_DEVICE);
-	G_SWAPCHAIN_SURFACE_FORMAT = ChooseSwapSurfaceFormat(G_SWAPCHAIN_SUPPORT_DETAILS.formats);
+	G_SWAPCHAIN_SURFACE_FORMAT = ChooseSwapSurfaceFormat();
 	G_SWAPCHAIN_PRESENT_MODE = ChooseSwapPresentMode(G_SWAPCHAIN_SUPPORT_DETAILS.presentModes);
 	G_SWAP_CHAIN_IMAGE_COUNT = G_SWAPCHAIN_SUPPORT_DETAILS.capabilities.minImageCount + 1;
 	if (G_ENABLE_MULTISAMPLING)
@@ -442,6 +442,7 @@ void Rendering::Initialization::LoadIniConfig()
 	G_MAX_FRAMERATE = G_RENDERING_INI.GetPropertyAsInt("Rendering", "GlobalMaxFramerate", 60);
 	G_ENABLE_MULTISAMPLING = G_RENDERING_INI.GetPropertyAsBool("Rendering", "EnableMultisampling", true);
 	G_FULSCREEN_MODE = G_RENDERING_INI.GetPropertyAsBool("Rendering", "FullScreen", false);
+	G_SLEEP_HIDLE_THREADS = G_RENDERING_INI.GetPropertyAsBool("Rendering", "SleepHidleThreads", true);
 
 	G_ENABLE_VALIDATION_LAYERS = G_RENDERING_INI.GetPropertyAsBool("Rendering:Vulkan", "EnableValidationLayer", false);
 	G_MAX_SET_PER_POOL = G_RENDERING_INI.GetPropertyAsInt("Rendering:Vulkan", "MaxSetPerPool", 64);
@@ -456,4 +457,5 @@ void Rendering::Initialization::SaveIniConfig()
 	G_RENDERING_INI.SetPropertyAsInt("Rendering", "GlobalMaxFramerate", (int)G_MAX_FRAMERATE);
 	G_RENDERING_INI.SetPropertyAsBool("Rendering", "EnableMultisampling", (int)G_ENABLE_MULTISAMPLING);
 	G_RENDERING_INI.SetPropertyAsBool("Rendering", "FullScreen", G_FULSCREEN_MODE);
+	G_RENDERING_INI.SetPropertyAsBool("Rendering", "SleepHidleThreads", G_SLEEP_HIDLE_THREADS);
 }

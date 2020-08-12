@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/hash.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <vk_mem_alloc.h>
 
@@ -35,9 +36,9 @@
 namespace Rendering
 {
 	struct MatrixUniformBufferObject {
-		alignas(16) glm::mat4 model;
-		alignas(16) glm::mat4 view;
-		alignas(16) glm::mat4 proj;
+		alignas(16) glm::mat4 worldProjection;
+		alignas(16) glm::mat4 viewMatrix;
+		alignas(16) glm::vec4 cameraLocation;
 		alignas(16) float time;
 	};
 

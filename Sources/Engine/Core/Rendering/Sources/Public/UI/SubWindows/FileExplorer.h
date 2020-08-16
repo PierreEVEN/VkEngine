@@ -13,7 +13,7 @@ namespace Rendering {
 
 	class FileExplorer : public SubWindow {
 	public:
-		FileExplorer(const String& defaultPath, const String& windowName, SubWindow* parent, const std::vector<String>& inExtensionFilters = {});
+		FileExplorer(const String& defaultPath, const String& windowName, SubWindow* parent, const std::vector<String>& inExtensionFilters = {}, bool bDrawInParent = false);
 
 		ApplyExplorerEvent OnApplyPath;
 		CancelExplorerEvent OnCancelExplorer;
@@ -36,6 +36,8 @@ namespace Rendering {
 		String selectedElement;
 		std::vector<std::vector<String>> extensionFilters;
 		int currentFilter = 0;
+
+		bool bSetColumnWidth = false;
 	};
 
 

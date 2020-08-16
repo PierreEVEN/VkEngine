@@ -32,7 +32,7 @@ double Atof(const String& value);
 class String
 {
 public:
-	static const String ENDL;
+	static const char ENDL;
 
 	/* Constructors */
 	String() = default;
@@ -210,6 +210,9 @@ public:
 	static const String GetFileShortName(const String& path);
 	static const String GetFilePath(const String& path);
 	static const String GetFileExtension(const String& path);
+
+	static const std::vector<String> ParseStringCharArray(const char* charString, size_t length);
+
 private:
 
 	inline static const String& CopyTo(const String& from, String* to) {

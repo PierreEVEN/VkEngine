@@ -39,6 +39,27 @@ void Rendering::Ressource::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, Vk
 	EndSingleTimeCommands(commandBuffer);
 }
 
-Rendering::Ressource::Ressource() {}
+Rendering::Ressource::Ressource() : bShouldDestroy(false) 
+{
+	ressources.push_back(this);
+}
 
 Rendering::Ressource::~Ressource() {}
+
+void Rendering::Ressource::FlushRessources()
+{
+	for (int64_t i = ressources.size() - 1; i >= 0; --i) {
+		if (ressources[i]->bShouldDestroy) {
+			delete ressources[i];
+			ressources.erase(ressources.begin() + i);
+		}
+	}
+}
+
+void Rendering::Ressource::FreeRessources()
+{
+	for (int64_t i = ressources.size() - 1; i >= 0; --i) {
+		delete ressources[i];
+	}
+	ressources.clear();
+}

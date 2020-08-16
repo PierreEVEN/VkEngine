@@ -7,8 +7,6 @@ namespace Rendering
 	struct TextureRessource : public Ressource
 	{
 		TextureRessource(unsigned char* textureData, SIntVector2D imageResolution, uint8_t channelsCount);
-		~TextureRessource();
-
 		static void CreateImageView(VkImage image, VkImageView& view, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 		static void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
 
@@ -16,6 +14,10 @@ namespace Rendering
 		inline VkSampler& GetSampler() { return textureSampler; }
 
 		inline ImTextureID GetTextureID(const size_t& imageIndex) { return ImTextureID(uiDisplaySet[imageIndex]); }
+
+	protected:
+
+		virtual ~TextureRessource();
 
 	private:
 

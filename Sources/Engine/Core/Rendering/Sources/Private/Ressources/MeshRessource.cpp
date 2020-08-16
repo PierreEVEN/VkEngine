@@ -1,4 +1,4 @@
-#include "Ressources/Mesh.h"
+#include "Ressources/MeshRessource.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
@@ -45,8 +45,10 @@ void Rendering::MeshRessource::CreateBuffers()
 }
 
 Rendering::MeshRessource::MeshRessource(std::vector<Vertex> inVertices, std::vector<uint32_t> inIndices)
-	: vertices(inVertices), indices(inIndices)
+	: Ressource()
 {
+	vertices = inVertices;
+	indices = inIndices;
 	if (inVertices.size() <= 0) {
 		LOG_WARNING("Don't create mesh ressource without any vertices");
 	}

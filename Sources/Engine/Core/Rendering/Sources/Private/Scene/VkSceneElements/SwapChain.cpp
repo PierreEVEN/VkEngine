@@ -1,6 +1,6 @@
 #include "Scene/VkSceneElements/SwapChain.h"
 #include "Utils.h"
-#include "Ressources/Texture.h"
+#include "Ressources/TextureRessource.h"
 
 Rendering::SwapChain::SwapChain(const SIntVector2D& inSwapChainExtend)
 {

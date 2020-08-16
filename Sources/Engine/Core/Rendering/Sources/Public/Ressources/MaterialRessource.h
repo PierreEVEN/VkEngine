@@ -27,14 +27,16 @@ namespace Rendering
 	struct MaterialRessource : public MaterialInterface, public Ressource
 	{
 		MaterialRessource(const std::vector<char>& vertexShaderCode, const std::vector<char>& fragmentShaderCode, std::vector<VkDescriptorSetLayoutBinding> layoutBindings, EMaterialCreationFlags creationFlags);
-		virtual ~MaterialRessource();
-		
+
 		void Use(VkCommandBuffer commandBuffer, const size_t& imageIndex);
 		void UpdateDescriptorSets(std::vector<VkWriteDescriptorSet> descriptorWrites);
 		inline VkDescriptorSet& GetDescriptorSet(const size_t& imageIndex) { return descriptorSets[imageIndex]; }
 		inline virtual MaterialRessource* GetMaterial() { return this; }
 		inline VkPipelineLayout& GetPipelineLayout() { return pipelineLayout; }
 
+	protected:
+
+		virtual ~MaterialRessource();
 
 	private:
 

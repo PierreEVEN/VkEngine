@@ -4,7 +4,6 @@
 
 int main(int argc, char* argv[])
 {
-
 	Rendering::InitializeWindow();
 	Rendering::InitializeRendering();
 

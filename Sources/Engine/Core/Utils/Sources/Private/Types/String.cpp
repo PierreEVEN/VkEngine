@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-const String String::ENDL = String((char)('\n'));
+const char String::ENDL = '\n';
 
 bool String::operator!=(const String& _Val) const
 {
@@ -156,4 +156,23 @@ const String String::GetFileExtension(const String& path)
 	if (SplitString(path, { '.' }, name, ext, false))
 		return ext;
 	return "";
+}
+
+const std::vector<String> String::ParseStringCharArray(const char* charString, size_t length)
+{
+	String currentchr;
+	std::vector<String> output;
+
+	for (int i = 0; i < length; ++i) {
+		if (charString[i] == '\0') {
+			if (currentchr != "") {
+				output.push_back(currentchr);
+			}
+			currentchr = "";
+		}
+		else {
+			currentchr += charString[i];
+		}
+	}
+	return output;
 }

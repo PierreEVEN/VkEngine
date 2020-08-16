@@ -28,6 +28,8 @@ namespace Rendering
 
 		void DrawViewport();
 
+		inline const double& GetDeltaTime() const { return DeltaTime; }
+
 	private:
 
 		SwapChain* viewportSwapChain;
@@ -48,11 +50,8 @@ namespace Rendering
 		/** FrameProperties */
 		size_t CurrentFrameId = 0;
 		std::chrono::steady_clock::time_point LastFrameTime = std::chrono::steady_clock::now();
+		double DeltaTime = 0.0;
 
-
-		float fpsHistory[1000];
-		int fpsFrameIndex = 0;
-		float maxFpsHistory = 0;
 		bool bShowDemo = false;
 	};
 }

@@ -23,7 +23,6 @@ namespace Rendering::Initialization
 
 
 	void DestroyCommandPool();
-	void DestroyDefaultObjects();
 	void DestroyRenderPass();
 	void DestroyAllocators();
 	void DestroyLogicalDevice();

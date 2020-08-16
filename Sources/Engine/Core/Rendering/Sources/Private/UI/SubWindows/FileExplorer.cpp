@@ -1,8 +1,15 @@
 #include "UI/SubWindows/FileExplorer.h"
 #include <filesystem>
 
-Rendering::FileExplorer::FileExplorer(const String& defaultPath, const String& windowName, SubWindow* parent, const std::vector<String>& inExtensionFilters)
-	: SubWindow(windowName, parent)
+#if _WIN32
+#ifdef APIENTRY
+#undef APIENTRY
+#endif
+#include <windows.h>
+#endif
+
+Rendering::FileExplorer::FileExplorer(const String& defaultPath, const String& windowName, SubWindow* parent, const std::vector<String>& inExtensionFilters, bool bDrawInParent)
+	: SubWindow(windowName, parent, bDrawInParent)
 {
 	if (std::filesystem::exists(G_LAST_CONTENT_BROWSER_DIRECTORY.GetValue().GetData()))
 		SetCurrentPath(G_LAST_CONTENT_BROWSER_DIRECTORY.GetValue());
@@ -30,32 +37,74 @@ void Rendering::FileExplorer::DrawContent(const size_t& imageIndex)
 		bIsPathValid = false;
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(1.f, .2f, .2f, .5f));
 	}
+
+
+	/** Search bar */
 	ImGui::InputText("", currentPath, 256);
 	if (std::filesystem::path(currentPath).has_parent_path())
 	{
 		ImGui::SameLine();
-		ImGui::ImageButton(upArrowCircleIcon->GetTextureID(imageIndex), ImVec2(32, 32), ImVec2(0,0), ImVec2(1, 1), 0);
+		ImGui::ImageButton(UIRessources::upArrowCircleIcon->GetTextureID(imageIndex), ImVec2(32, 32), ImVec2(0,0), ImVec2(1, 1), 0);
 		if (ImGui::IsItemActive()) {
 			SetCurrentPath(std::filesystem::path(currentPath).parent_path().u8string().c_str());
 		}
 	}
 	if (!bIsPathValid) ImGui::PopStyleColor();
-
 	ImGui::Separator();
 
+	float windowSize = ImGui::GetContentRegionAvail().x;
 
+	ImGui::Columns(2);
+	if (!bSetColumnWidth) {
+		ImGui::SetColumnWidth(0, windowSize * .15f);
+		bSetColumnWidth = true;
+	}
+	/**  default path */
+
+
+	ImGui::Image(UIRessources::sourceIcon->GetTextureID(imageIndex), ImVec2(32, 32));
+	ImGui::SameLine();
+	if (ImGui::Button("project", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+		SetCurrentPath(".");
+	}
+#if _WIN32
+	DWORD mydrives = 100;
+	WCHAR lpBuffer[100];
+	char chrBuffer[100];
+	for (auto& chr : lpBuffer) chr = '\0';
+	GetLogicalDriveStrings(mydrives, lpBuffer);
+	for (int i = 0; i < 100; ++i) chrBuffer[i] = (char)lpBuffer[i];
+	ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0, 0.5));
+	for (const auto& drive : (String::ParseStringCharArray(chrBuffer, 100))) {
+		ImGui::Image(UIRessources::hardDiskIcon->GetTextureID(imageIndex), ImVec2(32, 32));
+		ImGui::SameLine();
+		if (ImGui::Button(drive.GetData(), ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+			SetCurrentPath(drive);
+		}
+	}
+	ImGui::PopStyleVar();
+#endif
+
+	ImGui::NextColumn();
+
+	/** Content */
 	ImGui::BeginChild("outer_child", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y - 100), false);
 	ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0, 0.5));
 	if (bIsPathValid) DrawDirContent(currentPath, imageIndex);
 	ImGui::PopStyleVar();
 	ImGui::EndChild();
+
+	ImGui::NextColumn();
+	ImGui::Columns(1);
+
 	ImGui::Separator();
-	ImGui::Dummy(ImVec2(20, 0));
-	ImGui::SameLine();
-	ImGui::Text(selectedElement.GetData());
+	if (ImGui::BeginChild("selected_element", ImVec2(ImGui::GetContentRegionAvail().x - 450, 32), true)) {
+		ImGui::Text(selectedElement.GetData());
+		ImGui::EndChild();
+	}
 	ImGui::SameLine(ImGui::GetContentRegionAvail().x - 400);
 
-
+	/** Extensions */
 	char** extensionItems = new char*[extensionFilters.size()];
 	for (int i = 0; i < extensionFilters.size(); ++i) {
 		String filtValue = String::ConcatenateArray(extensionFilters[i]).GetData();
@@ -71,13 +120,16 @@ void Rendering::FileExplorer::DrawContent(const size_t& imageIndex)
 	}
 	free(extensionItems);
 
+	/** Validate */
 	ImGui::Dummy(ImVec2(0, 10));
-	ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvail().x - 300, 0));
+	ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvail().x - 320, 0));
 	ImGui::SameLine();
-	if (ImGui::Button("validate", ImVec2(300, 35))) {
-		OnApplyPath.Execute(selectedElement);
-		bHasBeenValidated = true;
-		RequestClose();
+	if (selectedElement != "") {
+		if (ImGui::Button("validate", ImVec2(320, 35))) {
+			OnApplyPath.Execute(selectedElement);
+			bHasBeenValidated = true;
+			RequestClose();
+		}
 	}
 }
 
@@ -102,7 +154,7 @@ void Rendering::FileExplorer::DrawDirContent(const String& dirPath, const size_t
 	for (const std::filesystem::directory_entry& elem : std::filesystem::directory_iterator(dirPath.GetData()))
 	{
 		if (elem.is_directory()) {
-			ImGui::Image(directoryIcon->GetTextureID(imageIndex), ImVec2(32, 32));
+			ImGui::Image(UIRessources::directoryIcon->GetTextureID(imageIndex), ImVec2(32, 32));
 			ImGui::SameLine();
 			if (ImGui::Button(String::GetFileName(elem.path().u8string().c_str()).GetData(), ImVec2(ImGui::GetContentRegionAvail().x * 0.8f, 0))) {
 				SetCurrentPath(elem.path().u8string().c_str());
@@ -126,7 +178,7 @@ void Rendering::FileExplorer::DrawDirContent(const String& dirPath, const size_t
 			if (!bfound) continue;
 		}
 		if (!elem.is_directory()) {
-			ImGui::Image(fileIcon->GetTextureID(imageIndex), ImVec2(32, 32));
+			ImGui::Image(UIRessources::fileIcon->GetTextureID(imageIndex), ImVec2(32, 32));
 			ImGui::SameLine();
 			if (ImGui::Button(String::GetFileName(elem.path().u8string().c_str()).GetData(), ImVec2(ImGui::GetContentRegionAvail().x * 0.8f, 0))) {
 				selectedElement = elem.path().u8string().c_str();

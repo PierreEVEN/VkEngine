@@ -1,14 +1,14 @@
-#include "Ressources/Material.h"
+#include "Ressources/MaterialRessource.h"
 #include "Scene/Scene.h"
 #include "Scene/VkSceneElements/MatrixUniformBuffers.h"
-#include "Ressources/Texture.h"
+#include "Ressources/TextureRessource.h"
 #include "DescriptorPool.h"
 
 Rendering::MaterialRessource::MaterialRessource(
 	const std::vector<char>& vertexShaderModule,
 	const std::vector<char>& fragmentShaderModule,
 	std::vector<VkDescriptorSetLayoutBinding> layoutBindings,
-	EMaterialCreationFlags creationFlags)
+	EMaterialCreationFlags creationFlags) : Ressource()
 {
  	CreateDescriptorSets(layoutBindings);
  	CreatePipeline(vertexShaderModule, fragmentShaderModule, creationFlags);

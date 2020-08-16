@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Constants.h"
-#include "Ressources/Texture.h"
+#include "Ressources/TextureRessource.h"
+#include "UI/UiRessources.h"
 
 namespace Rendering {
 
@@ -11,14 +12,11 @@ namespace Rendering {
 
 	class SubWindow {
 	public:
-		SubWindow(const String& name, SubWindow* parentWindow = nullptr);
+		SubWindow(const String& name, SubWindow* parentWindow = nullptr, bool bInRenderInParent = false);
 
 		static void ProcessSubWindows(const size_t& imageIndex);
 
 		DeleteWindowEvent OnDeleteWindow;
-
-		static void LoadUIRessources();
-		static void DestroyUIRessources();
 
 		inline void RequestClose() { bKeepOpen = false; }
 
@@ -28,10 +26,6 @@ namespace Rendering {
 
 		virtual ~SubWindow();
 
-
-		inline static TextureRessource* upArrowCircleIcon = nullptr;
-		inline static TextureRessource* directoryIcon = nullptr;
-		inline static TextureRessource* fileIcon = nullptr;
 
 
 	private:
@@ -46,6 +40,7 @@ namespace Rendering {
 		std::vector<SubWindow*> childs;
 
 		bool bKeepOpen;
+		bool bRenderInParent;
 
 		inline static size_t currentWindowID = 0;
 		inline static std::vector<SubWindow*> registeredWindows;

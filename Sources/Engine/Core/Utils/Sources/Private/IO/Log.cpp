@@ -10,19 +10,19 @@ void Logger::Log(const String& logText, LogVerbosity verbosity)
 	switch (verbosity)
 	{
 	case LogVerbosity::VERB_DISPLAY:
-		EngineInputOutput::SetTextColor(CONSOLE_FG_COLOR_LIGHT_BLUE);
+		EngineInputOutput::SetTextColor(CONSOLE_DISPLAY);
 		type = "LOG";
 		break;
 	case LogVerbosity::VERB_WARNING:
-		EngineInputOutput::SetTextColor(CONSOLE_FG_COLOR_ORANGE);
+		EngineInputOutput::SetTextColor(CONSOLE_WARNING);
 		type = "WARNING";
 		break;
 	case LogVerbosity::VERB_ERROR:
-		EngineInputOutput::SetTextColor(CONSOLE_FG_COLOR_LIGHT_RED);
+		EngineInputOutput::SetTextColor(CONSOLE_ERROR);
 		type = "ERROR";
 		break;
 	case LogVerbosity::VERB_ASSERT:
-		EngineInputOutput::SetTextColor(CONSOLE_FG_COLOR_VIOLET | CONSOLE_BG_COLOR_RED | CONSOLE_BG_COLOR_GREEN | CONSOLE_BG_COLOR_LIGHT);
+		EngineInputOutput::SetTextColor(CONSOLE_ASSERT);
 		type = "ASSERT";
 		break;
 	}
@@ -33,7 +33,7 @@ void Logger::Log(const String& logText, LogVerbosity verbosity)
 	localtime_s(&tstruct, &now);
 	strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
 	EngineIO << '[' << buf << "] " << type << " - " << logText << String::ENDL;
-	EngineInputOutput::SetTextColor(CONSOLE_FG_COLOR_WHITE);
+	EngineInputOutput::SetTextColor(CONSOLE_DEFAULT);
 	EngineIO.Unlock();
 }
 

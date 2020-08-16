@@ -5,10 +5,10 @@
 #include "Scene/VkSceneElements/FrameObjects.h"
 #include "UI/ImGuiInstance.h"
 #include <chrono>
-#include "Ressources/Mesh.h"
-#include "Ressources/Material.h"
+#include "Ressources/MeshRessource.h"
+#include "Ressources/MaterialRessource.h"
 #include "Scene/VkSceneElements/MatrixUniformBuffers.h"
-#include "Ressources/Texture.h"
+#include "Ressources/TextureRessource.h"
 #include "DescriptorPool.h"
 
 
@@ -16,18 +16,18 @@
 #include "Scene/SceneComponents/Camera.h"
 #include <thread>
 #include "Importers/GltfImporter.h"
+#include "UI/SubWindows/DebugUI.h"
+#include "UI/SubWindows/Console.h"
 
 
-SVector cameraPosition(-2, 0, 0.5);
-SRotatorf cameraRotation;
 SVector objectpos;
 SRotatorf objectRotation(90, 0, 180);
 SVector objectScale(1);
-float fov = 45, mi = 0.1f, mx = 1000.f;
 Rendering::MeshRessource* cubemesh = nullptr;
 Mat4f* poss = nullptr;
-bool bSHowWindow = true;
 int objCount = 200;
+
+
 
 Rendering::ViewportInstance::ViewportInstance(const SIntVector2D& inDesiredViewportSize)
 	: desiredViewportSize(inDesiredViewportSize)
@@ -43,7 +43,6 @@ Rendering::ViewportInstance::ViewportInstance(const SIntVector2D& inDesiredViewp
 
 	G_ON_WINDOW_RESIZED.Add(this, &ViewportInstance::RequestViewportResize);
 
-	
 }
 
 Rendering::ViewportInstance::~ViewportInstance()
@@ -58,7 +57,6 @@ Rendering::ViewportInstance::~ViewportInstance()
 	delete commandBuffer;
 	delete frameBuffers;
 	delete viewportSwapChain;
-	delete cubemesh;
 
 }
 
@@ -78,15 +76,26 @@ void Rendering::ViewportInstance::DrawViewport()
 		cubemesh = new MeshRessource(vertices, indices);
 	}
 
-	double deltaTime;
-	deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - LastFrameTime).count() / 1000000.0;
+	DeltaTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - LastFrameTime).count() / 1000000.0;
 
-	if (G_MAX_FRAMERATE.GetValue() != 0 && (1.0 / deltaTime > G_MAX_FRAMERATE.GetValue()))
+	if (G_MAX_FRAMERATE.GetValue() != 0 && ((1.0 / DeltaTime) > G_MAX_FRAMERATE.GetValue()))
 	{
-		if (G_SLEEP_HIDLE_THREADS.GetValue()) std::this_thread::sleep_for(std::chrono::nanoseconds(static_cast<uint64_t>((1.0 / G_MAX_FRAMERATE.GetValue() - deltaTime) * 1000000000)));
+		if (G_SLEEP_HIDLE_THREADS.GetValue()) std::this_thread::sleep_for(std::chrono::nanoseconds(static_cast<uint64_t>((1.0 / G_MAX_FRAMERATE.GetValue() - DeltaTime) * 1000000000)));
 		return;
 	}
 	LastFrameTime = std::chrono::steady_clock::now();
+
+
+
+
+
+
+	Ressource::FlushRessources();
+
+
+
+
+
 
 
 	vkWaitForFences(G_LOGICAL_DEVICE, 1, &frameObjects->GetInFlightFence(CurrentFrameId), VK_TRUE, UINT64_MAX);
@@ -108,12 +117,6 @@ void Rendering::ViewportInstance::DrawViewport()
 	}
 	frameObjects->GetImageInFlightFence(imageIndex) = frameObjects->GetInFlightFence(CurrentFrameId);
 
-
-
-
-
-
-	viewportMatrices->UpdateUniformBuffers(this, imageIndex);
 
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -154,38 +157,17 @@ void Rendering::ViewportInstance::DrawViewport()
 	vkCmdSetViewport(currentCommandBfr, 0, 1, &viewport);
 	vkCmdSetScissor(currentCommandBfr, 0, 1, &scissor);
 
-	viewportCamera->SetLocation(cameraPosition);
-	viewportCamera->SetRotation(cameraRotation);
-	viewportCamera->fieldOfView = fov;
-	viewportCamera->nearClipPlane = mi;
-	viewportCamera->farClipPlane = mx;
 
 
-	G_DEFAULT_MATERIAL->Use(currentCommandBfr, this, imageIndex);
+// 
+// 	for (int i = 0; i < objCount; ++i)
+// 	{
+// 		vkCmdPushConstants(currentCommandBfr, G_DEFAULT_MATERIAL->GetMaterial()->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(Mat4f), &poss[i]);
+// 		cubemesh->Draw(currentCommandBfr);
+// 	}
 
-
-	Mat4f objTransform(objectpos, objectRotation, objectScale);
-	vkCmdPushConstants(currentCommandBfr, G_DEFAULT_MATERIAL->GetMaterial()->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(Mat4f), &objTransform);
-
-	//G_DEFAULT_MESH->Draw(currentCommandBfr);
-
-	if (!poss)
-	{
-		poss = new Mat4f[1000000];
-
-		for (int i = 0; i < 1000000; ++i)
-		{
-			float randX = (float)rand() / 1000.f;
-			int randY = rand();
-			poss[i] = Mat4f(SVector(sin(randX), cos(randX), (randY % 2000) * 0.001f - 1) * 500, SQuatf(SRotatorf((float)rand(), (float)rand(), (float)rand())), SVector(1));
-		}
-	}
-
-	for (int i = 0; i < objCount; ++i)
-	{
-		vkCmdPushConstants(currentCommandBfr, G_DEFAULT_MATERIAL->GetMaterial()->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(Mat4f), &poss[i]);
-		cubemesh->Draw(currentCommandBfr);
-	}
+	/** Update viewport uniform buffers */
+	viewportMatrices->UpdateUniformBuffers(this, imageIndex);
 
 	// Start the Dear ImGui frame
 	ImGui_ImplVulkan_NewFrame();
@@ -203,7 +185,9 @@ void Rendering::ViewportInstance::DrawViewport()
 		if (ImGui::BeginMenu("Window"))
 		{
 			if (ImGui::Checkbox("Demo window", &bShowDemo)) bShowDemo = true;
+			if (ImGui::Button("Debug window")) new DebugUI(this);
 			if (ImGui::Button("gltf importer")) new Importers::GltfImporter();
+			if (ImGui::Button("Console")) new Console();
 			ImGui::EndMenu();
 		}
 		ImGui::EndMainMenuBar();
@@ -217,65 +201,11 @@ void Rendering::ViewportInstance::DrawViewport()
 		ImGui::End();
 	}
 
+	if (bShowDemo) ImGui::ShowDemoWindow(&bShowDemo);
+
 	SubWindow::ProcessSubWindows(imageIndex);
 
-
-	if (ImGui::Begin("dev"))
-	{
-		float avgFps = 0;
-
-		fpsHistory[fpsFrameIndex] = 1 / (float)deltaTime;
-
-		for (int i = 199; i >= 0; --i)
-		{
-			avgFps += fpsHistory[(fpsFrameIndex - i + 1000) % 1000];
-		}
-		avgFps /= 200;
-		ImGui::Text(String(String("Framerate : ") + ToString(1 / deltaTime) + " fps").GetData());
-		if (G_ENABLE_MULTISAMPLING.GetValue())
-		{
-			ImGui::Text("MSAA samples : %d", G_MSAA_SAMPLE_COUNT);
-		}
-		else
-		{
-			ImGui::Text("MSAA samples : disabled");
-		}
-		if ((1 / deltaTime > maxFpsHistory)) maxFpsHistory = 1 / (float(deltaTime));
-		TConVarUI<int32_t>::DrawUI(G_MAX_FRAMERATE);
-		fpsFrameIndex = (fpsFrameIndex + 1) % 1000;
-		ImGui::PlotLines("framerate", fpsHistory, IM_ARRAYSIZE(fpsHistory), fpsFrameIndex, String(String("average : ") + ToString(avgFps) + String(" / max : ") + ToString(maxFpsHistory)).GetData(), 0, maxFpsHistory, ImVec2(0, 80.0f));
-
-		TConVarUI<bool>::DrawUI(G_ENABLE_MULTISAMPLING);
-		TConVarUI<bool>::DrawUI(G_SLEEP_HIDLE_THREADS);
-		TConVarUI<bool>::DrawUI(G_FULSCREEN_MODE);
-		TConVarUI<bool>::DrawUI(G_ENABLE_VALIDATION_LAYERS);
-		ImGui::Separator();
-		ImGui::Text("object transform");
-		ImGui::SliderFloat3("object position", objectpos.coords, -3, 3);
-		ImGui::SliderFloat3("object rotation", objectRotation.coords, -180, 180);
-		//ImGui::SliderFloat3("object scale", objectScale.coords, -3, 3);
-		ImGui::SliderFloat("object scale", &objectScale.x, 0, 10, "%.3f", 4);
-		objectScale.y = objectScale.x; objectScale.z = objectScale.x;
-		ImGui::Separator();
-		ImGui::Text("camera transform");
-		ImGui::SliderFloat3("camera position", cameraPosition.coords, -3, 3);
-		ImGui::SliderFloat3("camera rotation", cameraRotation.coords, -180, 180);
-		ImGui::SliderFloat("fov", &fov, 1, 179);
-		ImGui::SliderFloat("clip min", &mi, 0, 1);
-		ImGui::SliderFloat("clip max", &mx, 0, 1000);
-		ImGui::Separator();
-		ImGui::SliderInt("background object count", &objCount, 0, 1000000);
-		ImGui::Separator();
-		ImGui::Text("Default texture");
-		ImGui::Image(G_DEFAULT_TEXTURE->GetTextureID(imageIndex), ImVec2(512, 512));
-
-
-		ImGui::End();
-	}
-
-	if (bShowDemo) ImGui::ShowDemoWindow(&bShowDemo);
 	ImGui::PopFont();
-
 	ImGui::EndFrame();
 
 	ImGui::Render();

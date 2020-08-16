@@ -7,13 +7,23 @@ namespace Rendering
 	struct Ressource
 	{
 		Ressource();
-		virtual ~Ressource();
+
+		void DestroyRessource() { bShouldDestroy = true; }
+
+		static void FlushRessources();
+		static void FreeRessources();
 
 	protected:
 
-		static void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+		virtual ~Ressource();
 
+		static void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+
+	private:
+
+		bool bShouldDestroy;
+		inline static std::vector<Ressource*> ressources;
 	};
 
 }

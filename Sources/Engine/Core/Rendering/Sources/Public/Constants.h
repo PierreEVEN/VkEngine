@@ -9,7 +9,7 @@
 
 namespace Rendering
 {
-	inline IniLoader									G_RENDERING_INI("config/Rendering.ini");
+	inline IniLoader									G_RENDERING_INI("Saved/Config/Rendering.ini");
 
 	inline TConVar<bool>								G_FULSCREEN_MODE(G_RENDERING_INI, "Rendering", "FullScreen", true);
 	inline TConVar<bool>								G_SLEEP_HIDLE_THREADS(G_RENDERING_INI, "Rendering", "SleepHidleThreads", true);
@@ -79,7 +79,6 @@ namespace Rendering
 			if (newValue != inConvar.GetValue())
 			{
 				inConvar.SetValue(newValue);
-				LOG(newValue);
 			}
 		}
 	};

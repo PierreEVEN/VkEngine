@@ -36,9 +36,8 @@ EngineInputOutput EngineInputOutput::IO = EngineInputOutput();
 
 HANDLE hConsoleout = GetStdHandle(STD_OUTPUT_HANDLE);
 
-void EngineInputOutput::SetTextColor(const uint8_t& color)
-{
-	SetConsoleTextAttribute(hConsoleout, color);
+void EngineInputOutput::SetTextColor(const ConsoleColor& color) {
+	consoleColor = color;
 }
 
 EngineInputOutput::EngineInputOutput()
@@ -113,5 +112,6 @@ void EngineInputOutput::TextToLog(const String& text)
 
 void EngineInputOutput::TextToScreen(const String& text)
 {
+	SetConsoleTextAttribute(hConsoleout, consoleColor);
 	printf(text.GetData());
 }

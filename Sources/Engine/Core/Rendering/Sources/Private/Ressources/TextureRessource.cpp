@@ -1,9 +1,10 @@
-#include "Ressources/Texture.h"
+#include "Ressources/TextureRessource.h"
 #include "Maths/BaseOperations.h"
 #include "Utils.h"
 #include "DescriptorPool.h"
 
 Rendering::TextureRessource::TextureRessource(unsigned char* textureData, SIntVector2D imageResolution, uint8_t channelsCount)
+	: Ressource()
 {
 	CreateTextureImage(textureData, imageResolution, channelsCount);
 	CreateTextureSampler();
@@ -190,7 +191,6 @@ void Rendering::TextureRessource::CreateTextureImage(unsigned char* textureData,
 
 void Rendering::TextureRessource::CreateTextureSampler()
 {
-	LOG("Create texture sampler");
 	VkSamplerCreateInfo samplerInfo{};
 	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 	samplerInfo.magFilter = VK_FILTER_LINEAR;

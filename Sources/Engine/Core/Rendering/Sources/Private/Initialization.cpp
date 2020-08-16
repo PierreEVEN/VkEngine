@@ -3,10 +3,10 @@
 #include "ValidationLayers.h"
 #include "Rendering.h"
 #include "Scene/Scene.h"
-#include "Ressources/Material.h"
+#include "Ressources/MaterialRessource.h"
 #include <fstream>
-#include "Ressources/Texture.h"
-#include "Ressources/Mesh.h"
+#include "Ressources/TextureRessource.h"
+#include "Ressources/MeshRessource.h"
 #include "UI/ImGuiInstance.h"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -31,12 +31,15 @@ void Rendering::Initialization::Initialize()
 	CreateRenderPass();
 	PreInitializeImGui();
 
-	SubWindow::LoadUIRessources();
-
 	CreateDefaultObjects();
 
 
+	UIRessources::LoadUIRessources();
 
+
+	if (!UIRessources::upArrowCircleIcon) {
+		LOG_ASSERT("what");
+	}
 	int sizeX, sizeY;
 	glfwGetWindowSize(GetPrimaryWindow(), &sizeX, &sizeY);
 
@@ -47,10 +50,9 @@ void Rendering::Initialization::Shutdown()
 {
 	delete viewportInstance;
 
-	SubWindow::DestroyUIRessources();
+	Ressource::FreeRessources();
 
 	DestroyImGuiRessources();
-	DestroyDefaultObjects();
 	DestroyRenderPass();
 	DestroyCommandPool();
 	DescriptorPoolDynamicHandle::ClearPools();
@@ -408,16 +410,6 @@ void Rendering::Initialization::CreateDefaultObjects()
 	MeshRessource::LoadFromFile(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultMeshPath", "Assets/DefaultMesh.obj"), vertices, indices);
 	G_DEFAULT_MESH = new MeshRessource(vertices, indices);
 
-}
-
-void Rendering::Initialization::DestroyDefaultObjects()
-{
-	LOG("Destroy default objects");
-	delete G_DEFAULT_MESH;
-	delete G_DEFAULT_TEXTURE;
-	delete G_DEFAULT_MATERIAL;
-	delete G_MATERIAL_OPAQUE;
-	delete G_MATERIAL_WIREFRAME;
 }
 
 void Rendering::Initialization::CreateCommandPool()

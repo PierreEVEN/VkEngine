@@ -6,7 +6,7 @@
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include <fstream>
-#include "Ressources/Mesh.h"
+#include "Ressources/MeshRessource.h"
 #include "UI/SubWindows/SubWindow.h"
 
 namespace Rendering::Importers
@@ -156,8 +156,6 @@ namespace Rendering::Importers
 		MeshRessource* generatedMesh = nullptr;
 
 	protected:
-
-		~GltfImporter() { if (generatedMesh) delete generatedMesh; }
 
 		virtual void DrawContent(const size_t& imageIndex);
 

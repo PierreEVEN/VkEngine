@@ -186,7 +186,7 @@ void Rendering::Importers::GltfImporter::CreateRessources()
 
 Rendering::Importers::GltfImporter::GltfImporter()
 	: SubWindow("GLTF importer") {
-	FileExplorer* explorer = new FileExplorer("./", "Find gltf asset", this, { "gltf", "glb" });
+	FileExplorer* explorer = new FileExplorer("./", "Find gltf asset", this, { "gltf", "glb" }, true);
 	explorer->OnApplyPath.Add(this, &GltfImporter::OnFileExplorerChosedPath);
 	explorer->OnCancelExplorer.Add(this, &GltfImporter::OnFillExplorerClosed);
 }

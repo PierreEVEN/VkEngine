@@ -1,6 +1,6 @@
 #include "Scene/VkSceneElements/FrameBuffers.h"
 #include "Scene/VkSceneElements/SwapChain.h"
-#include "Ressources/Texture.h"
+#include "Ressources/TextureRessource.h"
 #include "Utils.h"
 
 Rendering::FramebufferGroup::FramebufferGroup(SwapChain* swapChain)

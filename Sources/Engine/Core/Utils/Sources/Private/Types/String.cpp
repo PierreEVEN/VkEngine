@@ -17,6 +17,10 @@ bool String::operator<(const String& _Val) const
 	return std::string(data) < std::string(_Val.data);
 }
 
+const String& ToString(const String& value) {
+	return value;
+}
+
 String ToString(int64_t value) {
 	return std::to_string(value).c_str();
 }
@@ -118,4 +122,38 @@ String String::RemoveBorderSpaces(const String& line)
 		out += line[i] == '\t' ? ' ' : line[i];
 
 	return out;
+}
+
+const String String::GetFileName(const String& path)
+{
+	String left, name;
+	if (SplitString(path, { '/', '\\' }, left, name, false)) 
+		return name;
+	return path;
+}
+
+const String String::GetFileShortName(const String& path)
+{
+	String filename = GetFileName(path);
+	String name, ext;
+	if (SplitString(path, { '.' }, name, ext, false))
+		return name;
+	return filename;
+}
+
+const String String::GetFilePath(const String& path)
+{
+	String npath, name;
+	if (SplitString(path, { '/', '\\' }, npath, name, false))
+		return npath;
+	return path;
+}
+
+const String String::GetFileExtension(const String& path)
+{
+	String filename = GetFileName(path);
+	String name, ext;
+	if (SplitString(path, { '.' }, name, ext, false))
+		return ext;
+	return "";
 }

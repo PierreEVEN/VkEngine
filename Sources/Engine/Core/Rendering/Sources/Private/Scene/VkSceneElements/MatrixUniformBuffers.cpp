@@ -1,7 +1,7 @@
-#include "Viewport/MatrixUniformBuffers.h"
+#include "Scene/VkSceneElements/MatrixUniformBuffers.h"
 #include "Utils.h"
-#include "Viewport/ViewportInstance.h"
-#include "Viewport/Camera.h"
+#include "Scene/Scene.h"
+#include "Scene/SceneComponents/Camera.h"
 
 Rendering::MatrixUniformBuffer::MatrixUniformBuffer(ViewportInstance* parentViewport)
 {
@@ -17,8 +17,8 @@ void Rendering::MatrixUniformBuffer::UpdateUniformBuffers(ViewportInstance* pare
 {
 	MatrixUniformBufferObject ubo{};
 	ubo.viewMatrix = parentViewport->GetCamera()->GetViewMatrix();
-	ubo.worldProjection = parentViewport->GetProjection();
-	ubo.cameraLocation = glm::vec4(parentViewport->GetCamera()->GetPosition(), 0);
+	ubo.worldProjection = parentViewport->GetProjectionMatrix();
+	ubo.cameraLocation = parentViewport->GetCamera()->GetLocation();
 	ubo.time = (float)glfwGetTime();
 
 	void* data;

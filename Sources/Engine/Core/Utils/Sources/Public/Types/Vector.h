@@ -1,89 +1,87 @@
 #pragma once
 
 #include <stdint.h>
-
-enum class EVectorAxis
-{
-	AXIS_X = 0,
-	AXIS_Y = 1,
-	AXIS_Z = 2
-};
+#include "String.h"
 
 template<typename T>
-struct IVector
+struct IVector3
 {
-	IVector() : x(0), y(0), z(0) {}
-	IVector(const T& value) : x(value), y(value), z(value) {}
-	IVector(const T& inX, const T& inY, const T& inZ) : x(inX), y(inY), z(inZ) {}
+	IVector3() : x(0), y(0), z(0) {}
+	IVector3(const T& value) : x(value), y(value), z(value) {}
+	IVector3(const T& inX, const T& inY, const T& inZ) : x(inX), y(inY), z(inZ) {}
 
-	inline const bool operator==(const IVector<T>& other) const	{
+	inline const bool operator==(const IVector3<T>& other) const	{
 		return x == other.x && y == other.y && z == other.z;
 	}
-	inline const bool operator!=(const IVector<T>& other) const	{
+	inline const bool operator!=(const IVector3<T>& other) const	{
 		return x != other.x || y != other.y || z != other.z;
 	}
 
 	/* [] operator */
-	inline const IVector<T> operator[](const EVectorAxis& axis) const {
+	inline T& operator[](const size_t& axis) {
 		return coords[axis];
 	}
 
 	/* X IVector Operators */
-	inline const IVector<T> operator+(const IVector<T>& other) const {
-		return IVector<T>(x + other.x, y + other.y, z + other.z);
+	inline const IVector3<T> operator+(const IVector3<T>& other) const {
+		return IVector3<T>(x + other.x, y + other.y, z + other.z);
 	}
-	inline const IVector<T> operator-(const IVector<T>& other) const {
-		return IVector<T>(x - other.x, y - other.y, z - other.z);
+	inline const IVector3<T> operator-(const IVector3<T>& other) const {
+		return IVector3<T>(x - other.x, y - other.y, z - other.z);
 	}
-	inline const IVector<T> operator*(const IVector<T>& other) const {
-		return IVector<T>(x * other.x, y * other.y, z * other.z);
+	inline const IVector3<T> operator*(const IVector3<T>& other) const {
+		return IVector3<T>(x * other.x, y * other.y, z * other.z);
 	}
-	inline const IVector<T> operator/(const IVector<T>& other) const {
-		return IVector<T>(x / other.x, y / other.y, z / other.z);
+	inline const IVector3<T> operator/(const IVector3<T>& other) const {
+		return IVector3<T>(x / other.x, y / other.y, z / other.z);
 	}
 
 	/* X= IVector Operators */
-	inline const IVector<T> operator+=(const IVector<T>& other) {
-		return IVector<T>(x += other.x, y += other.y, z += other.z);
+	inline const IVector3<T> operator+=(const IVector3<T>& other) {
+		return IVector3<T>(x += other.x, y += other.y, z += other.z);
 	}
-	inline const IVector<T> operator-=(const IVector<T>& other) {
-		return IVector<T>(x -= other.x, y -= other.y, z -= other.z);
+	inline const IVector3<T> operator-=(const IVector3<T>& other) {
+		return IVector3<T>(x -= other.x, y -= other.y, z -= other.z);
 	}
-	inline const IVector<T> operator*=(const IVector<T>& other) {
-		return IVector<T>(x *= other.x, y *= other.y, z *= other.z);
+	inline const IVector3<T> operator*=(const IVector3<T>& other) {
+		return IVector3<T>(x *= other.x, y *= other.y, z *= other.z);
 	}
-	inline const IVector<T> operator/=(const IVector<T>& other) {
-		return IVector<T>(x /= other.x, y /= other.y, z /= other.z);
+	inline const IVector3<T> operator/=(const IVector3<T>& other) {
+		return IVector3<T>(x /= other.x, y /= other.y, z /= other.z);
 	}
 
 
 	/* X T Operators */
-	inline const IVector<T> operator+(const T& other) const {
-		return IVector<T>(x + other, y + other, z + other);
+	inline const IVector3<T> operator+(const T& other) const {
+		return IVector3<T>(x + other, y + other, z + other);
 	}
-	inline const IVector<T> operator-(const T& other) const {
-		return IVector<T>(x - other, y - other, z - other);
+	inline const IVector3<T> operator-(const T& other) const {
+		return IVector3<T>(x - other, y - other, z - other);
 	}
-	inline const IVector<T> operator*(const T& other) const {
-		return IVector<T>(x * other, y * other, z * other);
+	inline const IVector3<T> operator*(const T& other) const {
+		return IVector3<T>(x * other, y * other, z * other);
 	}
-	inline const IVector<T> operator/(const T& other) const {
-		return IVector<T>(x / other, y / other, z / other);
+	inline const IVector3<T> operator/(const T& other) const {
+		return IVector3<T>(x / other, y / other, z / other);
 	}
 
 
 	/* X= T Operators */
-	inline const IVector<T> operator+=(const T& other) {
-		return IVector<T>(x += other, y += other, z += other);
+	inline const IVector3<T> operator+=(const T& other) {
+		return IVector3<T>(x += other, y += other, z += other);
 	}
-	inline const IVector<T> operator-=(const T& other) {
-		return IVector<T>(x -= other, y -= other, z -= other);
+	inline const IVector3<T> operator-=(const T& other) {
+		return IVector3<T>(x -= other, y -= other, z -= other);
 	}
-	inline const IVector<T> operator*=(const T& other) {
-		return IVector<T>(x *= other, y *= other, z *= other);
+	inline const IVector3<T> operator*=(const T& other) {
+		return IVector3<T>(x *= other, y *= other, z *= other);
 	}
-	inline const IVector<T> operator/=(const T& other) {
-		return IVector<T>(x /= other, y /= other, z /= other);
+	inline const IVector3<T> operator/=(const T& other) {
+		return IVector3<T>(x /= other, y /= other, z /= other);
+	}
+
+	inline operator String() const {
+		return '{' + ToString(x) + ", " + ToString(y) + ", " + ToString(z) + '}';
 	}
 
 	inline const T Length() const { return sqrt(x * x + y * y + z * z); }
@@ -107,7 +105,7 @@ struct IVector
 			return z;
 	}
 
-	inline IVector<T>& Normalize()	{
+	inline IVector3<T>& Normalize()	{
 		T length = Length();
 		x /= length;
 		y /= length;
@@ -115,20 +113,20 @@ struct IVector
 		return *this;
 	}
 
-	inline static const IVector<T> Normalize(const IVector<T> inVector) {
-		double length = inVector.Length();
-		return IVector<T>(inVector.x / length, inVector.y / length, inVector.z / length)
+	inline static const IVector3<T> Normalize(const IVector3<T> inVector) {
+		T length = inVector.Length();
+		return IVector3<T>(inVector.x / length, inVector.y / length, inVector.z / length);
 	}
 
-	inline static const IVector<T> Cross(const IVector<T>& a, const IVector<T>& b) {
-		return IVector<T>(
+	inline static const IVector3<T> Cross(const IVector3<T>& a, const IVector3<T>& b) {
+		return IVector3<T>(
 			a.y * b.z - a.z * b.y,
 			a.z * b.x - a.x * b.z,
 			a.x * b.y - a.y * b.x
 			);
 	}
 
-	inline static const T Dot(const IVector<T>& a, const IVector<T>& b) {
+	inline static const T Dot(const IVector3<T>& a, const IVector3<T>& b) {
 		return a.x * b.x + a.y * b.y + a.z * b.z;
 	}
 
@@ -143,82 +141,85 @@ struct IVector
 };
 
 template<typename T>
-struct IVector2D
+struct IVector2
 {
-	IVector2D() : x(0), y(0) {}
-	IVector2D(const T& value) : x(value), y(value) {}
-	IVector2D(const T& inX, const T& inY) : x(inX), y(inY) {}
+	IVector2() : x(0), y(0) {}
+	IVector2(const T& value) : x(value), y(value) {}
+	IVector2(const T& inX, const T& inY) : x(inX), y(inY) {}
 
-	inline const bool operator==(const IVector<T>& other) const {
+	inline const bool operator==(const IVector2<T>& other) const {
 		return x == other.x && y == other.y;
 	}
-	inline const bool operator!=(const IVector<T>& other) const {
+	inline const bool operator!=(const IVector2<T>& other) const {
 		return x != other.x || y != other.y;
 	}
 
+	inline operator String() const {
+		return '{' + ToString(x) + ", " + ToString(y) + '}';
+	}
 
 	/* [] operator */
-	inline const IVector<T> operator[](const EVectorAxis& axis) const {
+	inline T& operator[](const size_t& axis) {
 		return coords[axis];
 	}
 
 	/* X IVector Operators */
-	inline const IVector<T> operator+(const IVector<T>& other) const {
-		return IVector<T>(x + other.x, y + other.y);
+	inline const IVector3<T> operator+(const IVector3<T>& other) const {
+		return IVector3<T>(x + other.x, y + other.y);
 	}
-	inline const IVector<T> operator-(const IVector<T>& other) const {
-		return IVector<T>(x - other.x, y - other.y);
+	inline const IVector3<T> operator-(const IVector3<T>& other) const {
+		return IVector3<T>(x - other.x, y - other.y);
 	}
-	inline const IVector<T> operator*(const IVector<T>& other) const {
-		return IVector<T>(x * other.x, y * other.y);
+	inline const IVector3<T> operator*(const IVector3<T>& other) const {
+		return IVector3<T>(x * other.x, y * other.y);
 	}
-	inline const IVector<T> operator/(const IVector<T>& other) const {
-		return IVector<T>(x / other.x, y / other.y);
+	inline const IVector3<T> operator/(const IVector3<T>& other) const {
+		return IVector3<T>(x / other.x, y / other.y);
 	}
 
 
 	/* X= IVector Operators */
-	inline const IVector<T> operator+=(const IVector<T>& other) {
-		return IVector<T>(x += other.x, y += other.y);
+	inline const IVector3<T> operator+=(const IVector3<T>& other) {
+		return IVector3<T>(x += other.x, y += other.y);
 	}
-	inline const IVector<T> operator-=(const IVector<T>& other) {
-		return IVector<T>(x -= other.x, y -= other.y);
+	inline const IVector3<T> operator-=(const IVector3<T>& other) {
+		return IVector3<T>(x -= other.x, y -= other.y);
 	}
-	inline const IVector<T> operator*=(const IVector<T>& other) {
-		return IVector<T>(x *= other.x, y *= other.y);
+	inline const IVector3<T> operator*=(const IVector3<T>& other) {
+		return IVector3<T>(x *= other.x, y *= other.y);
 	}
-	inline const IVector<T> operator/=(const IVector<T>& other) {
-		return IVector<T>(x /= other.x, y /= other.y);
+	inline const IVector3<T> operator/=(const IVector3<T>& other) {
+		return IVector3<T>(x /= other.x, y /= other.y);
 	}
 
 
 	/* X T Operators */
-	inline const IVector<T> operator+(const T& other) const {
-		return IVector<T>(x + other, y + other);
+	inline const IVector3<T> operator+(const T& other) const {
+		return IVector3<T>(x + other, y + other);
 	}
-	inline const IVector<T> operator-(const T& other) const {
-		return IVector<T>(x - other, y - other);
+	inline const IVector3<T> operator-(const T& other) const {
+		return IVector3<T>(x - other, y - other);
 	}
-	inline const IVector<T> operator*(const T& other) const {
-		return IVector<T>(x * other, y * other);
+	inline const IVector3<T> operator*(const T& other) const {
+		return IVector3<T>(x * other, y * other);
 	}
-	inline const IVector<T> operator/(const T& other) const {
-		return IVector<T>(x / other, y / other);
+	inline const IVector3<T> operator/(const T& other) const {
+		return IVector3<T>(x / other, y / other);
 	}
 
 
 	/* X= T Operators */
-	inline const IVector<T> operator+=(const T& other) {
-		return IVector<T>(x += other, y += other);
+	inline const IVector3<T> operator+=(const T& other) {
+		return IVector3<T>(x += other, y += other);
 	}
-	inline const IVector<T> operator-=(const T& other) {
-		return IVector<T>(x -= other, y -= other);
+	inline const IVector3<T> operator-=(const T& other) {
+		return IVector3<T>(x -= other, y -= other);
 	}
-	inline const IVector<T> operator*=(const T& other) {
-		return IVector<T>(x *= other, y *= other);
+	inline const IVector3<T> operator*=(const T& other) {
+		return IVector3<T>(x *= other, y *= other);
 	}
-	inline const IVector<T> operator/=(const T& other) {
-		return IVector<T>(x /= other, y /= other);
+	inline const IVector3<T> operator/=(const T& other) {
+		return IVector3<T>(x /= other, y /= other);
 	}
 
 	inline const T Length() const { return sqrt(x * x + y * y); }
@@ -242,12 +243,12 @@ struct IVector2D
 		y /= length;
 	}
 
-	inline static const IVector2D<T> Normalize(const IVector2D<T> inVector) {
+	inline static const IVector2<T> Normalize(const IVector2<T> inVector) {
 		double length = inVector.Length();
-		return IVector2D<T>(inVector.x / length, inVector.y / length, inVector.z / length)
+		return IVector2<T>(inVector.x / length, inVector.y / length, inVector.z / length)
 	}
 
-	inline static const T Dot(const IVector2D<T>& a, const IVector2D<T>& b) {
+	inline static const T Dot(const IVector2<T>& a, const IVector2<T>& b) {
 		return a.x * b.x + a.y * b.y;
 	}
 
@@ -260,12 +261,57 @@ struct IVector2D
 	};
 };
 
-typedef IVector<float> SVector;
-typedef IVector<double> SVectorDouble;
-typedef IVector<int32_t> SIntVector;
-typedef IVector<int64_t> SLongVector;
 
-typedef IVector2D<float> SVector2D;
-typedef IVector2D<double> SVectorDouble2D;
-typedef IVector2D<int32_t> SIntVector2D;
-typedef IVector2D<int64_t> SLongVector2D;
+template<typename T>
+struct IVector4
+{
+	inline IVector4() : x(0), y(0), z(0), w(0) {}
+	inline IVector4(const T& scalar) : x(scalar), y(scalar), z(scalar), w(scalar) {}
+	inline IVector4(const T& inx, const T& iny, const T& inz, const T& inw) : x(inx), y(iny), z(inz), w(inw) {}
+
+	/** Operator + */
+	inline const IVector4<T> operator+(const IVector4<T>& other) const {
+		return IVector4<T>(x + other.x, y + other.y, z + other.z, w + other.w);
+	}
+	inline const IVector4<T> operator+(const IVector3<T>& other) const {
+		return IVector4<T>(x + other.x, y + other.y, z + other.z, w);
+	}
+	inline const IVector4<T> operator+(const T& scalar) const {
+		return IVector4<T>(x + scalar, y + scalar, z + scalar, w + scalar);
+	}
+
+	/** Operator * */
+	inline const IVector4<T> operator*(const IVector4<T>& other) const {
+		return IVector4<T>(x * other.x, y * other.y, z * other.z, w * other.w);
+	}
+	inline const IVector4<T> operator*(const IVector3<T>& other) const {
+		return IVector4<T>(x * other.x, y * other.y, z * other.z, w);
+	}
+	inline const IVector4<T> operator*(const T& scalar) const {
+		return IVector4<T>(x * scalar, y * scalar, z * scalar, w * scalar);
+	}
+
+	/* [] operator */
+	inline T& operator[](const size_t& axis) {
+		return coords[axis];
+	}
+
+	union
+	{
+		struct {
+			T x, y, z, w;
+		};
+
+		T coords[4];
+	};
+};
+
+typedef IVector3<float> SVector;
+typedef IVector3<double> SVectorDouble;
+typedef IVector3<int32_t> SIntVector;
+typedef IVector3<int64_t> SLongVector;
+
+typedef IVector2<float> SVector2D;
+typedef IVector2<double> SVectorDouble2D;
+typedef IVector2<int32_t> SIntVector2D;
+typedef IVector2<int64_t> SLongVector2D;

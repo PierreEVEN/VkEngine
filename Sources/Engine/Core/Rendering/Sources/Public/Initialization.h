@@ -8,7 +8,6 @@ namespace Rendering::Initialization
 	void Shutdown();
 
 
-	void LoadIniConfig();
 	void CreateInstance();
 	void CreateSurface();
 	void PickPhysicalDevice();
@@ -30,5 +29,4 @@ namespace Rendering::Initialization
 	void DestroyLogicalDevice();
 	void DestroySurface();
 	void DestroyInstance();
-	void SaveIniConfig();
 }

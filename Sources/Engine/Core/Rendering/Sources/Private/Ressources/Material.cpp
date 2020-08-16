@@ -1,6 +1,6 @@
 #include "Ressources/Material.h"
-#include "Viewport/ViewportInstance.h"
-#include "Viewport/MatrixUniformBuffers.h"
+#include "Scene/Scene.h"
+#include "Scene/VkSceneElements/MatrixUniformBuffers.h"
 #include "Ressources/Texture.h"
 #include "DescriptorPool.h"
 
@@ -63,7 +63,7 @@ void Rendering::MaterialRessource::CreatePipeline(const std::vector<char>& verte
 	VkPushConstantRange pushConstantRange;
 	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	pushConstantRange.offset = 0;
-	pushConstantRange.size = sizeof(glm::mat4);
+	pushConstantRange.size = sizeof(Mat4f);
 
 	/** Pipeline layout */
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
@@ -111,12 +111,12 @@ void Rendering::MaterialRessource::CreatePipeline(const std::vector<char>& verte
 
 	VkPipelineMultisampleStateCreateInfo multisampling{};
 	multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-	multisampling.rasterizationSamples = G_ENABLE_MULTISAMPLING ? G_MSAA_SAMPLE_COUNT : VK_SAMPLE_COUNT_1_BIT;
+	multisampling.rasterizationSamples = G_ENABLE_MULTISAMPLING.GetValue() ? G_MSAA_SAMPLE_COUNT : VK_SAMPLE_COUNT_1_BIT;
 	multisampling.minSampleShading = 1.0f; // Optional
 	multisampling.pSampleMask = nullptr; // Optional
 	multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
 	multisampling.alphaToOneEnable = VK_FALSE; // Optional
-	multisampling.sampleShadingEnable = G_ENABLE_MULTISAMPLING ? VK_TRUE : VK_FALSE;
+	multisampling.sampleShadingEnable = G_ENABLE_MULTISAMPLING.GetValue() ? VK_TRUE : VK_FALSE;
 	multisampling.minSampleShading = .2f;
 
 	VkPipelineDepthStencilStateCreateInfo depthStencil{};
@@ -215,7 +215,7 @@ Rendering::MaterialInstance::MaterialInstance(const std::vector<VkWriteDescripto
 
 }
 
-void Rendering::MaterialInstance::Use(VkCommandBuffer commandBuffer, ViewportInstance* writeViewport, const size_t& imageIndex, glm::mat4 objectTransform)
+void Rendering::MaterialInstance::Use(VkCommandBuffer commandBuffer, ViewportInstance* writeViewport, const size_t& imageIndex)
 {
 	VkDescriptorBufferInfo bufferInfo{};
 	bufferInfo.buffer = writeViewport->GetViewportUbos()->GetBuffer(imageIndex);
@@ -259,6 +259,5 @@ void Rendering::MaterialInstance::Use(VkCommandBuffer commandBuffer, ViewportIns
 
 	parent->UpdateDescriptorSets(wDescSet);
 
-	vkCmdPushConstants(commandBuffer, parent->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &objectTransform);
 	parent->Use(commandBuffer, imageIndex);
 }

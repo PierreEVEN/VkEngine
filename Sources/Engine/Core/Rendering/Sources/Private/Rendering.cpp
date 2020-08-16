@@ -12,14 +12,13 @@ static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
 
 void Rendering::InitializeWindow()
 {
-	Initialization::LoadIniConfig();
 	LOG("Initializing GLFW");
 	glfwInit();
 
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 	glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-	if (G_FULSCREEN_MODE)
+	if (G_FULSCREEN_MODE.GetValue())
 	{
 		glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
@@ -57,7 +56,6 @@ void Rendering::CleaneupWindow()
 	LOG("Destroy glfw window");
 	glfwDestroyWindow(primaryWindow);
 	glfwTerminate();
-	Initialization::SaveIniConfig();
 }
 
 const SIntVector2D& Rendering::GetFrameSize()

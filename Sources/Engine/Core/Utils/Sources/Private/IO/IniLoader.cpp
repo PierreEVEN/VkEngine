@@ -3,8 +3,8 @@
 #include <iostream>
 #include <fstream>
 
-IniLoader::IniLoader(const char* filePath)
-	: sourceFile(filePath) {
+IniLoader::IniLoader(String filePath)
+	: sourceFile(filePath), bDoesBeSaved(false){
 	LinkOrCreate();
 }
 
@@ -17,7 +17,7 @@ IniLoader::~IniLoader() {
 	iniCategories.clear();
 }
 
-const String IniLoader::GetPropertyAsString(const char* categoryName, const char* propertyName, const char* defaultValue) {
+const String IniLoader::GetPropertyAsString(const String& categoryName, const String& propertyName, const String& defaultValue) {
 	String props = GetProperty(categoryName, propertyName);
 	if (props != "")
 	{
@@ -33,7 +33,7 @@ const String IniLoader::GetPropertyAsString(const char* categoryName, const char
 	return defaultValue;
 }
 
-const int IniLoader::GetPropertyAsInt(const char* categoryName, const char* propertyName, const int& defaultValue)
+const int32_t IniLoader::GetPropertyAsInt(const String& categoryName, const String& propertyName, const int32_t& defaultValue)
 {
 	String props = GetProperty(categoryName, propertyName);
 	if (props != "")
@@ -43,7 +43,7 @@ const int IniLoader::GetPropertyAsInt(const char* categoryName, const char* prop
 	return defaultValue;
 }
 
-const double IniLoader::GetPropertyAsDouble(const char* categoryName, const char* propertyName, const double& defaultValue)
+const double IniLoader::GetPropertyAsDouble(const String& categoryName, const String& propertyName, const double& defaultValue)
 {
 	String props = GetProperty(categoryName, propertyName);
 	if (props != "")
@@ -53,7 +53,7 @@ const double IniLoader::GetPropertyAsDouble(const char* categoryName, const char
 	return defaultValue;
 }
 
-const bool IniLoader::GetPropertyAsBool(const char* categoryName, const char* propertyName, const bool& defaultValue)
+const bool IniLoader::GetPropertyAsBool(const String& categoryName, const String& propertyName, const bool& defaultValue)
 {
 	String props = GetProperty(categoryName, propertyName);
 	if (props == "true") return true;
@@ -63,14 +63,19 @@ const bool IniLoader::GetPropertyAsBool(const char* categoryName, const char* pr
 
 void IniLoader::Save()
 {
-	std::ofstream of(sourceFile.GetData());
-
-	for (const auto& cat : iniCategories)
+	if (bDoesBeSaved)
 	{
-		String catString = cat->WriteCategories();
-		of.write(catString.GetData(), catString.Length());
+		bDoesBeSaved = false;
+
+		std::ofstream of(sourceFile.GetData());
+
+		for (const auto& cat : iniCategories)
+		{
+			String catString = cat->WriteCategories();
+			of.write(catString.GetData(), catString.Length());
+		}
+		of.close();
 	}
-	of.close();
 }
 
 const String IniLoader::GetProperty(const String& categoryName, const String& propertyName) const
@@ -93,6 +98,7 @@ const String IniLoader::GetProperty(const String& categoryName, const String& pr
 
 void IniLoader::SetProperty(const String& categoryName, const String& propertyName, const String& propertyValue)
 {
+	bDoesBeSaved = true;
 	if (propertyValue == "")
 	{
 		ClearProperty(categoryName, propertyName);
@@ -133,12 +139,14 @@ void IniLoader::ClearProperty(const String& categoryName, const String& property
 				if (iniCategories[i]->properties[j].propertyName == propertyName)
 				{
 					iniCategories[i]->properties.erase(iniCategories[i]->properties.begin() + j);
+					bDoesBeSaved = true;
 				}
 			}
 			if (iniCategories[i]->properties.size() == 0)
 			{
 				delete iniCategories[i];
 				iniCategories.erase(iniCategories.begin() + i);
+				bDoesBeSaved = true;
 			}
 			return;
 		}

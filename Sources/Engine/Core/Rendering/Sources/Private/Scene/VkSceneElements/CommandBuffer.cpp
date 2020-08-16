@@ -1,5 +1,5 @@
-#include "Viewport/CommandBuffer.h"
-#include "Viewport/ViewportInstance.h"
+#include "Scene/VkSceneElements/CommandBuffer.h"
+#include "Scene/Scene.h"
 
 Rendering::CommandBuffer::CommandBuffer(ViewportInstance* viewportInstance)
 {

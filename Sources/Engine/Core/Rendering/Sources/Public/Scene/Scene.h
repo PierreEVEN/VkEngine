@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SwapChain.h"
+#include "Scene/VkSceneElements/SwapChain.h"
 
 namespace Rendering
 {
@@ -9,6 +9,7 @@ namespace Rendering
 	class FrameObjects;
 	class MatrixUniformBuffer;
 	class Camera;
+	class SceneComponent;
 
 	class ViewportInstance
 	{
@@ -23,7 +24,7 @@ namespace Rendering
 		inline MatrixUniformBuffer* GetViewportUbos() const { return viewportMatrices; }
 		inline Camera* GetCamera() const { return viewportCamera; }
 
-		glm::mat4 GetProjection() const;
+		Mat4f GetProjectionMatrix() const;
 
 		void DrawViewport();
 
@@ -36,6 +37,7 @@ namespace Rendering
 		MatrixUniformBuffer* viewportMatrices;
 		Camera* viewportCamera;
 
+		std::vector<SceneComponent*> components;
 
 		/** Resize framebuffer */
 		void RequestViewportResize(GLFWwindow* window, int sizeX, int sizeY) { desiredViewportSize = SIntVector2D(sizeX, sizeY); bHasViewportBeenResized = true; }

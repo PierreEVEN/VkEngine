@@ -2,7 +2,7 @@
 #include "Utils.h"
 #include "ValidationLayers.h"
 #include "Rendering.h"
-#include "Viewport/ViewportInstance.h"
+#include "Scene/Scene.h"
 #include "Ressources/Material.h"
 #include <fstream>
 #include "Ressources/Texture.h"
@@ -12,6 +12,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include "DescriptorPool.h"
+#include "UI/SubWindows/SubWindow.h"
 
 Rendering::ViewportInstance* viewportInstance;
 
@@ -30,6 +31,8 @@ void Rendering::Initialization::Initialize()
 	CreateRenderPass();
 	PreInitializeImGui();
 
+	SubWindow::LoadUIRessources();
+
 	CreateDefaultObjects();
 
 
@@ -43,6 +46,8 @@ void Rendering::Initialization::Initialize()
 void Rendering::Initialization::Shutdown()
 {
 	delete viewportInstance;
+
+	SubWindow::DestroyUIRessources();
 
 	DestroyImGuiRessources();
 	DestroyDefaultObjects();
@@ -80,7 +85,7 @@ void Rendering::Initialization::CreateInstance()
 	vkInstanceCreateInfo.ppEnabledExtensionNames = RequiredExtensions.data();
 
 	/* Enable validation layer (optional) */
-	if (G_ENABLE_VALIDATION_LAYERS)
+	if (G_ENABLE_VALIDATION_LAYERS.GetValue())
 	{
 		Rendering::LinkValidationLayers(vkInstanceCreateInfo);
 	}
@@ -177,7 +182,7 @@ void Rendering::Initialization::CreateLogicalDevice()
 	createInfo.enabledExtensionCount = static_cast<uint32_t>(G_REQUIRED_DEVICE_EXTENSIONS.size());
 	createInfo.ppEnabledExtensionNames = G_REQUIRED_DEVICE_EXTENSIONS.data();
 
-	if (G_ENABLE_VALIDATION_LAYERS) {
+	if (G_ENABLE_VALIDATION_LAYERS.GetValue()) {
 		createInfo.enabledLayerCount = static_cast<uint32_t>(G_REQUIRED_VALIDATION_LAYERS.size());
 		createInfo.ppEnabledLayerNames = G_REQUIRED_VALIDATION_LAYERS.data();
 	}
@@ -236,12 +241,12 @@ void Rendering::Initialization::InitializeSwapchainProperties()
 	G_SWAPCHAIN_SURFACE_FORMAT = ChooseSwapSurfaceFormat();
 	G_SWAPCHAIN_PRESENT_MODE = ChooseSwapPresentMode(G_SWAPCHAIN_SUPPORT_DETAILS.presentModes);
 	G_SWAP_CHAIN_IMAGE_COUNT = G_SWAPCHAIN_SUPPORT_DETAILS.capabilities.minImageCount + 1;
-	if (G_ENABLE_MULTISAMPLING)
+	if (G_ENABLE_MULTISAMPLING.GetValue())
 	{
 		G_MSAA_SAMPLE_COUNT = GetMaxUsableSampleCount();
 		if (G_MSAA_SAMPLE_COUNT == VK_SAMPLE_COUNT_1_BIT)
 		{
-			G_ENABLE_MULTISAMPLING = false;
+			G_ENABLE_MULTISAMPLING.SetValue(false);
 			LOG_WARNING("Cannot enable multisampling on this device");
 		}
 	}
@@ -252,17 +257,17 @@ void Rendering::Initialization::CreateRenderPass()
 	LOG("Create render pass");
 	VkAttachmentDescription colorAttachment{};
 	colorAttachment.format = G_SWAPCHAIN_SURFACE_FORMAT.format;
-	colorAttachment.samples = G_ENABLE_MULTISAMPLING ? G_MSAA_SAMPLE_COUNT : VK_SAMPLE_COUNT_1_BIT;
+	colorAttachment.samples = G_ENABLE_MULTISAMPLING.GetValue() ? G_MSAA_SAMPLE_COUNT : VK_SAMPLE_COUNT_1_BIT;
 	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	colorAttachment.finalLayout = G_ENABLE_MULTISAMPLING ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	colorAttachment.finalLayout = G_ENABLE_MULTISAMPLING.GetValue() ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
 	VkAttachmentDescription depthAttachment{};
 	depthAttachment.format = FindDepthFormat();
-	depthAttachment.samples = G_ENABLE_MULTISAMPLING ? G_MSAA_SAMPLE_COUNT : VK_SAMPLE_COUNT_1_BIT;
+	depthAttachment.samples = G_ENABLE_MULTISAMPLING.GetValue() ? G_MSAA_SAMPLE_COUNT : VK_SAMPLE_COUNT_1_BIT;
 	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -297,7 +302,7 @@ void Rendering::Initialization::CreateRenderPass()
 	subpass.colorAttachmentCount = 1;
 	subpass.pColorAttachments = &colorAttachmentRef;
 	subpass.pDepthStencilAttachment = &depthAttachmentRef;
-	subpass.pResolveAttachments = G_ENABLE_MULTISAMPLING ? &colorAttachmentResolveRef : nullptr;
+	subpass.pResolveAttachments = G_ENABLE_MULTISAMPLING.GetValue() ? &colorAttachmentResolveRef : nullptr;
 	subpass.inputAttachmentCount = 0;                            // Input attachments can be used to sample from contents of a previous subpass
 	subpass.pInputAttachments = nullptr;                         // (Input attachments not used by this example)
 	subpass.preserveAttachmentCount = 0;                         // Preserved attachments can be used to loop (and preserve) attachments through subpasses
@@ -322,7 +327,7 @@ void Rendering::Initialization::CreateRenderPass()
 
 	std::vector<VkAttachmentDescription> attachments;
 
-	if (G_ENABLE_MULTISAMPLING)
+	if (G_ENABLE_MULTISAMPLING.GetValue())
 	{
 		attachments.push_back(colorAttachment);
 		attachments.push_back(depthAttachment);
@@ -393,6 +398,7 @@ void Rendering::Initialization::CreateDefaultObjects()
 
 	int texWidth, texHeight, texChannels;
 	stbi_uc* pixels = stbi_load(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultTexturePath", "Assets/DefaultTexture.png").GetData(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	
 	G_DEFAULT_TEXTURE = new TextureRessource(pixels, SIntVector2D(texWidth, texHeight), texChannels);
 
 	G_DEFAULT_MATERIAL = new MaterialInstance({ }, G_MATERIAL_OPAQUE);
@@ -434,28 +440,4 @@ void Rendering::Initialization::DestroyCommandPool()
 void Rendering::Initialization::Draw()
 {
 	viewportInstance->DrawViewport();
-}
-
-void Rendering::Initialization::LoadIniConfig()
-{
-	LOG("Load ini properties");
-	G_MAX_FRAMERATE = G_RENDERING_INI.GetPropertyAsInt("Rendering", "GlobalMaxFramerate", 60);
-	G_ENABLE_MULTISAMPLING = G_RENDERING_INI.GetPropertyAsBool("Rendering", "EnableMultisampling", true);
-	G_FULSCREEN_MODE = G_RENDERING_INI.GetPropertyAsBool("Rendering", "FullScreen", false);
-	G_SLEEP_HIDLE_THREADS = G_RENDERING_INI.GetPropertyAsBool("Rendering", "SleepHidleThreads", true);
-
-	G_ENABLE_VALIDATION_LAYERS = G_RENDERING_INI.GetPropertyAsBool("Rendering:Vulkan", "EnableValidationLayer", false);
-	G_MAX_SET_PER_POOL = G_RENDERING_INI.GetPropertyAsInt("Rendering:Vulkan", "MaxSetPerPool", 64);
-	G_POOL_DESCRIPTOR_COUNT_PER_TYPE = G_RENDERING_INI.GetPropertyAsInt("Rendering:Vulkan", "PoolDescriptorCountPerType", 16);
-
-	G_DEFAULT_FONT_PATH = G_RENDERING_INI.GetPropertyAsString("Rendering:ImGui", "DefaultFontPath", "");
-}
-
-void Rendering::Initialization::SaveIniConfig()
-{
-	LOG("Save ini config");
-	G_RENDERING_INI.SetPropertyAsInt("Rendering", "GlobalMaxFramerate", (int)G_MAX_FRAMERATE);
-	G_RENDERING_INI.SetPropertyAsBool("Rendering", "EnableMultisampling", (int)G_ENABLE_MULTISAMPLING);
-	G_RENDERING_INI.SetPropertyAsBool("Rendering", "FullScreen", G_FULSCREEN_MODE);
-	G_RENDERING_INI.SetPropertyAsBool("Rendering", "SleepHidleThreads", G_SLEEP_HIDLE_THREADS);
 }

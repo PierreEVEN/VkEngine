@@ -16,3 +16,6 @@
 [submodule "Sources/ThirdParty/shaderc"]
 	path = Sources/ThirdParty/shaderc
 	url = https://github.com/google/shaderc.git
+[submodule "Sources/ThirdParty/rapidjson"]
+	path = Sources/ThirdParty/rapidjson
+	url = https://github.com/Tencent/rapidjson/

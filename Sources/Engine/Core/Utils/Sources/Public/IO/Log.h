@@ -3,10 +3,10 @@
 #include "EngineIO.h"
 
 
-#define LOG(text) Logger::LogDetailed(text, LogVerbosity::VERB_DISPLAY, __LINE__, ##__FUNCTION__)
-#define LOG_ERROR(text) Logger::LogDetailed(text, LogVerbosity::VERB_ERROR, __LINE__, ##__FUNCTION__)
-#define LOG_WARNING(text) Logger::LogDetailed(text, LogVerbosity::VERB_WARNING, __LINE__, ##__FUNCTION__)
-#define LOG_ASSERT(text) Logger::LogDetailedFull(text, LogVerbosity::VERB_ASSERT, __LINE__, ##__FUNCTION__, ##__FILE__); exit(1);
+#define LOG(text) Logger::LogDetailed(ToString(text), LogVerbosity::VERB_DISPLAY, __LINE__, ##__FUNCTION__)
+#define LOG_ERROR(text) Logger::LogDetailed(ToString(text), LogVerbosity::VERB_ERROR, __LINE__, ##__FUNCTION__)
+#define LOG_WARNING(text) Logger::LogDetailed(ToString(text), LogVerbosity::VERB_WARNING, __LINE__, ##__FUNCTION__)
+#define LOG_ASSERT(text) Logger::LogDetailedFull(ToString(text), LogVerbosity::VERB_ASSERT, __LINE__, ##__FUNCTION__, ##__FILE__); exit(1);
 
 enum class LogVerbosity
 {

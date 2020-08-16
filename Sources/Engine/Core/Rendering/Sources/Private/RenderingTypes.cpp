@@ -1,28 +1,5 @@
 #include "RenderingTypes.h"
 
-bool Rendering::Vertex::operator==(const Vertex& other) const
-{
-#ifdef VERTEX_ENABLE_LOCATION
-	if (pos != other.pos) return false;
-#endif
-#ifdef VERTEX_ENABLE_TEX_COORD
-	if (texCoord != other.texCoord) return false;
-#endif
-#ifdef VERTEX_ENABLE_COLOR
-	if (color != other.color) return false;
-#endif
-#ifdef VERTEX_ENABLE_NORMAL
-	if (normal != other.normal) return false;
-#endif
-#ifdef VERTEX_ENABLE_TANGENT
-	if (tangent != other.tangent) return false;
-#endif
-#ifdef VERTEX_ENABLE_BITANGENT
-	if (bitangent != other.bitangent) return false;
-#endif
-	return true;
-}
-
 VkVertexInputBindingDescription Rendering::Vertex::GetBindingDescription()
 {
 	VkVertexInputBindingDescription bindingDescription{};

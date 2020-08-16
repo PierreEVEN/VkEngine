@@ -1,5 +1,5 @@
-#include "Viewport/FrameBuffers.h"
-#include "Viewport/SwapChain.h"
+#include "Scene/VkSceneElements/FrameBuffers.h"
+#include "Scene/VkSceneElements/SwapChain.h"
 #include "Ressources/Texture.h"
 #include "Utils.h"
 
@@ -51,7 +51,7 @@ void Rendering::FramebufferGroup::CreateFrameBuffer(SwapChain* swapChain)
 
 	for (size_t i = 0; i < G_SWAP_CHAIN_IMAGE_COUNT; i++) {
 		std::vector<VkImageView> attachments;
-		if (G_ENABLE_MULTISAMPLING)
+		if (G_ENABLE_MULTISAMPLING.GetValue())
 		{
 			attachments.push_back(colorImageView);
 			attachments.push_back(depthImageView);

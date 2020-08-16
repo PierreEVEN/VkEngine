@@ -46,7 +46,7 @@ void Rendering::LinkValidationLayers(VkInstanceCreateInfo& createInfos)
 
 void Rendering::CreateValidationLayers()
 {
-	if (!G_ENABLE_VALIDATION_LAYERS) return;
+	if (!G_ENABLE_VALIDATION_LAYERS.GetValue()) return;
 
 	LOG("Create validation layer");
 
@@ -67,7 +67,7 @@ void Rendering::CreateValidationLayers()
 
 void Rendering::DestroyValidationLayers()
 {
-	if (!G_ENABLE_VALIDATION_LAYERS) return;
+	if (!G_ENABLE_VALIDATION_LAYERS.GetValue()) return;
 
 	LOG("Destroy validation layers");
 	auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(G_INSTANCE, "vkDestroyDebugUtilsMessengerEXT");

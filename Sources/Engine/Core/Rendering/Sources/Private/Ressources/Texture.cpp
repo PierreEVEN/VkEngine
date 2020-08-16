@@ -164,7 +164,6 @@ void Rendering::TextureRessource::CreateTextureImage(unsigned char* textureData,
 
 	VkDeviceSize imageSize = imageResolution.x * imageResolution.y * channelsCount;
 
-
 	textureMipsLevels = static_cast<uint32_t>(Maths::Floor(log2(Maths::GetMax(imageResolution.x, imageResolution.y)))) + 1;
 
 	VkBuffer stagingBuffer;

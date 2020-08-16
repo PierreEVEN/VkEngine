@@ -4,7 +4,7 @@
 layout(binding = 0) uniform UniformBufferObject {
     mat4 worldProjection;
     mat4 viewMatrix;
-	vec4 cameraLocation;
+	vec3 cameraLocation;
 	float time;
 } ubo;
 

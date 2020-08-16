@@ -1,4 +1,5 @@
 #pragma once
+#include "String.h"
 
 struct SColor;
 struct SLinearColor;
@@ -47,6 +48,10 @@ struct IColor
 			g != other.g ||
 			b != other.b ||
 			a != other.a;
+	}
+
+	inline operator String() const {
+		return '{' + ToString(r) + ", " + ToString(g) + ", " + ToString(b) + ", " + ToString(a) + '}';
 	}
 
 	union

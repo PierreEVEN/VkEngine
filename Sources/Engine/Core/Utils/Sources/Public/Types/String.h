@@ -18,6 +18,7 @@ public:
 class String;
 
 /* Value To String */
+const String& ToString(const String& value);
 String ToString(int64_t value);
 String ToString(uint64_t value);
 String ToString(int32_t value);
@@ -171,13 +172,13 @@ public:
 	}
 
 	template<typename T>
-	inline static String& ConcatenateArray(T& tarray, String separator = ", ")
+	inline static const String ConcatenateArray(T& tarray, String separator = ", ")
 	{
 		String result = "";
 		size_t elemCount = tarray.size();
 		for (auto& elem : tarray)
 		{
-			result += String(elem);
+			result += ToString(elem);
 			elemCount--;
 			if (elemCount > 0) result += separator;
 		}
@@ -203,6 +204,12 @@ public:
 	}
 
 	static String RemoveBorderSpaces(const String& line);
+
+
+	static const String GetFileName(const String& path);
+	static const String GetFileShortName(const String& path);
+	static const String GetFilePath(const String& path);
+	static const String GetFileExtension(const String& path);
 private:
 
 	inline static const String& CopyTo(const String& from, String* to) {
@@ -232,3 +239,4 @@ private:
 
 inline String operator+(const char& chr, const String& str) { return String(chr) + str; }
 inline String operator+(const char* chr, const String& str) { return String(chr) + str; }
+inline String operator/(const char* chr, const String& str) { return String(chr) / str; }

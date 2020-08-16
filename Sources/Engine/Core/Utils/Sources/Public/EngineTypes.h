@@ -6,3 +6,4 @@
 #include "Types/Transform.h"
 #include "Types/String.h"
 #include "Types/NativeTypes.h"
+#include "Types/Matrix.h"

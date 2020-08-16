@@ -1,6 +1,6 @@
-#include "Viewport/FrameObjects.h"
-#include "Viewport/ViewportInstance.h"
-#include "Viewport/SwapChain.h"
+#include "Scene/VkSceneElements/FrameObjects.h"
+#include "Scene/Scene.h"
+#include "Scene/VkSceneElements/SwapChain.h"
 
 Rendering::FrameObjects::FrameObjects(ViewportInstance* viewportInstance)
 {

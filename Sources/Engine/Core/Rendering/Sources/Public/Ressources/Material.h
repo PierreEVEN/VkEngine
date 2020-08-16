@@ -52,7 +52,7 @@ namespace Rendering
 	{
 		MaterialInstance(const std::vector<VkWriteDescriptorSet>& inDescriptorSetInfos, MaterialRessource* inMaterial);
 
-		void Use(VkCommandBuffer commandBuffer, ViewportInstance* writeViewport, const size_t& imageIndex, glm::mat4 objectTransform);
+		void Use(VkCommandBuffer commandBuffer, ViewportInstance* writeViewport, const size_t& imageIndex);
 
 		inline virtual MaterialRessource* GetMaterial() override { return parent; }
 

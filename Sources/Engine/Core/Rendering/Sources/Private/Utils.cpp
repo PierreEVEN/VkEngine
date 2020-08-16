@@ -21,7 +21,7 @@ void Rendering::CheckExtensions()
 
 bool Rendering::CheckValidationLayerSupport()
 {
-	if (G_ENABLE_VALIDATION_LAYERS)
+	if (G_ENABLE_VALIDATION_LAYERS.GetValue())
 	{
 		uint32_t layerCount;
 		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -78,7 +78,7 @@ std::vector<const char*> Rendering::GetRequiredExtensions()
 
 	std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-	if (G_ENABLE_VALIDATION_LAYERS) {
+	if (G_ENABLE_VALIDATION_LAYERS.GetValue()) {
 		extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 	}
 

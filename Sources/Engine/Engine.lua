@@ -38,6 +38,10 @@ function includeStb()
 	includedirs(LibDir.."stb")
 end
 
+function includeRapidJson()
+	includedirs(LibDir.."rapidjson/include/")
+end
+
 function includeVulkan()
 	if type(os.getenv("vulkan_sdk")) ~= "" then
 		includedirs(os.getenv("vulkan_sdk").."/Include")

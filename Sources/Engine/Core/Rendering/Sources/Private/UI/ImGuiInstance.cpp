@@ -1,5 +1,5 @@
 #include "UI/ImGuiInstance.h"
-#include "Viewport/ViewportInstance.h"
+#include "Scene/Scene.h"
 
 #include "Rendering.h"
 #include "Utils.h"
@@ -25,8 +25,8 @@ void Rendering::PreInitializeImGui()
 	style.WindowRounding = 0;
 	style.ScrollbarRounding = 0;
 	style.TabRounding = 0;
-	style.WindowBorderSize = 0;
-	style.PopupBorderSize = 0;
+	style.WindowBorderSize = 1;
+	style.PopupBorderSize = 1;
 	style.WindowTitleAlign.x = 0.5f;
 	style.FramePadding.x = 6.f;
 	style.FramePadding.y = 6.f;
@@ -34,11 +34,12 @@ void Rendering::PreInitializeImGui()
 	style.WindowPadding.y = 4.f;
 	style.GrabMinSize = 16.f;
 	style.ScrollbarSize = 20.f;
+	style.IndentSpacing = 30.f;
 
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 
-	G_IMGUI_DEFAULT_FONT = io.Fonts->AddFontFromFileTTF(G_DEFAULT_FONT_PATH.GetData(), 20.f);
+	G_IMGUI_DEFAULT_FONT = io.Fonts->AddFontFromFileTTF(G_DEFAULT_FONT_PATH.GetValue().GetData(), 20.f);
 
 
 	const size_t descPoolCount = 20;
@@ -74,7 +75,7 @@ void Rendering::PreInitializeImGui()
 	init_info.Queue = G_GRAPHIC_QUEUE;
 	init_info.PipelineCache = VK_NULL_HANDLE;
 	init_info.DescriptorPool = G_IMGUI_DESCRIPTOR_POOL;
-	init_info.MSAASamples = G_ENABLE_MULTISAMPLING ? G_MSAA_SAMPLE_COUNT : VK_SAMPLE_COUNT_1_BIT;
+	init_info.MSAASamples = G_ENABLE_MULTISAMPLING.GetValue() ? G_MSAA_SAMPLE_COUNT : VK_SAMPLE_COUNT_1_BIT;
 	init_info.Allocator = nullptr;
 	init_info.MinImageCount = static_cast<uint32_t>(G_SWAP_CHAIN_IMAGE_COUNT);
 	init_info.ImageCount = static_cast<uint32_t>(G_SWAP_CHAIN_IMAGE_COUNT);

@@ -10,12 +10,7 @@
 #include <UI/imgui_impl_glfw.h>
 #include <UI/imgui_impl_vulkan.h>
 
-#include <set>
-#include <array>
-#include <optional>
-
-#include "IO/Log.h"
-#include "EngineTypes.h"
+#include "EngineMinimal.h"
 
 #define VERTEX_ENABLE_LOCATION
 #define VERTEX_ENABLE_TEX_COORD
@@ -99,42 +94,14 @@ namespace Rendering
 		static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();
 	};
 
-
-	struct SMeshSectionData
-	{
+	struct SMeshSectionData	{
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
+		Mat4d sectionTransform;
+		class Material* materialLink = nullptr;
+		struct MeshRessource* MeshLink = nullptr;
 	};
 
 }
 
-template <class T>
-inline void hash_combine(std::size_t& s, const T& v)
-{
-	std::hash<T> h;
-	s ^= h(v) + 0x9e3779b9 + (s << 6) + (s >> 2);
-}
-
-namespace std {
-	template<> struct hash< Rendering::Vertex> {
-		size_t operator()(Rendering::Vertex const& vertex) const {
-			std::size_t result = 0;
-#ifdef VERTEX_ENABLE_LOCATION
-			//hash_combine(result, vertex.pos);
-#endif
-#ifdef VERTEX_ENABLE_TEX_COORD
-			//hash_combine(result, vertex.texCoord);
-#endif
-#ifdef VERTEX_ENABLE_COLOR
-			//hash_combine(result, vertex.color);
-#endif
-#ifdef VERTEX_ENABLE_NORMAL
-			//hash_combine(result, vertex.normal);
-#endif
-#ifdef VERTEX_ENABLE_TANGENT
-			//hash_combine(result, vertex.tangent);
-#endif
-			return result;
-		}
-	};
-}
+MAKE_HASHABLE(Rendering::Vertex, t.pos, t.color, t.texCoord, t.normal);

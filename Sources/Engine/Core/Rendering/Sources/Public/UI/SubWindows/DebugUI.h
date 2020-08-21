@@ -7,11 +7,7 @@ namespace Rendering {
 
 	class DebugUI : public SubWindow {
 	public:
-		DebugUI(ViewportInstance* parentScene) : SubWindow("Debug UI") {
-			parent = parentScene;
-		}
-
-	protected:
+		DebugUI(ViewportInstance* parentScene);
 
 		SVector cameraPosition = SVector(-2, 0, 0.5);
 		SRotatorf cameraRotation;

@@ -19,6 +19,8 @@ struct WindowHandler {
 		const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 		framebufferResizeCallback(primaryWindow, mode->width, mode->height);
 		glfwSetWindowMonitor(primaryWindow, bFullscreen ? glfwGetPrimaryMonitor() : NULL, 0, 0, FRAME_SIZE.x, FRAME_SIZE.y, GLFW_DONT_CARE);
+		glfwSetWindowPos(primaryWindow, 0, 0);
+
 	}
 };
 WindowHandler __windowHandler;
@@ -33,13 +35,8 @@ void Rendering::InitializeWindow()
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 	glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-	if (G_FULSCREEN_MODE.GetValue())
-	{
-		glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-		glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-	}
 	primaryWindow = glfwCreateWindow(FRAME_SIZE.x, FRAME_SIZE.y, "Vulkan window", nullptr, nullptr);
+	__windowHandler.OnFullscreenModeChanged(G_FULSCREEN_MODE.GetValue());
 	G_FULSCREEN_MODE.OnPropertyChanged.Add(&__windowHandler, &WindowHandler::OnFullscreenModeChanged);
 	glfwSetFramebufferSizeCallback(primaryWindow, framebufferResizeCallback);
 }

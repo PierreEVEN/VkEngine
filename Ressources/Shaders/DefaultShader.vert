@@ -1,5 +1,4 @@
 #version 450
-#extension GL_ARB_separate_shader_objects : enable
 
 layout(binding = 0) uniform UniformBufferObject {
     mat4 worldProjection;
@@ -18,21 +17,23 @@ layout(push_constant) uniform PushConsts {
 	mat4 model;
 } primitive;
 
-layout(location = 0) out vec3 fragPos;
-layout(location = 1) out vec3 fragColor;
-layout(location = 2) out vec2 fragTexCoord;
-layout(location = 3) out vec3 fragNormal;
-layout(location = 4) out vec3 fragTangent;
-
+layout (location = 0) out vec3 outWorldPos;
+layout (location = 1) out vec3 outNormal;
+layout (location = 2) out vec3 camPos;
+layout (location = 3) out vec2 texCoords;
 out gl_PerVertex {
     vec4 gl_Position;
 };
 
 void main() {
+
+
+	vec3 locPos = vec3(primitive.model * vec4(inPosition, 1.0));
+	outWorldPos = locPos;
+	outNormal = mat3(primitive.model) * inNormal;
+	texCoords = inTexCoord;
+	camPos = ubo.cameraLocation;
+
 	gl_Position = ubo.worldProjection * ubo.viewMatrix * primitive.model * vec4(inPosition.xyz, 1.0);
-    fragColor = inColor;
-    fragTexCoord = inTexCoord;
-	fragPos = inPosition;
-	fragNormal = inNormal;
-	fragTangent = inTangent;
+
 }

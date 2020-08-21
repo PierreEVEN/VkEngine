@@ -15,7 +15,8 @@ public:
 	{
 		RClass* newClass = static_cast<RClass*>(RType::RegisterType<RClass>(clName));
 
-		newClass->SetCtor<Args...>(std::function<void* (Args...)>(&T::MakeClass<Args...>));
+		//TOdo reimplement ctor system
+		//newClass->SetCtor<Args...>(std::function<void* (Args...)>(&T::MakeClass<Args...>));
 
 		RegisterClass_Internal(newClass);
 		RegisterStruct_Internal(newClass);

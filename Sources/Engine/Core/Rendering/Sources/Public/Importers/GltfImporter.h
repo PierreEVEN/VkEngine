@@ -5,20 +5,16 @@
 
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
-#include <fstream>
 #include "Ressources/MeshRessource.h"
-#include "UI/SubWindows/SubWindow.h"
 
 namespace Rendering::Importers
 {
-	struct GltfObject;
+	class GltfImporter;
 
 	/** ACCESSOR */
 	struct GltfAccessor {
 		GltfAccessor() = default;
 		GltfAccessor(const rapidjson::Value& source);
-
-		void DisplayData();
 
 		int64_t bufferView = -1;
 		int64_t byteOffset = 0;
@@ -32,13 +28,11 @@ namespace Rendering::Importers
 	/** BUFFER */
 	struct GltfBuffer {
 		GltfBuffer() = default;
-		GltfBuffer(const rapidjson::Value& source, const char* sourceFilePath);
+		GltfBuffer(const rapidjson::Value& source, const String& sourceFilePath);
 		~GltfBuffer() { delete buffer; }
 
 		char* GetBuffer();
-		void DisplayData();
-
-		const char* sourcePath = nullptr;
+		String sourcePath = nullptr;
 		int64_t byteLength = -1;
 		String uri = "Unknown";
 	private:
@@ -50,8 +44,6 @@ namespace Rendering::Importers
 		GltfBufferView() = default;
 		GltfBufferView(const rapidjson::Value& source);
 
-		void DisplayData();
-
 
 		int64_t buffer = -1;
 		int64_t byteOffset = 0;
@@ -61,26 +53,66 @@ namespace Rendering::Importers
 	};
 
 	/** MATERIAL */
+	struct GltfImage {
+		GltfImage() = default;
+		GltfImage(const rapidjson::Value& source, const String& inFilePath);
+
+		String uri = "";
+		String mimeType = "Unknown";
+
+		bool bImportTexture = false;
+		Texture2D* linkedTexture = nullptr;
+
+		void OnSelectedTexture(Texture2D* inTexture) { linkedTexture = inTexture; }
+
+		Texture2D* GetTexture();
+	private:
+		String filePath;
+		Texture2D* ImportTexture();
+	};
+
+	/** MATERIAL */
+	struct GltfTexture {
+		GltfTexture() = default;
+		GltfTexture(const rapidjson::Value& source);
+
+		int64_t sourceId = -1;
+	};
+
+	/** MATERIAL */
 	struct GLtfMaterial {
 		GLtfMaterial() = default;
-		GLtfMaterial(const rapidjson::Value& source);
+		GLtfMaterial(const rapidjson::Value& source, GltfImporter* inParent, size_t myIndex);
 
-		void DisplayData();
+		String name = "None";
+		int64_t baseColorIndex = -1;
+		int64_t metallicRoughnessIndex = -1;
+		int64_t normalTextureIndex = -1;
 
+		Material* GetMaterial();
+
+		bool bImport = false;
+		Material* selectedMaterial;
+
+		inline void OnSelectedMaterial(Material* selectedAsset) { selectedMaterial = selectedAsset; }
+
+	private:
+
+
+
+		Material* CreateMaterial();
+		GltfImporter* parent;
 	};
 
 	/** PRIMITIVE */
 	struct GltfPrimitive {
 		GltfPrimitive() = default;
-		GltfPrimitive(const rapidjson::Value& source, GltfObject* inParent);
+		GltfPrimitive(const rapidjson::Value& source, GltfImporter* inParent);
 
-		void DisplayData();
 		void LoadData();
 
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> triangles;
-
-		GltfObject* parent;
 
 		int64_t attributePosition = -1;
 		int64_t attributeNormal = -1;
@@ -91,14 +123,15 @@ namespace Rendering::Importers
 
 		int64_t mode = -1;
 		int64_t material = -1;
+	private:
+		GltfImporter* parent;
+
 	};
 
 	/** MESH */
 	struct GLtfMesh {
 		GLtfMesh() = default;
-		GLtfMesh(const rapidjson::Value& source, GltfObject* inParent);
-
-		void DisplayData();
+		GLtfMesh(const rapidjson::Value& source, GltfImporter* inParent);
 
 		std::vector<GltfPrimitive> primitives;
 		String name = "none";
@@ -109,10 +142,8 @@ namespace Rendering::Importers
 		GltfNode() = default;
 		GltfNode(const rapidjson::Value& source);
 
-		void DisplayData();
-
 		std::vector<size_t> children;
-		size_t mesh = -1;
+		int64_t mesh = -1;
 		Mat4d nodeMatrix;
 	};
 
@@ -121,8 +152,6 @@ namespace Rendering::Importers
 		GltfScene() = default;
 		GltfScene(const rapidjson::Value& source);
 
-		void DisplayData();
-
 		std::vector<size_t> nodes;
 	};
 
@@ -130,54 +159,39 @@ namespace Rendering::Importers
 		GltfAssetData() = default;
 		GltfAssetData(const rapidjson::Value& source);
 
-		void DisplayData();
-
 		String generator = "Unknown";
 		String version = "Unknown";
 		String copyright = "Unknown";
 	};
 
-	struct GltfObject {
+	class GltfImporter {
+	public:
+
+		GltfImporter(const String& filePath) : iFilePath(filePath) { FillJsonData(filePath); }
+
 		GltfAssetData assetData;
 		std::vector<GltfScene> scenes;
 		std::vector<GltfNode> nodes;
 		std::vector<GLtfMesh> meshes;
 		std::vector<GltfAccessor> accessors;
 		std::vector<GLtfMaterial> materials;
+		std::vector<GltfImage> images;
+		std::vector<GltfTexture> textures;
 		std::vector<GltfBufferView> bufferViews;
 		std::vector<GltfBuffer> buffers;
-	};
 
-	class GltfImporter : public SubWindow {
-	public:
+		inline const String& GetPath() const { return iFilePath; }
 
-		GltfImporter();
-
-		MeshRessource* generatedMesh = nullptr;
-
-	protected:
-
-		virtual void DrawContent(const size_t& imageIndex);
-
-		void OnFileExplorerChosedPath(const String& path);
-
-		void OnFillExplorerClosed() {
-			RequestClose();
-		}
+		std::vector<SMeshSectionData> GenerateData();
 
 	private:
 
-		void CreateRessources();
+		std::vector<SMeshSectionData> GetNodeData(size_t NodeIndex);
 
-		void FillJsonData();
+		std::vector<Rendering::SMeshSectionData> GetMeshData(size_t MeshIndex);
 
-		size_t importState = 0;
-		size_t importCount = 0;
+		String iFilePath;
 
-		GltfObject objectData;
-
-		bool bHasFinnishedImport = false;
-
-		const char* filePath = nullptr;
+		void FillJsonData(const String& filePath);
 	};
 }

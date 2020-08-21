@@ -11,6 +11,8 @@ namespace Rendering
 	class Camera;
 	class SceneComponent;
 
+	inline class StaticMeshComponent* G_TEST_COMP = nullptr;
+
 	class ViewportInstance
 	{
 	public:

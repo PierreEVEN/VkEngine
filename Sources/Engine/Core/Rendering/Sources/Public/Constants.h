@@ -55,17 +55,17 @@ namespace Rendering
 	inline const std::vector<const char*>				G_REQUIRED_VALIDATION_LAYERS = { "VK_LAYER_KHRONOS_validation" };
 
 	/** ImGui */
-	inline TConVar<String>								G_DEFAULT_FONT_PATH(G_RENDERING_INI, "Rendering.Ressources", "DefaultFontPath", "Assets/Fonts/Roboto-Medium.ttf");
+	inline TConVar<String>								G_DEFAULT_FONT_PATH(G_RENDERING_INI, "Rendering.Ressources", "DefaultFontPath", "Ressources/Fonts/Roboto-Medium.ttf");
 	inline VkDescriptorPool								G_IMGUI_DESCRIPTOR_POOL = VK_NULL_HANDLE;
 	inline ImFont*										G_IMGUI_DEFAULT_FONT = nullptr;
 
 	/** Materials */
-	inline struct MaterialRessource*					G_MATERIAL_OPAQUE = nullptr;
-	inline struct MaterialRessource*					G_MATERIAL_TRANSLUCENT = nullptr;
-	inline struct MaterialRessource*					G_MATERIAL_WIREFRAME = nullptr;
-	inline struct MaterialInstance*						G_DEFAULT_MATERIAL = nullptr;
-	inline struct TextureRessource*						G_DEFAULT_TEXTURE = nullptr;
-	inline struct MeshRessource*						G_DEFAULT_MESH = nullptr;
+	inline class ShaderModule*							G_DEFAULT_VERTEX_MODULE = nullptr;
+	inline class ShaderModule*							G_DEFAULT_FRAGMENT_MODULE = nullptr;
+	inline class Material*								G_DEFAULT_MATERIAL = nullptr;
+	inline class Material*								G_MATERIAL_WIREFRAME = nullptr;
+	inline class Texture2D*								G_DEFAULT_TEXTURE = nullptr;
+	inline class StaticMesh*							G_DEFAULT_MESH = nullptr;
 
 
 	template<typename T>

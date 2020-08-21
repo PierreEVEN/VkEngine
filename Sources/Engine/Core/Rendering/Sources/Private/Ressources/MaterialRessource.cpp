@@ -3,15 +3,15 @@
 #include "Scene/VkSceneElements/MatrixUniformBuffers.h"
 #include "Ressources/TextureRessource.h"
 #include "DescriptorPool.h"
+#include "Assets/Texture2D.h"
 
-Rendering::MaterialRessource::MaterialRessource(
-	const std::vector<char>& vertexShaderModule,
-	const std::vector<char>& fragmentShaderModule,
-	std::vector<VkDescriptorSetLayoutBinding> layoutBindings,
-	EMaterialCreationFlags creationFlags) : Ressource()
+Rendering::MaterialRessource* G_LAST_USED_MATERIAL_RESSOURCE;
+Rendering::MaterialRessourceItem* G_LAST_USED_MATERIAL_RESSOURCE_ITEM;
+
+Rendering::MaterialRessource::MaterialRessource(const SMaterialStaticProperties& materialProperties) : Ressource()
 {
- 	CreateDescriptorSets(layoutBindings);
- 	CreatePipeline(vertexShaderModule, fragmentShaderModule, creationFlags);
+	CreateDescriptorSets(MakeLayoutBindings(materialProperties));
+	CreatePipeline(materialProperties);
 }
 
 Rendering::MaterialRessource::~MaterialRessource()
@@ -21,45 +21,76 @@ Rendering::MaterialRessource::~MaterialRessource()
 
 void Rendering::MaterialRessource::Use(VkCommandBuffer commandBuffer, const size_t& imageIndex)
 {
+	if (G_LAST_USED_MATERIAL_RESSOURCE == this && lastDrawIamgeIndex == imageIndex) return;
+
+	lastDrawIamgeIndex = imageIndex;
+	G_LAST_USED_MATERIAL_RESSOURCE = this;
+
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[imageIndex], 0, nullptr);
 	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shaderPipeline);
 }
 
-void Rendering::MaterialRessource::UpdateDescriptorSets(std::vector<VkWriteDescriptorSet> descriptorWrites)
+std::vector<VkDescriptorSetLayoutBinding> Rendering::MaterialRessource::MakeLayoutBindings(const SMaterialStaticProperties& materialProperties)
 {
-	vkUpdateDescriptorSets(G_LOGICAL_DEVICE, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+	uint32_t currentId = 0;
+	std::vector<VkDescriptorSetLayoutBinding> outBindings;
+
+	if (materialProperties.bUseGlobalUbo) {
+		VkDescriptorSetLayoutBinding uboLayoutBinding{};
+		uboLayoutBinding.binding = currentId;
+		uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		uboLayoutBinding.descriptorCount = 1;
+		uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+		uboLayoutBinding.pImmutableSamplers = nullptr;
+		outBindings.push_back(uboLayoutBinding);
+		currentId++;
+	}
+
+	/** Vertex textures */
+	for (uint32_t i = 0; i < materialProperties.VertexTexture2DCount; ++i) {
+		VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+		samplerLayoutBinding.binding = currentId;
+		samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		samplerLayoutBinding.descriptorCount = 1;
+		samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+		samplerLayoutBinding.pImmutableSamplers = nullptr;
+		outBindings.push_back(samplerLayoutBinding);
+		currentId++;
+	}
+
+	/** Fragment textures */
+	for (uint32_t i = 0; i < materialProperties.FragmentTexture2DCount; ++i) {
+		VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+		samplerLayoutBinding.binding = currentId;
+		samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		samplerLayoutBinding.descriptorCount = 1;
+		samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+		samplerLayoutBinding.pImmutableSamplers = nullptr;
+		outBindings.push_back(samplerLayoutBinding);
+		currentId++;
+	}
+	return outBindings;
 }
 
-void Rendering::MaterialRessource::CreatePipeline(const std::vector<char>& vertexShaderCode, const std::vector<char>& fragmentShaderCode, EMaterialCreationFlags creationFlags)
+void Rendering::MaterialRessource::CreatePipeline(const SMaterialStaticProperties& materialProperties)
 {
 	VK_CHECK(descriptorSetLayout, "Descriptor set layout should be initialized before graphic pipeline");
 	VK_CHECK(G_RENDER_PASS, "Render pass should be initialized before graphic pipeline");
-
-	VkShaderModule vertexShaderModule = VK_NULL_HANDLE;
-	VkShaderModule fragmentShaderModule = VK_NULL_HANDLE;
-	VkShaderModuleCreateInfo createInfo{};
-	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-
-	createInfo.codeSize = vertexShaderCode.size();
-	createInfo.pCode = reinterpret_cast<const uint32_t*>(vertexShaderCode.data());
-	VK_ENSURE(vkCreateShaderModule(G_LOGICAL_DEVICE, &createInfo, nullptr, &vertexShaderModule), "Failed to create vertex shader module");
-	createInfo.codeSize = fragmentShaderCode.size();
-	createInfo.pCode = reinterpret_cast<const uint32_t*>(fragmentShaderCode.data());
-	VK_ENSURE(vkCreateShaderModule(G_LOGICAL_DEVICE, &createInfo, nullptr, &fragmentShaderModule), "Failed to create fragment shader module");
 
 	/** Shader pipeline */
 	VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
 	vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-	vertShaderStageInfo.module = vertexShaderModule;
+	vertShaderStageInfo.module = materialProperties.vertexShaderModule->shaderModule;
 	vertShaderStageInfo.pName = "main";
 
 	VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
 	fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-	fragShaderStageInfo.module = fragmentShaderModule;
+	fragShaderStageInfo.module = materialProperties.fragmentShaderModule->shaderModule;
 	fragShaderStageInfo.pName = "main";
 
+	/** Model transform */
 	VkPushConstantRange pushConstantRange;
 	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	pushConstantRange.offset = 0;
@@ -68,10 +99,10 @@ void Rendering::MaterialRessource::CreatePipeline(const std::vector<char>& verte
 	/** Pipeline layout */
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount = 1;            // Optional
+	pipelineLayoutInfo.setLayoutCount = 1;
 	pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
 	pipelineLayoutInfo.pushConstantRangeCount = 1;
-	pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange; // Optional
+	pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 	VK_ENSURE(vkCreatePipelineLayout(G_LOGICAL_DEVICE, &pipelineLayoutInfo, nullptr, &pipelineLayout), "Failed to create pipeline layout");
 
 	VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
@@ -100,9 +131,9 @@ void Rendering::MaterialRessource::CreatePipeline(const std::vector<char>& verte
 	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 	rasterizer.depthClampEnable = VK_FALSE;
 	rasterizer.rasterizerDiscardEnable = VK_FALSE;
-	rasterizer.polygonMode = creationFlags & EMATERIAL_CREATION_FLAG_WIREFRAME ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
+	rasterizer.polygonMode = materialProperties.materialCreationFlag & EMATERIAL_CREATION_FLAG_WIREFRAME ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
 	rasterizer.lineWidth = 1.0f;
-	rasterizer.cullMode = creationFlags & EMATERIAL_CREATION_FLAG_DOUBLESIDED ? VK_CULL_MODE_NONE : VK_CULL_MODE_FRONT_BIT;
+	rasterizer.cullMode = materialProperties.materialCreationFlag & EMATERIAL_CREATION_FLAG_DOUBLESIDED ? VK_CULL_MODE_NONE : VK_CULL_MODE_FRONT_BIT;
 	rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterizer.depthBiasEnable = VK_FALSE;
 	rasterizer.depthBiasConstantFactor = 0.0f; // Optional
@@ -121,8 +152,8 @@ void Rendering::MaterialRessource::CreatePipeline(const std::vector<char>& verte
 
 	VkPipelineDepthStencilStateCreateInfo depthStencil{};
 	depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-	depthStencil.depthTestEnable = creationFlags & EMATERIAL_CREATION_FLAG_DISABLE_DEPTH_TEST ? VK_FALSE : VK_TRUE;
-	depthStencil.depthWriteEnable = creationFlags & EMATERIAL_CREATION_FLAG_DISABLE_DEPTH_TEST ? VK_FALSE : VK_TRUE;
+	depthStencil.depthTestEnable = materialProperties.materialCreationFlag & EMATERIAL_CREATION_FLAG_DISABLE_DEPTH_TEST ? VK_FALSE : VK_TRUE;
+	depthStencil.depthWriteEnable = materialProperties.materialCreationFlag & EMATERIAL_CREATION_FLAG_DISABLE_DEPTH_TEST ? VK_FALSE : VK_TRUE;
 	depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
 	depthStencil.depthBoundsTestEnable = VK_FALSE;
 	depthStencil.minDepthBounds = 0.0f; // Optional
@@ -176,9 +207,6 @@ void Rendering::MaterialRessource::CreatePipeline(const std::vector<char>& verte
 	pipelineInfo.basePipelineIndex = -1; // Optional
 	pipelineInfo.pDepthStencilState = &depthStencil;
 	VK_ENSURE(vkCreateGraphicsPipelines(G_LOGICAL_DEVICE, VK_NULL_HANDLE, 1, &pipelineInfo, G_ALLOCATION_CALLBACK, &shaderPipeline), "Failed to create material graphic pipeline");
-
-	vkDestroyShaderModule(G_LOGICAL_DEVICE, vertexShaderModule, G_ALLOCATION_CALLBACK);
-	vkDestroyShaderModule(G_LOGICAL_DEVICE, fragmentShaderModule, G_ALLOCATION_CALLBACK);
 }
 
 void Rendering::MaterialRessource::CreateDescriptorSets(std::vector<VkDescriptorSetLayoutBinding> layoutBindings)
@@ -209,55 +237,95 @@ void Rendering::MaterialRessource::DestroyShadersObjects()
 	vkDestroyDescriptorSetLayout(G_LOGICAL_DEVICE, descriptorSetLayout, G_ALLOCATION_CALLBACK);
 }
 
-Rendering::MaterialInstance::MaterialInstance(const std::vector<VkWriteDescriptorSet>& inDescriptorSetInfos, MaterialRessource* inMaterial)
-	: DescriptorSetInfos(inDescriptorSetInfos), parent(inMaterial)
+void Rendering::MaterialRessourceItem::PreDraw(ViewportInstance* inViewport, const size_t& imageIndex)
 {
-
+	if (lastWriteViewport != inViewport) {
+		lastWriteViewport = inViewport;
+		UpdateDescriptorSets(inViewport);
+	}
 }
 
-void Rendering::MaterialInstance::Use(VkCommandBuffer commandBuffer, ViewportInstance* writeViewport, const size_t& imageIndex)
+void Rendering::MaterialRessourceItem::Draw(VkCommandBuffer commandBuffer, ViewportInstance* drawViewport, const size_t& imageIndex)
 {
-	VkDescriptorBufferInfo bufferInfo{};
-	bufferInfo.buffer = writeViewport->GetViewportUbos()->GetBuffer(imageIndex);
-	bufferInfo.offset = 0;
-	bufferInfo.range = sizeof(MatrixUniformBufferObject);
-
-	VkWriteDescriptorSet matrixUbo{};
-	matrixUbo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	matrixUbo.dstSet = parent->GetDescriptorSet(imageIndex);
-	matrixUbo.dstBinding = 0;
-	matrixUbo.dstArrayElement = 0;
-	matrixUbo.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	matrixUbo.descriptorCount = 1;
-	matrixUbo.pBufferInfo = &bufferInfo;
-	matrixUbo.pImageInfo = nullptr;
-	matrixUbo.pNext = nullptr;
-
-
-	VkDescriptorImageInfo imageInfo{};
-	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imageInfo.imageView = G_DEFAULT_TEXTURE->GetImageView();
-	imageInfo.sampler = G_DEFAULT_TEXTURE->GetSampler();
-
-	VkWriteDescriptorSet imgWDescSet{};
-	imgWDescSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	imgWDescSet.dstSet = G_MATERIAL_OPAQUE->GetDescriptorSet(imageIndex);
-	imgWDescSet.dstBinding = 1;
-	imgWDescSet.dstArrayElement = 0;
-	imgWDescSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	imgWDescSet.descriptorCount = 1;
-	imgWDescSet.pImageInfo = &imageInfo;
-	imgWDescSet.pBufferInfo = nullptr;
-	imgWDescSet.pNext = nullptr;
-
-	std::vector<VkWriteDescriptorSet> wDescSet = { matrixUbo, imgWDescSet };
-
-	for (const auto& desc : DescriptorSetInfos)
-	{
-		wDescSet.push_back(desc);
-	}
-
-	parent->UpdateDescriptorSets(wDescSet);
+	if (G_LAST_USED_MATERIAL_RESSOURCE_ITEM == this && lastDrawIamgeIndex == imageIndex) return;
+	G_LAST_USED_MATERIAL_RESSOURCE_ITEM = this;
+	lastDrawIamgeIndex = imageIndex;
 
 	parent->Use(commandBuffer, imageIndex);
+}
+
+void Rendering::MaterialRessourceItem::UpdateDescriptorSets(ViewportInstance* drawViewport)
+{
+	if (dynamicMaterialProperties.vertexTextures2D.size() != staticMaterialProperties.VertexTexture2DCount) {
+		LOG_ASSERT("Vertex texure number should be the same than material properties VertexTexture2DCount");
+	}
+
+	if (dynamicMaterialProperties.fragmentTextures2D.size() != staticMaterialProperties.FragmentTexture2DCount) {
+		LOG_ASSERT("Fragment texure number should be the same than material propertiesFragmentTexture2DCount");
+	}
+
+	for (int iIndex = 0; iIndex < G_SWAP_CHAIN_IMAGE_COUNT; ++iIndex) {
+		std::vector<VkWriteDescriptorSet> newDescSets;
+		uint32_t currentBinding = 0;
+
+		/** Global UBO */
+		if (staticMaterialProperties.bUseGlobalUbo) {
+
+			VkWriteDescriptorSet matrixUbo{};
+			matrixUbo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			matrixUbo.dstSet = parent->GetDescriptorSet(iIndex);
+			matrixUbo.dstBinding = currentBinding;
+			matrixUbo.dstArrayElement = 0;
+			matrixUbo.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			matrixUbo.descriptorCount = 1;
+			matrixUbo.pBufferInfo = &drawViewport->GetViewportUbos()->GetDescriptorBufferInfo(iIndex);
+			matrixUbo.pImageInfo = nullptr;
+			matrixUbo.pNext = nullptr;
+			newDescSets.push_back(matrixUbo);
+			currentBinding++;
+		}
+
+		/** Vertex textures2D */
+		std::vector<VkDescriptorImageInfo> vertexImageInfos(staticMaterialProperties.VertexTexture2DCount);
+		for (uint32_t i = 0; i < staticMaterialProperties.VertexTexture2DCount; ++i) {
+			vertexImageInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			vertexImageInfos[i].imageView = dynamicMaterialProperties.vertexTextures2D[i]->GetImageView();
+			vertexImageInfos[i].sampler = dynamicMaterialProperties.vertexTextures2D[i]->GetSampler();
+
+			VkWriteDescriptorSet imgWDescSet{};
+			imgWDescSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			imgWDescSet.dstSet = parent->GetDescriptorSet(iIndex);
+			imgWDescSet.dstBinding = currentBinding;
+			imgWDescSet.dstArrayElement = 0;
+			imgWDescSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			imgWDescSet.descriptorCount = 1;
+			imgWDescSet.pImageInfo = &vertexImageInfos[i];
+			imgWDescSet.pBufferInfo = nullptr;
+			imgWDescSet.pNext = nullptr;
+			newDescSets.push_back(imgWDescSet);
+			currentBinding++;
+		}
+
+		/** Vertex textures2D */
+		std::vector<VkDescriptorImageInfo> fragmentImageInfos(staticMaterialProperties.FragmentTexture2DCount);
+		for (uint32_t i = 0; i < staticMaterialProperties.FragmentTexture2DCount; ++i) {
+			fragmentImageInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			fragmentImageInfos[i].imageView = dynamicMaterialProperties.fragmentTextures2D[i]->GetImageView();
+			fragmentImageInfos[i].sampler = dynamicMaterialProperties.fragmentTextures2D[i]->GetSampler();
+
+			VkWriteDescriptorSet imgWDescSet{};
+			imgWDescSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			imgWDescSet.dstSet = parent->GetDescriptorSet(iIndex);
+			imgWDescSet.dstBinding = currentBinding;
+			imgWDescSet.dstArrayElement = 0;
+			imgWDescSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			imgWDescSet.descriptorCount = 1;
+			imgWDescSet.pImageInfo = &fragmentImageInfos[i];
+			imgWDescSet.pBufferInfo = nullptr;
+			imgWDescSet.pNext = nullptr;
+			newDescSets.push_back(imgWDescSet);
+			currentBinding++;
+		}
+		vkUpdateDescriptorSets(G_LOGICAL_DEVICE, static_cast<uint32_t>(newDescSets.size()), newDescSets.data(), 0, nullptr);
+	}
 }

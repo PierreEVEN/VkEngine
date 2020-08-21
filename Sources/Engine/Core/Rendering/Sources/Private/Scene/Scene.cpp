@@ -18,16 +18,15 @@
 #include "Importers/GltfImporter.h"
 #include "UI/SubWindows/DebugUI.h"
 #include "UI/SubWindows/Console.h"
-
-
-SVector objectpos;
-SRotatorf objectRotation(90, 0, 180);
-SVector objectScale(1);
-Rendering::MeshRessource* cubemesh = nullptr;
-Mat4f* poss = nullptr;
-int objCount = 200;
-
-
+#include "UI/SubWindows/ContentBrowser.h"
+#include "Scene/SceneComponents/StaticMeshComponent.h"
+#include "Assets/Material.h"
+#include "UI/SubWindows/StaticMeshImportWindow.h"
+#include "Assets/Texture2D.h"
+#include "UI/SubWindows/AssetSelector.h"
+#include "Assets/StaticMesh.h"
+#include "UI/SubWindows/TextureImporterWindow.h"
+#include "UI/SubWindows/ShaderImporterWindow.h"
 
 Rendering::ViewportInstance::ViewportInstance(const SIntVector2D& inDesiredViewportSize)
 	: desiredViewportSize(inDesiredViewportSize)
@@ -43,6 +42,9 @@ Rendering::ViewportInstance::ViewportInstance(const SIntVector2D& inDesiredViewp
 
 	G_ON_WINDOW_RESIZED.Add(this, &ViewportInstance::RequestViewportResize);
 
+ 	new DebugUI(this);
+ 	new ContentBrowser();
+
 }
 
 Rendering::ViewportInstance::~ViewportInstance()
@@ -57,7 +59,6 @@ Rendering::ViewportInstance::~ViewportInstance()
 	delete commandBuffer;
 	delete frameBuffers;
 	delete viewportSwapChain;
-
 }
 
 Mat4f Rendering::ViewportInstance::GetProjectionMatrix() const {
@@ -68,16 +69,12 @@ Mat4f Rendering::ViewportInstance::GetProjectionMatrix() const {
 
 void Rendering::ViewportInstance::DrawViewport()
 {
-	if (!cubemesh)
-	{
-		std::vector<Vertex> vertices;
-		std::vector<uint32_t> indices;
-		MeshRessource::LoadFromFile("Assets/cube.obj", vertices, indices);
-		cubemesh = new MeshRessource(vertices, indices);
-	}
+	uint32_t imageIndex;
 
+	/** Compute DeltaTime */
 	DeltaTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - LastFrameTime).count() / 1000000.0;
 
+	/** Framerate limitaion */
 	if (G_MAX_FRAMERATE.GetValue() != 0 && ((1.0 / DeltaTime) > G_MAX_FRAMERATE.GetValue()))
 	{
 		if (G_SLEEP_HIDLE_THREADS.GetValue()) std::this_thread::sleep_for(std::chrono::nanoseconds(static_cast<uint64_t>((1.0 / G_MAX_FRAMERATE.GetValue() - DeltaTime) * 1000000000)));
@@ -86,26 +83,16 @@ void Rendering::ViewportInstance::DrawViewport()
 	LastFrameTime = std::chrono::steady_clock::now();
 
 
-
-
-
-
+	/** Destroy unused ressources */
 	Ressource::FlushRessources();
 
-
-
-
-
-
-
+	/** Ensure we are not drawing on unfinnished frame */
 	vkWaitForFences(G_LOGICAL_DEVICE, 1, &frameObjects->GetInFlightFence(CurrentFrameId), VK_TRUE, UINT64_MAX);
 
-	uint32_t imageIndex;
 
 	VkResult result = vkAcquireNextImageKHR(G_LOGICAL_DEVICE, viewportSwapChain->GetSwapChainKhr(), UINT64_MAX, frameObjects->GetImageAvailableAvailableSemaphore(CurrentFrameId), VK_NULL_HANDLE, &imageIndex);
-
 	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-		LOG_ASSERT("should recreate swapchain here");
+		ResizeViewport();
 		return;
 	}
 	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
@@ -123,9 +110,8 @@ void Rendering::ViewportInstance::DrawViewport()
 	beginInfo.flags = 0; // Optional
 	beginInfo.pInheritanceInfo = nullptr; // Optional
 
-
 	std::array<VkClearValue, 2> clearValues{};
-	clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
+	clearValues[0].color = { 0.6f, 0.9f, 1.f, 1.0f };
 	clearValues[1].depthStencil = { 1.0f, 0 };
 
 	VkRenderPassBeginInfo renderPassInfo{};
@@ -139,7 +125,7 @@ void Rendering::ViewportInstance::DrawViewport()
 
 	VkViewport viewport;
 	viewport.x = 0;
-	viewport.y = 0;
+	viewport.y = 0; 
 	viewport.width = static_cast<float>(GetViewportWidth());
 	viewport.height = static_cast<float>(GetViewportHeight());
 	viewport.minDepth = 0.0f;
@@ -158,59 +144,85 @@ void Rendering::ViewportInstance::DrawViewport()
 	vkCmdSetScissor(currentCommandBfr, 0, 1, &scissor);
 
 
-
-// 
-// 	for (int i = 0; i < objCount; ++i)
-// 	{
-// 		vkCmdPushConstants(currentCommandBfr, G_DEFAULT_MATERIAL->GetMaterial()->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(Mat4f), &poss[i]);
-// 		cubemesh->Draw(currentCommandBfr);
-// 	}
-
 	/** Update viewport uniform buffers */
 	viewportMatrices->UpdateUniformBuffers(this, imageIndex);
 
-	// Start the Dear ImGui frame
-	ImGui_ImplVulkan_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-	ImGui::NewFrame();
-	ImGui::PushFont(G_IMGUI_DEFAULT_FONT);
-
-	if (ImGui::BeginMainMenuBar())
-	{
-		if (ImGui::BeginMenu("Files"))
-		{
-			if (ImGui::MenuItem("quit")) glfwSetWindowShouldClose(GetPrimaryWindow(), 1);
-			ImGui::EndMenu();
-		}
-		if (ImGui::BeginMenu("Window"))
-		{
-			if (ImGui::Checkbox("Demo window", &bShowDemo)) bShowDemo = true;
-			if (ImGui::Button("Debug window")) new DebugUI(this);
-			if (ImGui::Button("gltf importer")) new Importers::GltfImporter();
-			if (ImGui::Button("Console")) new Console();
-			ImGui::EndMenu();
-		}
-		ImGui::EndMainMenuBar();
-	}
-	ImGui::SetNextWindowSize(ImVec2((float)GetViewportExtend().width, (float)GetViewportExtend().height - 25));
-	ImGui::SetNextWindowPos(ImVec2(0, 25));
-	if (ImGui::Begin("__BackgroundLayout__", nullptr, ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground))
-	{
-		ImGuiID dockspace_id = ImGui::GetID("__BackgroundLayout_Dockspace__");
-		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode); ImGui::End();
-		ImGui::End();
+	if (G_TEST_COMP) {
+		G_TEST_COMP->PreDraw(this, imageIndex);
+		G_TEST_COMP->Draw(currentCommandBfr, this, imageIndex);
 	}
 
-	if (bShowDemo) ImGui::ShowDemoWindow(&bShowDemo);
+	/************************************************************************/
+	/* Begin imgui draw stuff                                               */
+	/************************************************************************/
 
-	SubWindow::ProcessSubWindows(imageIndex);
+	{
+		ImGui_ImplVulkan_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		ImGui::PushFont(G_IMGUI_DEFAULT_FONT);
 
-	ImGui::PopFont();
-	ImGui::EndFrame();
+		if (ImGui::BeginMainMenuBar())
+		{
+			if (ImGui::BeginMenu("Files"))
+			{
+				if (ImGui::BeginMenu("Import")) {
+					if (ImGui::MenuItem("Static mesh")) new StaticMeshImportWindow();
+					if (ImGui::MenuItem("Texture2D")) new TextureImportWindow();
+					if (ImGui::MenuItem("Shader")) new ShaderImportWindow();
+					ImGui::EndMenu();
+				}
+				if (ImGui::BeginMenu("Create")) {
+					if (ImGui::MenuItem("Material")) new MaterialConstructorWindow();
+					ImGui::EndMenu();
+				}
+				if (ImGui::MenuItem("quit")) glfwSetWindowShouldClose(GetPrimaryWindow(), 1);
+				ImGui::EndMenu();
+			}
+			if (ImGui::BeginMenu("Window"))
+			{
+				if (ImGui::MenuItem("Demo window")) bShowDemo = true;
+				if (ImGui::MenuItem("Debug window")) new DebugUI(this);
+				if (ImGui::MenuItem("Console")) new Console();
+				if (ImGui::MenuItem("Content Browser")) new ContentBrowser();
+				ImGui::EndMenu();
+			}
 
-	ImGui::Render();
-	ImDrawData* draw_data = ImGui::GetDrawData();
-	ImGui_ImplVulkan_RenderDrawData(draw_data, currentCommandBfr);
+			ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvailWidth() - 115, 0));
+
+			ImGui::ImageButton(UIRessources::minimizeIcon->GetTextureID(imageIndex), ImVec2(32, 32), ImVec2(0, 0), ImVec2(1, 1), 0);
+			if (ImGui::IsItemActive()) glfwIconifyWindow(GetPrimaryWindow());
+			ImGui::ImageButton(UIRessources::maximizeIcon->GetTextureID(imageIndex), ImVec2(32, 32), ImVec2(0, 0), ImVec2(1, 1), 0);
+			if (ImGui::IsItemActive()) G_FULSCREEN_MODE.SetValue(!G_FULSCREEN_MODE.GetValue());
+			ImGui::ImageButton(UIRessources::closeIcon->GetTextureID(imageIndex), ImVec2(32, 32), ImVec2(0, 0), ImVec2(1, 1), 0);
+			if (ImGui::IsItemActive()) glfwSetWindowShouldClose(GetPrimaryWindow(), 1);
+
+			ImGui::EndMainMenuBar();
+		}
+		ImGui::SetNextWindowSize(ImVec2((float)GetViewportExtend().width, (float)GetViewportExtend().height - 25));
+		ImGui::SetNextWindowPos(ImVec2(0, 25));
+		if (ImGui::Begin("__BackgroundLayout__", nullptr, ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground))
+		{
+			ImGuiID dockspace_id = ImGui::GetID("__BackgroundLayout_Dockspace__");
+			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode); ImGui::End();
+			ImGui::End();
+		}
+
+		if (bShowDemo) ImGui::ShowDemoWindow(&bShowDemo);
+
+		SubWindow::ProcessSubWindows(imageIndex);
+
+		ImGui::PopFont();
+		ImGui::EndFrame();
+
+		ImGui::Render();
+		ImDrawData* draw_data = ImGui::GetDrawData();
+		ImGui_ImplVulkan_RenderDrawData(draw_data, currentCommandBfr);
+	}
+
+	/************************************************************************/
+	/* End imgui draw stuff                                                 */
+	/************************************************************************/
 
 	vkCmdEndRenderPass(currentCommandBfr);
 	VK_ENSURE(vkEndCommandBuffer(currentCommandBfr), String("Failed to register command buffer #") + ToString(imageIndex));
@@ -223,7 +235,6 @@ void Rendering::ViewportInstance::DrawViewport()
 	submitInfo.waitSemaphoreCount = 1;
 	submitInfo.pWaitSemaphores = waitSemaphores;
 	submitInfo.pWaitDstStageMask = waitStages;
-
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &commandBuffer->GetCommandBuffer(imageIndex);
 

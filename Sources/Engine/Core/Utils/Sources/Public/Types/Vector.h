@@ -2,6 +2,9 @@
 
 #include <stdint.h>
 #include "String.h"
+#include "Hashing.h"
+
+
 
 template<typename T>
 struct IVector3
@@ -128,6 +131,18 @@ struct IVector3
 
 	inline static const T Dot(const IVector3<T>& a, const IVector3<T>& b) {
 		return a.x * b.x + a.y * b.y + a.z * b.z;
+	}
+
+	inline IVector3<T> Scale(const T& desiredLength) const {
+		return (*this) * desiredLength / Length();
+	}
+
+	inline static IVector3<T> Combine(
+		IVector3<T> const& a,
+		IVector3<T> const& b,
+		T ascl, T bscl)
+	{
+		return (a * ascl) + (b * bscl);
 	}
 
 	union
@@ -269,6 +284,15 @@ struct IVector4
 	inline IVector4(const T& scalar) : x(scalar), y(scalar), z(scalar), w(scalar) {}
 	inline IVector4(const T& inx, const T& iny, const T& inz, const T& inw) : x(inx), y(iny), z(inz), w(inw) {}
 
+
+	inline operator String() const {
+		return '{' + ToString(x) + ", " + ToString(y) + ", " + ToString(z) + ", " + ToString(w) + '}';
+	}
+
+	inline operator IVector3<T>() const {
+		return IVector3<T>(x, y, z);
+	}
+
 	/** Operator + */
 	inline const IVector4<T> operator+(const IVector4<T>& other) const {
 		return IVector4<T>(x + other.x, y + other.y, z + other.z, w + other.w);
@@ -278,6 +302,17 @@ struct IVector4
 	}
 	inline const IVector4<T> operator+(const T& scalar) const {
 		return IVector4<T>(x + scalar, y + scalar, z + scalar, w + scalar);
+	}
+
+	/** Operator - */
+	inline const IVector4<T> operator-(const IVector4<T>& other) const {
+		return IVector4<T>(x - other.x, y - other.y, z - other.z, w - other.w);
+	}
+	inline const IVector4<T> operator-(const IVector3<T>& other) const {
+		return IVector4<T>(x - other.x, y - other.y, z - other.z, w);
+	}
+	inline const IVector4<T> operator-(const T& scalar) const {
+		return IVector4<T>(x - scalar, y - scalar, z - scalar, w - scalar);
 	}
 
 	/** Operator * */
@@ -294,6 +329,15 @@ struct IVector4
 	/* [] operator */
 	inline T& operator[](const size_t& axis) {
 		return coords[axis];
+	}	
+	inline const T& operator[](const size_t& axis) const {
+		return coords[axis];
+	}
+
+	inline const T Length() const { return sqrt(x * x + y * y + z * z + w + w); }
+
+	inline IVector4<T> Scale(const T& newScaleFactor) {
+		return (*this) / newScaleFactor * Length();
 	}
 
 	union
@@ -306,12 +350,32 @@ struct IVector4
 	};
 };
 
+typedef IVector4<float> SVector4;
+typedef IVector4<double> SVector4Double;
+typedef IVector4<int32_t> SIntVector4;
+typedef IVector4<int64_t> SLongVector4;
+
+MAKE_HASHABLE(SVector4, t.x, t.y, t.z);
+MAKE_HASHABLE(SVector4Double, t.x, t.y, t.z);
+MAKE_HASHABLE(SIntVector4, t.x, t.y, t.z);
+MAKE_HASHABLE(SLongVector4, t.x, t.y, t.z);
+
 typedef IVector3<float> SVector;
 typedef IVector3<double> SVectorDouble;
 typedef IVector3<int32_t> SIntVector;
 typedef IVector3<int64_t> SLongVector;
 
+MAKE_HASHABLE(SVector, t.x, t.y, t.z);
+MAKE_HASHABLE(SVectorDouble, t.x, t.y, t.z);
+MAKE_HASHABLE(SIntVector, t.x, t.y, t.z);
+MAKE_HASHABLE(SLongVector, t.x, t.y, t.z);
+
 typedef IVector2<float> SVector2D;
 typedef IVector2<double> SVectorDouble2D;
 typedef IVector2<int32_t> SIntVector2D;
 typedef IVector2<int64_t> SLongVector2D;
+
+MAKE_HASHABLE(SVector2D, t.x, t.y);
+MAKE_HASHABLE(SVectorDouble2D, t.x, t.y);
+MAKE_HASHABLE(SIntVector2D, t.x, t.y);
+MAKE_HASHABLE(SLongVector2D, t.x, t.y);

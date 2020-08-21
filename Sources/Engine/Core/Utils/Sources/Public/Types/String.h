@@ -3,6 +3,7 @@
 #include <vector>
 #include <inttypes.h>
 #include <cstdlib>
+#include <string>
 
 #ifndef STRING_MINIMAL_LENGTH
 	#define STRING_MINIMAL_LENGTH 16
@@ -12,7 +13,7 @@ class String;
 class IStringable
 {
 public:
-	virtual String ToString() const = 0;
+	virtual const String ToString() const = 0;
 };
 
 class String;
@@ -66,6 +67,11 @@ public:
 	/* Getters */
 	inline const size_t& Length() const { return length; }
 	inline const char* GetData() const { data[length] = '\0'; return data; }
+
+	/* Operator bool */
+	inline operator bool() const {
+		return *this != "";
+	}
 
 	/* Operator == */
 	bool operator==(const String& _Val) const;
@@ -187,6 +193,23 @@ public:
 
 	static bool SplitString(const String& lineData, std::vector<char> separators, String& left, String& right, bool bFromStart = true);
 
+	inline bool Contains(const String& other) const {
+		if (other.Length() == 0) return true;
+		if (other.Length() > Length()) return false;
+		size_t progress = 0;
+		for (int i = 0; i < Length(); ++i) {
+			if (data[i] != other[progress]) {
+				progress = 0;
+			}
+			if (data[i] == other[progress]) {
+				if (progress == other.Length() - 1) return true;
+				progress++;
+			}
+		}
+		return false;
+	}
+
+
 	inline static bool const IsStartingWith(const String& base, const String& start) {
 		if (start.length > base.length) return false;
 		for (int i = 0; i < start.length; ++i)
@@ -212,6 +235,8 @@ public:
 	static const String GetFileExtension(const String& path);
 
 	static const std::vector<String> ParseStringCharArray(const char* charString, size_t length);
+
+	inline static void ResetCharArray(char* str, const size_t& strLength) { for (int i = 0; i < strLength; ++i) str[i] = '\0'; }
 
 private:
 
@@ -239,6 +264,15 @@ private:
 	size_t length = 0;
 	size_t allocLength = STRING_MINIMAL_LENGTH;
 };
+
+namespace std {
+	template<> struct hash<String> {
+		std::size_t operator()(const String& t) const {
+			hash<std::string> chrHash;
+			return chrHash(t.GetData());
+		}
+	};
+}
 
 inline String operator+(const char& chr, const String& str) { return String(chr) + str; }
 inline String operator+(const char* chr, const String& str) { return String(chr) + str; }

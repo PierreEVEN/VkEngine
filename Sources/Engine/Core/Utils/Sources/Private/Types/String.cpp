@@ -136,7 +136,7 @@ const String String::GetFileShortName(const String& path)
 {
 	String filename = GetFileName(path);
 	String name, ext;
-	if (SplitString(path, { '.' }, name, ext, false))
+	if (SplitString(filename, { '.' }, name, ext, false))
 		return name;
 	return filename;
 }

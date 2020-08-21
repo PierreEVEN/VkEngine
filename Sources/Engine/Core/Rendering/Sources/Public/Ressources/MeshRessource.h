@@ -10,9 +10,6 @@ namespace Rendering
 
 		void Draw(VkCommandBuffer commandBuffer);
 
-
-		static void LoadFromFile(String FilePath, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
-
 	protected:
 
 		virtual ~MeshRessource();

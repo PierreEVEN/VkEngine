@@ -1,6 +1,6 @@
 #pragma once
 #include "Vector.h"
-#include "Maths.h"
+#include "Maths/BaseOperations.h"
 #include <valarray>
 
 template<typename T>
@@ -10,6 +10,19 @@ struct IQuaternion
 	inline IQuaternion(const T& inX, const T& inY, const T& inZ, const T& inW) : x(inX), y(inY), z(inZ), w(inW) {}
 	inline IQuaternion(const T& inRoll, const T& inPitch, const T& inYaw) { SetFromEuleurAngles(-inRoll + 180, -inPitch, inYaw); }
 	IQuaternion(SVector inForwardVector, T inAngle) { SetFromForwardVectorAndAngle(inForwardVector.x, inForwardVector.y, inForwardVector.z, inAngle); }
+
+	/* [] operator */
+	inline T& operator[](const size_t& axis) {
+		return coords[axis];
+	}
+
+	inline const T& operator[](const size_t& axis) const {
+		return coords[axis];
+	}
+
+	inline operator String() const {
+		return ToString(x) + ", " + ToString(y) + ", " + ToString(z) + ", " + ToString(w);
+	}
 
 	inline const SVector GetForwardVector() const {
 		return SVector(
@@ -61,6 +74,7 @@ struct IQuaternion
 		T coords[4];
 	};
 
+
 private:
 
 	inline void SetFromEuleurAngles(const T& inRoll, const T& inPitch, const T& inYaw)
@@ -100,6 +114,9 @@ struct IRotator
 		return IQuaternion<T>(roll, pitch, yaw);
 	}
 
+	inline operator String() const {
+		return ToString(x) + ", " + ToString(y) + ", " + ToString(z);
+	}
 
 	union
 	{

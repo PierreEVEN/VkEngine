@@ -1,8 +1,5 @@
 #pragma once
-#include <type_traits>
-#include <fstream>
-#include <assert.h>
-#include "EngineTypes.h"
+#include "EngineMinimal.h"
 #include "Object\Serializer.refl.h" // automatically generated reflection header
 
 #define ARCHIVE_FILE_VERSION 1
@@ -123,7 +120,7 @@ public:
 	inline void MarkDirty() { bIsDirty = true; }
 	inline const bool& IsDirty() const { return bIsDirty; }
 
-	virtual String ToString() const { return GetClass()->GetName(); }
+	virtual const String ToString() const { return GetClass()->GetName(); }
 
 	inline const String& GetSavePath() const { return savePath; }
 	inline void SetSavePath(const String& newSavePath) { savePath = newSavePath; }

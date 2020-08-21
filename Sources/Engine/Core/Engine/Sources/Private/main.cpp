@@ -1,6 +1,8 @@
 #include "IO/Log.h"
 #include "Rendering.h"
 #include "EngineConfig.h"
+#include "Assets/AssetFactory.h"
+
 
 int main(int argc, char* argv[])
 {
@@ -11,4 +13,5 @@ int main(int argc, char* argv[])
 
 	Rendering::CleanupRendering();
 	Rendering::CleaneupWindow();
+
 }

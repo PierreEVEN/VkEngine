@@ -1,5 +1,6 @@
 #pragma once
 #include "String.h"
+#include "Hashing.h"
 
 struct SColor;
 struct SLinearColor;
@@ -99,6 +100,10 @@ struct SLinearColor : public IColor<float, DEFAULT_LINEAR_COLOR_RED_VALUE, DEFAU
 
 	SLinearColor(const SColor& source);
 };
+
+
+MAKE_HASHABLE(SColor, t.x, t.y, t.z, t.w);
+MAKE_HASHABLE(SLinearColor, t.x, t.y, t.z, t.w);
 
 inline const SColor SColor::WHITE = SColor(255, 255, 255);
 inline const SColor SColor::GRAY = SColor(128);

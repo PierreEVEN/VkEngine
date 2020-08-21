@@ -2,11 +2,19 @@
 #include <filesystem>
 #include "ThirdParty/base64.h"
 #include "UI/SubWindows/FileExplorer.h"
+#include "Assets/StaticMesh.h"
+#include "Scene/SceneComponents/StaticMeshComponent.h"
+#include "Scene/Scene.h"
+#include <fstream>
+#include "Assets/Texture2D.h"
+#include "Ressources/MaterialRessource.h"
+#include "Assets/AssetFactory.h"
+#include "Assets/Material.h"
 
-void Rendering::Importers::GltfImporter::FillJsonData()
+void Rendering::Importers::GltfImporter::FillJsonData(const String& filePath)
 {
-	std::ifstream inputFile(filePath);
-	if (!inputFile.is_open()) { LOG_ASSERT(String("cannot open file") + filePath); }
+	std::ifstream inputFile(filePath.GetData());
+	if (!inputFile.is_open()) { LOG_ASSERT(String("cannot open file") + filePath.GetData()); }
 
 	String fileString;
 	char* line = new char[1000];
@@ -17,286 +25,116 @@ void Rendering::Importers::GltfImporter::FillJsonData()
 	rapidjson::Document d;
 	d.Parse(fileString.GetData());
 
-	objectData.assetData = GltfAssetData(d["asset"]);
+	assetData = GltfAssetData(d["asset"]);
 
 	const rapidjson::Value& scenesarray = d["scenes"];
-	objectData.scenes.resize(scenesarray.Size());
+	scenes.resize(scenesarray.Size());
 	for (rapidjson::SizeType i = 0; i < scenesarray.Size(); ++i) {
-		objectData.scenes[i] = GltfScene(scenesarray[i]);
+		scenes[i] = GltfScene(scenesarray[i]);
 	}
 
 	const rapidjson::Value& nodesArray = d["nodes"];
-	objectData.nodes.resize(nodesArray.Size());
+	nodes.resize(nodesArray.Size());
 	for (rapidjson::SizeType i = 0; i < nodesArray.Size(); ++i) {
-		objectData.nodes[i] = GltfNode(nodesArray[i]);
+		nodes[i] = GltfNode(nodesArray[i]);
 	}
 
 	const rapidjson::Value& meshesArray = d["meshes"];
-	objectData.meshes.resize(meshesArray.Size());
+	meshes.resize(meshesArray.Size());
 	for (rapidjson::SizeType i = 0; i < meshesArray.Size(); ++i) {
-		objectData.meshes[i] = GLtfMesh(meshesArray[i], &objectData);
+		meshes[i] = GLtfMesh(meshesArray[i], this);
 	}
 
 	const rapidjson::Value& accessorArray = d["accessors"];
-	objectData.accessors.resize(accessorArray.Size());
+	accessors.resize(accessorArray.Size());
 	for (rapidjson::SizeType i = 0; i < accessorArray.Size(); ++i) {
-		objectData.accessors[i] = GltfAccessor(accessorArray[i]);
+		accessors[i] = GltfAccessor(accessorArray[i]);
 	}
 
 	const rapidjson::Value& materialArray = d["materials"];
-	objectData.materials.resize(materialArray.Size());
+	materials.resize(materialArray.Size());
 	for (rapidjson::SizeType i = 0; i < materialArray.Size(); ++i) {
-		objectData.materials[i] = GLtfMaterial(materialArray[i]);
+		materials[i] = GLtfMaterial(materialArray[i], this, i);
 	}
 
+	const rapidjson::Value& imagesArray = d["images"];
+	images.resize(imagesArray.Size());
+	for (rapidjson::SizeType i = 0; i < imagesArray.Size(); ++i) {
+		images[i] = GltfImage(imagesArray[i], filePath);
+	}
+
+	
 	const rapidjson::Value& bufferViewArray = d["bufferViews"];
-	objectData.bufferViews.resize(bufferViewArray.Size());
+	bufferViews.resize(bufferViewArray.Size());
 	for (rapidjson::SizeType i = 0; i < bufferViewArray.Size(); ++i) {
-		objectData.bufferViews[i] = GltfBufferView(bufferViewArray[i]);
+		bufferViews[i] = GltfBufferView(bufferViewArray[i]);
 	}
 
 	const rapidjson::Value& bufferArray = d["buffers"];
-	objectData.buffers.resize(bufferArray.Size());
+	buffers.resize(bufferArray.Size());
 	for (rapidjson::SizeType i = 0; i < bufferArray.Size(); ++i) {
-		objectData.buffers[i] = GltfBuffer(bufferArray[i], filePath);
+		buffers[i] = GltfBuffer(bufferArray[i], filePath);
+	}
+
+	const rapidjson::Value& texturesArray = d["textures"];
+	textures.resize(texturesArray.Size());
+	for (rapidjson::SizeType i = 0; i < texturesArray.Size(); ++i) {
+		textures[i] = GltfTexture(texturesArray[i]);
 	}
 
 	inputFile.close();
 }
 
-void Rendering::Importers::GltfImporter::DrawContent(const size_t& imageIndex)
+std::vector<Rendering::SMeshSectionData> Rendering::Importers::GltfImporter::GenerateData()
 {
-	if (!filePath) return;
-	ImGui::Text("File : %s", filePath);
-
-	ImGui::Separator();
-	if (ImGui::TreeNode(String("asset data ").GetData()))
-	{
-		objectData.assetData.DisplayData();
-		ImGui::TreePop();
-	}
-
-	ImGui::Separator();
-	if (ImGui::TreeNode(String("Scenes").GetData()))
-	{
-		for (int i = 0; i < objectData.scenes.size(); ++i) {
-			if (ImGui::TreeNode(String("---scene" + ToString(i)).GetData()))
-			{
-				objectData.scenes[i].DisplayData();
-				ImGui::TreePop();
+	std::vector<SMeshSectionData> output;
+	for (auto& scene : scenes) {
+		for (int i = 0; i < scene.nodes.size(); ++i) {
+			for (auto& elem : GetNodeData(scene.nodes[i])) {
+				output.push_back(elem);
 			}
 		}
-		ImGui::TreePop();
 	}
-
-	ImGui::Separator();
-	if (ImGui::TreeNode(String("Nodes").GetData()))
-	{
-		for (int i = 0; i < objectData.nodes.size(); ++i) {
-			if (ImGui::TreeNode(String("---node" + ToString(i)).GetData()))
-			{
-				objectData.nodes[i].DisplayData();
-				ImGui::TreePop();
-			}
-		}
-		ImGui::TreePop();
-	}
-
-	ImGui::Separator();
-	if (ImGui::TreeNode(String("Meshes").GetData()))
-	{
-		for (int i = 0; i < objectData.meshes.size(); ++i) {
-			if (ImGui::TreeNode(String("---mesh" + ToString(i)).GetData()))
-			{
-				objectData.meshes[i].DisplayData();
-				ImGui::TreePop();
-			}
-		}
-		ImGui::TreePop();
-	}
-
-	ImGui::Separator();
-	if (ImGui::TreeNode(String("accessors").GetData()))
-	{
-		for (int i = 0; i < objectData.accessors.size(); ++i) {
-			if (ImGui::TreeNode(String("---a" + ToString(i)).GetData()))
-			{
-				objectData.accessors[i].DisplayData();
-				ImGui::TreePop();
-			}
-		}
-		ImGui::TreePop();
-	}
-
-	ImGui::Separator();
-	if (ImGui::TreeNode(String("materials").GetData()))
-	{
-		for (int i = 0; i < objectData.materials.size(); ++i) {
-			if (ImGui::TreeNode(String("---mat" + ToString(i)).GetData()))
-			{
-				objectData.materials[i].DisplayData();
-				ImGui::TreePop();
-			}
-		}
-		ImGui::TreePop();
-	}
-
-	ImGui::Separator();
-	if (ImGui::TreeNode(String("buffer views").GetData()))
-	{
-		for (int i = 0; i < objectData.bufferViews.size(); ++i) {
-			if (ImGui::TreeNode(String("---bv" + ToString(i)).GetData()))
-			{
-				objectData.bufferViews[i].DisplayData();
-				ImGui::TreePop();
-			}
-		}
-		ImGui::TreePop();
-	}
-
-	ImGui::Separator();
-	if (ImGui::TreeNode(String("buffers").GetData()))
-	{
-		for (int i = 0; i < objectData.buffers.size(); ++i) {
-			if (ImGui::TreeNode(String("---b" + ToString(i)).GetData()))
-			{
-				objectData.buffers[i].DisplayData();
-				ImGui::TreePop();
-			}
-		}
-		ImGui::TreePop();
-	}
-
-	ImGui::Separator();
-	if (ImGui::Button("Create mesh")) CreateRessources();
+	return output;
 }
 
-void Rendering::Importers::GltfImporter::CreateRessources()
+std::vector<Rendering::SMeshSectionData> Rendering::Importers::GltfImporter::GetNodeData(size_t NodeIndex)
 {
-	for (auto& mesh : objectData.meshes)
-	{
-		for (auto& primitive : mesh.primitives) {
-			primitive.LoadData();
+	std::vector<SMeshSectionData> output;
+	for (auto& cild : nodes[NodeIndex].children) {
+		for (const auto& childData : GetNodeData(cild)) {
+			output.push_back(childData);
 		}
 	}
 
-	LOG_WARNING("created wip mesh");
-	generatedMesh = new MeshRessource(objectData.meshes[0].primitives[0].vertices, objectData.meshes[0].primitives[0].triangles);
-}
-
-Rendering::Importers::GltfImporter::GltfImporter()
-	: SubWindow("GLTF importer") {
-	FileExplorer* explorer = new FileExplorer("./", "Find gltf asset", this, { "gltf", "glb" }, true);
-	explorer->OnApplyPath.Add(this, &GltfImporter::OnFileExplorerChosedPath);
-	explorer->OnCancelExplorer.Add(this, &GltfImporter::OnFillExplorerClosed);
-}
-
-void Rendering::Importers::GltfImporter::OnFileExplorerChosedPath(const String& path)
-{
-	filePath = new const char[path.Length()];
-	memcpy((char*)filePath, path.GetData(), path.Length() + 1);
-	FillJsonData();
-}
-
-/************************************************************************/
-/* Display                                                              */
-/************************************************************************/
-
-void Rendering::Importers::GltfAssetData::DisplayData()
-{
-	ImGui::Text("Generator : %s", generator.GetData());
-	ImGui::Text("version : %s", version.GetData());
-	ImGui::Text("copyright : %s", copyright.GetData());
-}
-
-void Rendering::Importers::GltfScene::DisplayData()
-{
-	ImGui::Text("nodes : %s", String::ConcatenateArray(nodes).GetData());
-}
-
-void Rendering::Importers::GltfNode::DisplayData()
-{
-	ImGui::Text("mesh : %d", mesh);
-	ImGui::Text("Children : %s", String::ConcatenateArray(children).GetData());
-
-	String matrixString = "Node matrix :";
-	for (const double& elem : nodeMatrix.coords) {
-		matrixString += ToString(elem) + ", ";
-	}
-	ImGui::Text(matrixString.GetData());
-}
-
-void Rendering::Importers::GLtfMesh::DisplayData()
-{
-	ImGui::Text("Name : %s", name.GetData());
-	if (ImGui::TreeNode(String("primitives").GetData()))
-	{
-		for (int i = 0; i < primitives.size(); ++i) {
-			if (ImGui::TreeNode(String("---p" + ToString(i)).GetData()))
-			{
-				primitives[i].DisplayData();
-				ImGui::TreePop();
-			}
+	if (nodes[NodeIndex].mesh >= 0) {
+		for (auto& childData : GetMeshData(nodes[NodeIndex].mesh)) {
+			output.push_back(childData);
 		}
-		ImGui::TreePop();
 	}
+	return output;
 }
 
-void Rendering::Importers::GltfPrimitive::DisplayData()
+std::vector<Rendering::SMeshSectionData> Rendering::Importers::GltfImporter::GetMeshData(size_t MeshIndex)
 {
-	if (ImGui::Button("load data")) LoadData();
+	std::vector<SMeshSectionData> output;
+	for (GltfPrimitive& primitive : meshes[MeshIndex].primitives) {
+		primitive.LoadData();
+		SMeshSectionData newItem;
 
-	ImGui::Text("triangles : %s", String::ConcatenateArray(triangles).GetData());
-	ImGui::Text("vertices : %s", String::ConcatenateArray(vertices, "\n").GetData());
+		newItem.indices = primitive.triangles;
+		newItem.vertices = primitive.vertices;
+		if (primitive.material >= 0) {
+			newItem.materialLink = materials[primitive.material].GetMaterial();
+		}
+		else {
+			newItem.materialLink = G_DEFAULT_MATERIAL;
+		}
 
-
-
-	ImGui::Separator();
-	ImGui::Text("indices : %d", indices);
-	if (ImGui::TreeNode(String("attributes").GetData()))
-	{
-		ImGui::Text("Position : %d", attributePosition);
-		ImGui::Text("Normal : %d", attributeNormal);
-		ImGui::Text("Texture coordinates : %d", attributeTexCoord);
-		ImGui::Text("Tangent : %d", attributeTangent);
-		ImGui::Text("Color : %d", attributeColor);
-		ImGui::TreePop();
+		output.push_back(newItem);
 	}
-	ImGui::Text("mode : %d", mode);
-	ImGui::Text("material : %d", material);
+	return output;
 }
-
-void Rendering::Importers::GLtfMaterial::DisplayData()
-{
-}
-
-void Rendering::Importers::GltfBufferView::DisplayData()
-{
-	ImGui::Text("buffer : %d", buffer);
-	ImGui::Text("byteOffset : %d", byteOffset);
-	ImGui::Text("byteLength : %d", byteLength);
-	ImGui::Text("byteStride : %d", byteStride);
-	ImGui::Text("target : %d", target);
-}
-
-void Rendering::Importers::GltfBuffer::DisplayData()
-{
-	ImGui::Text("byteLength : %d", byteLength);
-	ImGui::Text("uri : %s", uri.GetData());
-}
-
-
-void Rendering::Importers::GltfAccessor::DisplayData()
-{
-	ImGui::Text("bufferView : %d", bufferView);
-	ImGui::Text("byteOffset : %d", byteOffset);
-	ImGui::Text("componentType : %d", componentType);
-	ImGui::Text("count : %d", count);
-	ImGui::Text("type : %s", type.GetData());
-	ImGui::Text("max : %s", String::ConcatenateArray(max).GetData());
-	ImGui::Text("min : %s", String::ConcatenateArray(min).GetData());
-}
-
 
 /************************************************************************/
 /* PARSING                                                              */
@@ -364,8 +202,7 @@ Rendering::Importers::GltfNode::GltfNode(const rapidjson::Value& source)
 	}
 }
 
-
-Rendering::Importers::GLtfMesh::GLtfMesh(const rapidjson::Value& source, GltfObject* inParent)
+Rendering::Importers::GLtfMesh::GLtfMesh(const rapidjson::Value& source, GltfImporter* inParent)
 {
 	name = source["name"].GetString();
 	const rapidjson::Value& primitiveArray = source["primitives"];
@@ -375,7 +212,7 @@ Rendering::Importers::GLtfMesh::GLtfMesh(const rapidjson::Value& source, GltfObj
 	}
 }
 
-Rendering::Importers::GltfPrimitive::GltfPrimitive(const rapidjson::Value& source, GltfObject* inParent)
+Rendering::Importers::GltfPrimitive::GltfPrimitive(const rapidjson::Value& source, GltfImporter* inParent)
 	: parent(inParent)
 {
 	if (source["attributes"]["POSITION"].IsInt()) attributePosition = source["attributes"]["POSITION"].GetInt();
@@ -447,9 +284,62 @@ void Rendering::Importers::GltfPrimitive::LoadData()
 	}
 }
 
-Rendering::Importers::GLtfMaterial::GLtfMaterial(const rapidjson::Value& source)
+Rendering::Importers::GLtfMaterial::GLtfMaterial(const rapidjson::Value& source, GltfImporter* inParent, size_t myIndex)
+	: parent(inParent)
 {
+	if (source["pbrMetallicRoughness"]["baseColorTexture"]["index"].IsInt()) baseColorIndex = source["pbrMetallicRoughness"]["baseColorTexture"]["index"].GetInt();
+	if (source["pbrMetallicRoughness"]["metallicRoughnessTexture"]["index"].IsInt()) metallicRoughnessIndex = source["pbrMetallicRoughness"]["metallicRoughnessTexture"]["index"].GetInt();
+	if (source["normalTexture"]["index"].IsInt()) normalTextureIndex = source["normalTexture"]["index"].GetInt();
+	if (source["name"].IsString()) name = source["name"].GetString();
+	else name = String::GetFileShortName(parent->GetPath()) + "_material_" + ToString(myIndex);
+}
 
+Rendering::Material* Rendering::Importers::GLtfMaterial::GetMaterial()
+{
+	if (selectedMaterial) return selectedMaterial;
+	if (bImport) return CreateMaterial();
+	return G_DEFAULT_MATERIAL;
+}
+
+Rendering::Material* Rendering::Importers::GLtfMaterial::CreateMaterial()
+{
+	/** Default material */
+	SMaterialStaticProperties defaultMaterialProperties{};
+	defaultMaterialProperties.bUseGlobalUbo = true;
+	defaultMaterialProperties.vertexShaderModule = G_DEFAULT_VERTEX_MODULE;
+	defaultMaterialProperties.fragmentShaderModule = G_DEFAULT_FRAGMENT_MODULE;
+	defaultMaterialProperties.VertexTexture2DCount = 0;
+	defaultMaterialProperties.FragmentTexture2DCount = 3;
+	defaultMaterialProperties.materialCreationFlag = EMATERIAL_CREATION_FLAG_NONE;
+
+	SMaterialDynamicProperties defaultMaterialDynProperties{};
+
+	if (baseColorIndex >= 0) {
+		defaultMaterialDynProperties.fragmentTextures2D.push_back(
+			parent->images[parent->textures[baseColorIndex].sourceId].GetTexture()
+			);
+	}
+	else {
+		defaultMaterialDynProperties.fragmentTextures2D.push_back(G_DEFAULT_TEXTURE);
+	}
+	if (metallicRoughnessIndex >= 0) {
+		defaultMaterialDynProperties.fragmentTextures2D.push_back(
+			parent->images[parent->textures[metallicRoughnessIndex].sourceId].GetTexture()
+		);
+	}
+	else {
+		defaultMaterialDynProperties.fragmentTextures2D.push_back(G_DEFAULT_TEXTURE);
+	}
+	if (normalTextureIndex >= 0) {
+		defaultMaterialDynProperties.fragmentTextures2D.push_back(
+			parent->images[parent->textures[normalTextureIndex].sourceId].GetTexture()
+		);
+	}
+	else {
+		defaultMaterialDynProperties.fragmentTextures2D.push_back(G_DEFAULT_TEXTURE);
+	}
+
+	return  TAssetFactory<Material>::MakeTransient(TAssetFactory<Material>::CreateFromData(defaultMaterialProperties, name, defaultMaterialDynProperties));
 }
 
 Rendering::Importers::GltfBufferView::GltfBufferView(const rapidjson::Value& source)
@@ -462,40 +352,11 @@ Rendering::Importers::GltfBufferView::GltfBufferView(const rapidjson::Value& sou
 }
 
 
-Rendering::Importers::GltfBuffer::GltfBuffer(const rapidjson::Value& source, const char* sourceFilePath)
+Rendering::Importers::GltfBuffer::GltfBuffer(const rapidjson::Value& source, const String& sourceFilePath)
 	: sourcePath(sourceFilePath)
 {
 	if (source["byteLength"].IsInt()) byteLength = source["byteLength"].GetInt();
 	if (source["uri"].GetString()) uri = source["uri"].GetString();
-}
-
-
-char* Rendering::Importers::GltfBuffer::GetBuffer()
-{
-	if (buffer) {
-		return buffer;
-	}
-
-	if (String::IsStartingWith(uri, "data:application/octet-stream;base64,"))
-	{
-		buffer = new char[byteLength];
-		String dataToDecode(uri.GetData() + 37);
-
-		memcpy(buffer, base64_decode(dataToDecode.GetData()).c_str(), byteLength);
-		return buffer;
-	}
-	else {
-		std::ifstream ifile(String(std::filesystem::path(sourcePath).parent_path().u8string().c_str() / uri).GetData(), std::ios_base::binary);
-		if (byteLength > 0 && ifile.is_open())
-		{
-			buffer = new char[byteLength];
-			ifile.read(buffer, byteLength);
-			ifile.close();
-			return buffer;
-		}
-		LOG_ASSERT("failed to read path " + uri);
-	}
-	return nullptr;
 }
 
 Rendering::Importers::GltfAccessor::GltfAccessor(const rapidjson::Value& source)
@@ -525,4 +386,59 @@ Rendering::Importers::GltfAccessor::GltfAccessor(const rapidjson::Value& source)
 			min[i] = minArray[i].GetDouble();
 		}
 	}
+}
+
+Rendering::Importers::GltfImage::GltfImage(const rapidjson::Value& source, const String& inFilePath)
+	: filePath(inFilePath)
+{
+	if (source["uri"].IsString()) uri = source["uri"].GetString();
+	if (source["mimeType"].IsString()) mimeType = source["mimeType"].GetString();
+}
+
+Rendering::Texture2D* Rendering::Importers::GltfImage::GetTexture()
+{
+	if (linkedTexture) return linkedTexture;
+	else if (bImportTexture) return ImportTexture();
+	return G_DEFAULT_TEXTURE;
+}
+
+Rendering::Texture2D* Rendering::Importers::GltfImage::ImportTexture()
+{
+	return TAssetFactory<Texture2D>::MakeTransient(TAssetFactory<Texture2D>::ImportFromPath(String::GetFilePath(filePath) / uri));
+}
+
+Rendering::Importers::GltfTexture::GltfTexture(const rapidjson::Value& source)
+{
+	if (source["source"].IsInt()) sourceId = source["source"].GetInt();
+}
+
+/************************************************************************/
+/* Binary import                                                        */
+/************************************************************************/
+char* Rendering::Importers::GltfBuffer::GetBuffer()
+{
+	if (buffer) {
+		return buffer;
+	}
+
+	if (String::IsStartingWith(uri, "data:application/octet-stream;base64,"))
+	{
+		buffer = new char[byteLength];
+		String dataToDecode(uri.GetData() + 37);
+
+		memcpy(buffer, base64_decode(dataToDecode.GetData()).c_str(), byteLength);
+		return buffer;
+	}
+	else {
+		std::ifstream ifile(String(String::GetFilePath(sourcePath) / uri).GetData(), std::ios_base::binary);
+		if (byteLength > 0 && ifile.is_open())
+		{
+			buffer = new char[byteLength];
+			ifile.read(buffer, byteLength);
+			ifile.close();
+			return buffer;
+		}
+		LOG_ASSERT("failed to read path " + uri);
+	}
+	return nullptr;
 }

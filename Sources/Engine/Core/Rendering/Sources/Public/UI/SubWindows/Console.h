@@ -31,6 +31,6 @@ namespace Rendering {
 
 		ConsoleMessage currentMessage;
 
-		~Console();
+		virtual ~Console();
 	};
 }

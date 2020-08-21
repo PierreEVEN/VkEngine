@@ -106,7 +106,7 @@ using IniPropertySetterFunc = void (IniLoader::*)(const String&, const String&, 
 
 /** Handle get / set function ptr */
 template<typename T>
-struct TIniGetSetLink {};
+struct TIniGetSetLink { };
 
 /** Bool specialization */
 template<>

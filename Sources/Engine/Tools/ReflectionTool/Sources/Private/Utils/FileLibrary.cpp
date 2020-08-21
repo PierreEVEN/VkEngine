@@ -95,47 +95,78 @@ std::vector<RClassParser> LineReader::ExtractClasses(const std::string filePath,
 {
 	std::vector<RClassParser> structures;
 
-	int indentationLevel = 0;
+	int classIndentationLevel = 0;
+	int namespaceIndentationLevel = 0;
 	bool bIsParsingClass = false;
-	bool bStartedIndentationTest = false;
+	bool bClassStartedIndentationTest = false;
+	bool bNamespaceStartedIndentationTest = false;
+	std::string currentNamespace = "";
 	LineReader classLines;
 	int classLineIndex = 0;
 
 	for (int i = 0; i < data.size(); ++i)
 	{
+
+		if (StringLibrary::IsStartingWith(StringLibrary::CleanupLine(GetLine(i)), "namespace"))
+		{
+			bNamespaceStartedIndentationTest = true;
+			std::string left, center, right;
+			StringLibrary::SplitLine(StringLibrary::CleanupLine(GetLine(i)), { ' ', '\t' }, left, center, true);
+			StringLibrary::SplitLine(StringLibrary::CleanupLine(center), { ' ', '\t' }, currentNamespace, right, true);		
+
+		}
+
 		if (StringLibrary::IsStartingWith(GetLine(i), "REFLECT("))
 		{
-			if (indentationLevel != 0) std::cerr << "cannot use UCLASS / USTRUCT macro inside classes" << std::endl;
+			if (classIndentationLevel != 0) std::cerr << "cannot use UCLASS / USTRUCT macro inside classes" << std::endl;
 			bIsParsingClass = true;
 
 			if (StringLibrary::GetStringField(GetLine(i + 1), { ' ', '\t' }, 0) != "struct" && StringLibrary::GetStringField(GetLine(i + 1), { ' ', '\t' }, 0) != "class")
 			{
-				bStartedIndentationTest = true;
+				bClassStartedIndentationTest = true;
 			}
 			classLineIndex = i + 1;
 		}
+
+		if (bNamespaceStartedIndentationTest) {
+			for (const char& chr : GetLine(i))
+			{
+				if (chr == '{')
+					namespaceIndentationLevel++;
+				else if (chr == '}') 
+					namespaceIndentationLevel--;
+			}
+		}
+
 		if (bIsParsingClass)
 		{
 			for (const char& chr : GetLine(i))
 			{
 				if (chr == '{')
 				{
-					bStartedIndentationTest = true;
-					indentationLevel++;
+					bClassStartedIndentationTest = true;
+					classIndentationLevel++;
 				}
-				else if (chr == '}') indentationLevel--;
+				else if (chr == '}') classIndentationLevel--;
 			}
 
 			classLines.AddLine(GetLine(i));
 
-			if (indentationLevel <= 0 && bStartedIndentationTest)
+			if (classIndentationLevel <= 0 && bClassStartedIndentationTest)
 			{
-				bStartedIndentationTest = false;
+				bClassStartedIndentationTest = false;
 				bIsParsingClass = false;
-				indentationLevel = 0;
-				structures.push_back(RClassParser(classLines, classLineIndex, filePath, uniqueID));
+				classIndentationLevel = 0;
+				structures.push_back(RClassParser(classLines, classLineIndex, filePath, uniqueID, currentNamespace));
 				classLines.Clear();
 			}
+		}
+
+		if (namespaceIndentationLevel <= 0 && bNamespaceStartedIndentationTest)
+		{
+			bNamespaceStartedIndentationTest = false;
+			namespaceIndentationLevel = 0;
+			currentNamespace = "";
 		}
 	}
 

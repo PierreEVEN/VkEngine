@@ -17,13 +17,13 @@
 
 /* ##############################  Reflection for OObject  ############################## */
 
-class OObject; // Forward declaration
+	class OObject; // Forward declaration
 
-#define _REFLECTION_BODY_RUID_5_LINE_12 REFL_DECLARE_CLASS(OObject)
+	#define _REFLECTION_BODY_RUID_5_LINE_12 REFL_DECLARE_CLASS(OObject)
 
-REFL_DECLARE_TYPENAME(OObject); // Declare typename
+	REFL_DECLARE_TYPENAME(OObject); // Declare typename
 
-template<> struct RIsReflected<OObject> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
+	template<> struct RIsReflected<OObject> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
 
 
 #endif

@@ -1,9 +1,9 @@
 #pragma once
 #include <vector>
 
-#define DECLARE_DELEGATE_SINGLECAST(name, ...) typedef DelegateSingleCast<void, __VA_ARGS__> name;
+#define DECLARE_DELEGATE_SINGLECAST(name, ...) using name =  DelegateSingleCast<void, __VA_ARGS__>;
 #define DECLARE_DELEGATE_SINGLECAST_RETURN(name, returnType, ...) typedef DelegateSingleCast<returnType, __VA_ARGS__> name;
-#define DECLARE_DELEGATE_MULTICAST(name, ...) typedef DelegateMultiCast<__VA_ARGS__> name;
+#define DECLARE_DELEGATE_MULTICAST(name, ...) using name = DelegateMultiCast<__VA_ARGS__>;
 
 
 template<typename R, typename... Args>

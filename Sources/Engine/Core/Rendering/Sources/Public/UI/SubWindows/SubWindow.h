@@ -30,7 +30,7 @@ namespace Rendering {
 
 	private:
 
-
+		bool bIsDocked = false;
 
 		size_t myWindowId;
 		void Draw(const size_t& imageIndex);
@@ -42,7 +42,7 @@ namespace Rendering {
 		bool bKeepOpen;
 		bool bRenderInParent;
 
-		inline static size_t currentWindowID = 0;
+		inline static std::unordered_map<String, size_t> windowIdMap;
 		inline static std::vector<SubWindow*> registeredWindows;
 	};
 }

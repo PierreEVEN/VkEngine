@@ -33,9 +33,14 @@ void Rendering::MatrixUniformBuffer::CreateUniformBuffer(ViewportInstance* paren
 
 	uniformBuffers.resize(G_SWAP_CHAIN_IMAGE_COUNT);
 	uniformBuffersMemory.resize(G_SWAP_CHAIN_IMAGE_COUNT);
+	descriptorBufferInfo.resize(G_SWAP_CHAIN_IMAGE_COUNT);
 
 	for (size_t i = 0; i < G_SWAP_CHAIN_IMAGE_COUNT; i++) {
 		CreateBuffer(uniformBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
+
+		descriptorBufferInfo[i].buffer = uniformBuffers[i];
+		descriptorBufferInfo[i].offset = 0;
+		descriptorBufferInfo[i].range = sizeof(MatrixUniformBufferObject);
 	}
 }
 

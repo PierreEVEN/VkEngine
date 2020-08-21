@@ -1,4 +1,5 @@
 #include "UI/SubWindows/FileExplorer.h"
+#include "Assets/Texture2D.h"
 #include <filesystem>
 
 #if _WIN32
@@ -52,11 +53,11 @@ void Rendering::FileExplorer::DrawContent(const size_t& imageIndex)
 	if (!bIsPathValid) ImGui::PopStyleColor();
 	ImGui::Separator();
 
-	float windowSize = ImGui::GetContentRegionAvail().x;
+	float windowSize = Maths::GetMax(ImGui::GetContentRegionAvail().x * .15f, 150.f);
 
 	ImGui::Columns(2);
 	if (!bSetColumnWidth) {
-		ImGui::SetColumnWidth(0, windowSize * .15f);
+		ImGui::SetColumnWidth(0, windowSize);
 		bSetColumnWidth = true;
 	}
 	/**  default path */

@@ -9,10 +9,10 @@
 #include "Ressources/MeshRessource.h"
 #include "UI/ImGuiInstance.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
 #include "DescriptorPool.h"
 #include "UI/SubWindows/SubWindow.h"
+#include "Assets/Material.h"
+#include "Assets/Texture2D.h"
 
 Rendering::ViewportInstance* viewportInstance;
 
@@ -50,6 +50,7 @@ void Rendering::Initialization::Shutdown()
 {
 	delete viewportInstance;
 
+	Asset::UnloadAllAssets();
 	Ressource::FreeRessources();
 
 	DestroyImGuiRessources();
@@ -360,55 +361,41 @@ void Rendering::Initialization::DestroyRenderPass()
 }
 
 
-static std::vector<char> ReadFile(const String& filename) {
-	std::ifstream file(filename.GetData(), std::ios::ate | std::ios::binary);
-
-	if (!file.is_open()) {
-		LOG_ASSERT(String("Failed to open shader file ") + filename);
-	}
-	size_t fileSize = (size_t)file.tellg();
-	std::vector<char> buffer(fileSize);
-	file.seekg(0);
-	file.read(buffer.data(), fileSize);
-	file.close();
-
-	return buffer;
-}
 
 void Rendering::Initialization::CreateDefaultObjects()
 {
 	LOG("Create default objects");
 
-	/** Global matrices */
-	VkDescriptorSetLayoutBinding uboLayoutBinding{};
-	uboLayoutBinding.binding = 0;
-	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	uboLayoutBinding.descriptorCount = 1;
-	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	uboLayoutBinding.pImmutableSamplers = nullptr;
+	/** Default texture */
+	G_DEFAULT_TEXTURE = TAssetFactory<Texture2D>::ImportFromPath(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultTexturePath", "Ressources/Textures/DefaultTexture.png"));
 
-	/** Color texture */
-	VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-	samplerLayoutBinding.binding = 1;
-	samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	samplerLayoutBinding.descriptorCount = 1;
-	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	samplerLayoutBinding.pImmutableSamplers = nullptr;
+	G_DEFAULT_VERTEX_MODULE = TAssetFactory<ShaderModule>::ImportFromPath(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultVertexShaderPath", "Shaders/DefaultShader.vert.spv"));
+	G_DEFAULT_FRAGMENT_MODULE = TAssetFactory<ShaderModule>::ImportFromPath(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultFragmentShaderPath", "Shaders/DefaultShader.frag.spv"));
 
-	G_MATERIAL_OPAQUE = new MaterialRessource(ReadFile(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultVertexShaderPath", "Shaders/DefaultShader.vert.spv")), ReadFile(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultFragmentShaderPath", "Shaders/DefaultShader.frag.spv")), { uboLayoutBinding, samplerLayoutBinding }, EMATERIAL_CREATION_FLAG_NONE);
-	G_MATERIAL_WIREFRAME = new MaterialRessource(ReadFile(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "WireframeVertexShaderPath", "Shaders/WireframeShader.vert.spv")), ReadFile(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "WireframeFragmentShaderPath", "Shaders/WireframeShader.frag.spv")), { uboLayoutBinding, samplerLayoutBinding }, EMATERIAL_CREATION_FLAG_WIREFRAME);
+	/** Default material */
+	SMaterialStaticProperties defaultMaterialProperties{};
+	defaultMaterialProperties.bUseGlobalUbo = true;
+	defaultMaterialProperties.vertexShaderModule = G_DEFAULT_VERTEX_MODULE;
+	defaultMaterialProperties.fragmentShaderModule = G_DEFAULT_FRAGMENT_MODULE;
+	defaultMaterialProperties.VertexTexture2DCount = 0;
+	defaultMaterialProperties.FragmentTexture2DCount = 3;
+	defaultMaterialProperties.materialCreationFlag = EMATERIAL_CREATION_FLAG_NONE;
 
-	int texWidth, texHeight, texChannels;
-	stbi_uc* pixels = stbi_load(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultTexturePath", "Assets/DefaultTexture.png").GetData(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-	
-	G_DEFAULT_TEXTURE = new TextureRessource(pixels, SIntVector2D(texWidth, texHeight), texChannels);
+	SMaterialDynamicProperties defaultMaterialDynProperties{};
+	defaultMaterialDynProperties.fragmentTextures2D.push_back(G_DEFAULT_TEXTURE);
+	defaultMaterialDynProperties.fragmentTextures2D.push_back(G_DEFAULT_TEXTURE);
+	defaultMaterialDynProperties.fragmentTextures2D.push_back(G_DEFAULT_TEXTURE);
+	G_DEFAULT_MATERIAL = TAssetFactory<Material>::CreateFromData(defaultMaterialProperties, "DefaultMaterial", defaultMaterialDynProperties);
 
-	G_DEFAULT_MATERIAL = new MaterialInstance({ }, G_MATERIAL_OPAQUE);
-
-	std::vector<Vertex> vertices;
-	std::vector<uint32_t> indices;
-	MeshRessource::LoadFromFile(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultMeshPath", "Assets/DefaultMesh.obj"), vertices, indices);
-	G_DEFAULT_MESH = new MeshRessource(vertices, indices);
+	/** Wireframe material */
+	SMaterialStaticProperties wireframeMaterialProperties {};
+	wireframeMaterialProperties.bUseGlobalUbo = true;
+	wireframeMaterialProperties.vertexShaderModule = TAssetFactory<ShaderModule>::ImportFromPath(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "WireframeVertexShaderPath", "Shaders/WireframeShader.vert.spv"));
+	wireframeMaterialProperties.fragmentShaderModule = TAssetFactory<ShaderModule>::ImportFromPath(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "WireframeFragmentShaderPath", "Shaders/WireframeShader.frag.spv"));
+	wireframeMaterialProperties.VertexTexture2DCount = 0;
+	wireframeMaterialProperties.FragmentTexture2DCount = 0;
+	wireframeMaterialProperties.materialCreationFlag = EMATERIAL_CREATION_FLAG_WIREFRAME | EMATERIAL_CREATION_FLAG_DOUBLESIDED;
+	G_MATERIAL_WIREFRAME = TAssetFactory<Material>::CreateFromData(wireframeMaterialProperties, "WireframeMaterial");
 
 }
 

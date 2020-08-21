@@ -1,4 +1,4 @@
-//VERSION : Tuesday, 11 August 2020 16:36:18
+//VERSION : Monday, 17 August 2020 12:20:23
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 
@@ -17,13 +17,13 @@
 
 /* ##############################  Reflection for Serializable  ############################## */
 
-class Serializable; // Forward declaration
+	class Serializable; // Forward declaration
 
-#define _REFLECTION_BODY_RUID_6_LINE_115 REFL_DECLARE_CLASS(Serializable)
+	#define _REFLECTION_BODY_RUID_6_LINE_112 REFL_DECLARE_CLASS(Serializable)
 
-REFL_DECLARE_TYPENAME(Serializable); // Declare typename
+	REFL_DECLARE_TYPENAME(Serializable); // Declare typename
 
-template<> struct RIsReflected<Serializable> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
+	template<> struct RIsReflected<Serializable> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
 
 
 #endif

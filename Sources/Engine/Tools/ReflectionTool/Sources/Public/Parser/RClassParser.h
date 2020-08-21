@@ -16,7 +16,7 @@ struct LineReader;
 struct RClassParser
 {
 public:
-	RClassParser(const LineReader& inData, uint32_t startLine, const std::string& path, const uint64_t& uniqueID);
+	RClassParser(const LineReader& inData, uint32_t startLine, const std::string& path, const uint64_t& uniqueID, const std::string& inClassNamespace);
 
 	void WriteHeader(OSWriter& writer);
 	void WriteSource(OSWriter& writer);
@@ -30,6 +30,7 @@ private:
 
 	bool bisStruct;
 	bool bIsClass;
+	std::string classNamespace;
 	std::string className;
 	std::string classpath;
 	std::vector<std::string> parents;

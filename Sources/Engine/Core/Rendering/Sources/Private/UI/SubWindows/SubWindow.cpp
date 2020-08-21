@@ -4,8 +4,14 @@
 Rendering::SubWindow::SubWindow(const String& name, SubWindow* parentWindow /*= nullptr*/, bool bInRenderInParent)
 	: windowName(name), parent(parentWindow), bKeepOpen(true), bRenderInParent(bInRenderInParent && parentWindow)
 {
-	myWindowId = currentWindowID;
-	currentWindowID++;
+	if (windowIdMap.count(name) == 0) {
+		windowIdMap[name] = 0;
+		myWindowId = 0;
+	}
+	else {
+		myWindowId = ++windowIdMap[name];
+	}
+
 	registeredWindows.push_back(this);
 	if (parent) {
 		parent->childs.push_back(this);
@@ -42,6 +48,15 @@ Rendering::SubWindow::~SubWindow()
 		childs[i]->parent = nullptr;
 	}
 	childs.clear();
+
+	windowIdMap[windowName]--;
+
+	for (const auto& window : registeredWindows) {
+		if (window->windowName == windowName && window->myWindowId > myWindowId) {
+			window->myWindowId--;
+		}
+	}
+
 }
 
 void Rendering::SubWindow::Draw(const size_t& imageIndex)
@@ -73,8 +88,11 @@ void Rendering::SubWindow::Draw(const size_t& imageIndex)
 	}
 	else
 	{
-		if (ImGui::Begin((windowName + "##" + ToString(myWindowId)).GetData(), &bKeepOpen))
+		ImGuiWindowFlags fl = ImGuiWindowFlags_None;
+		if (bIsDocked) fl |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+		if (ImGui::Begin((windowName + "##" + ToString(myWindowId)).GetData(), &bKeepOpen, fl))
 		{
+			bIsDocked = ImGui::IsWindowDocked();
 			DrawContent(imageIndex);
 			for (auto& child : childs) {
 				if (child->bRenderInParent) {
@@ -85,5 +103,7 @@ void Rendering::SubWindow::Draw(const size_t& imageIndex)
 			ImGui::End();
 		}
 	}
+
+	
 }
 

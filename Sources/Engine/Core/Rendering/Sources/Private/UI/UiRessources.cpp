@@ -1,39 +1,21 @@
 #include "UI/UiRessources.h"
 
 #include <stb_image.h>
+#include "Assets/Texture2D.h"
 
 void Rendering::UIRessources::LoadUIRessources()
 {
-	int texWidth, texHeight, texChannels;
-	stbi_uc* pixels;
-
-	pixels = stbi_load("Ressources/Textures/Icons/icon-directory.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-	directoryIcon = new TextureRessource(pixels, SIntVector2D(texWidth, texHeight), texChannels);
-	stbi_image_free(pixels);
-
-	pixels = stbi_load("Ressources/Textures/Icons/icon-file.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-	fileIcon = new TextureRessource(pixels, SIntVector2D(texWidth, texHeight), texChannels);
-	stbi_image_free(pixels);
-
-	pixels = stbi_load("Ressources/Textures/Icons/icon-upArrowCircle.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-	upArrowCircleIcon = new TextureRessource(pixels, SIntVector2D(texWidth, texHeight), texChannels);
-	stbi_image_free(pixels);
-
-	pixels = stbi_load("Ressources/Textures/Icons/icon-document.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-	documentIcon = new TextureRessource(pixels, SIntVector2D(texWidth, texHeight), texChannels);
-	stbi_image_free(pixels);
-
-	pixels = stbi_load("Ressources/Textures/Icons/icon-monitor.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-	monitorIcon = new TextureRessource(pixels, SIntVector2D(texWidth, texHeight), texChannels);
-	stbi_image_free(pixels);
-
-	pixels = stbi_load("Ressources/Textures/Icons/icon-hardDisk.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-	hardDiskIcon = new TextureRessource(pixels, SIntVector2D(texWidth, texHeight), texChannels);
-	stbi_image_free(pixels);
-
-	pixels = stbi_load("Ressources/Textures/Icons/icon-source.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-	sourceIcon = new TextureRessource(pixels, SIntVector2D(texWidth, texHeight), texChannels);
-	stbi_image_free(pixels);
-
 	LOG("Load UI Ressources");
+
+	directoryIcon = TAssetFactory<Texture2D>::ImportFromPath("Ressources/Textures/Icons/icon-directory.png");
+	fileIcon = TAssetFactory<Texture2D>::ImportFromPath("Ressources/Textures/Icons/icon-file.png");
+	upArrowCircleIcon = TAssetFactory<Texture2D>::ImportFromPath("Ressources/Textures/Icons/icon-upArrowCircle.png");
+	documentIcon = TAssetFactory<Texture2D>::ImportFromPath("Ressources/Textures/Icons/icon-document.png");
+	monitorIcon = TAssetFactory<Texture2D>::ImportFromPath("Ressources/Textures/Icons/icon-monitor.png");
+	hardDiskIcon = TAssetFactory<Texture2D>::ImportFromPath("Ressources/Textures/Icons/icon-hardDisk.png");
+	sourceIcon = TAssetFactory<Texture2D>::ImportFromPath("Ressources/Textures/Icons/icon-source.png");
+	closeIcon = TAssetFactory<Texture2D>::ImportFromPath("Ressources/Textures/Icons/icon-close.png");
+	maximizeIcon = TAssetFactory<Texture2D>::ImportFromPath("Ressources/Textures/Icons/icon-maximize.png");
+	minimizeIcon = TAssetFactory<Texture2D>::ImportFromPath("Ressources/Textures/Icons/icon-minimize.png");
+	defaultAssetIcon = TAssetFactory<Texture2D>::ImportFromPath("Ressources/Textures/Icons/Assets/icon-defaultAssetIcon.png");
 }

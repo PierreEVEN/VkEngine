@@ -13,7 +13,8 @@ function defineProject(projectType, useReflection, projectName)
 	includedirs("Sources/Public")
 	includedirs("Intermediates/Reflection/Public")
 	debugdir(SrcDir.."/../../Ressources")
-	
+	flags { "MultiProcessorCompile" }
+
 	if useReflection then
 		includeModule("Tools/Reflection", "Reflection")
 		dependson("Reflection")

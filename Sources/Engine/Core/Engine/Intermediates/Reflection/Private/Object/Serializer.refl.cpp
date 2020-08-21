@@ -1,4 +1,4 @@
-//VERSION : Tuesday, 11 August 2020 16:36:18
+//VERSION : Monday, 17 August 2020 12:20:23
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 #include "C:/Users/pierre/Documents/Engine/Sources/Engine/Core/Engine/Sources/Public\Object\Serializer.h"
@@ -12,21 +12,21 @@
 
 /* ##############################  Reflection for Serializable  ############################## */
 
-static RClass* _static_Item_Class_Serializable = nullptr; //Static class reference
-RClass* Serializable::GetStaticClass() { return _static_Item_Class_Serializable; } //Static class getter
+	static RClass* _static_Item_Class_Serializable = nullptr; //Static class reference
+	RClass* Serializable::GetStaticClass() { return _static_Item_Class_Serializable; } //Static class getter
 
-RClass* Serializable::GetClass() const { return _static_Item_Class_Serializable; } //class getter
+	RClass* Serializable::GetClass() const { return _static_Item_Class_Serializable; } //class getter
 
-void _Refl_Register_Item_Serializable() { // Register function
-		_static_Item_Class_Serializable = RClass::RegisterClass<Serializable>("Serializable"); //Register Class
-		if (RIsReflected<IStringable>::Reflect) // Is parent reflected
-			_static_Item_Class_Serializable->AddParent("IStringable"); // register parent
-}
-
-struct _Refl_Static_Item_Builder_Serializable{ // Item builder - Build reflection data
-	_Refl_Static_Item_Builder_Serializable() { // Builder constructor
-		_Refl_Register_Item_Serializable(); // Call to builder function
+	void _Refl_Register_Item_Serializable() { // Register function
+			_static_Item_Class_Serializable = RClass::RegisterClass<Serializable>("Serializable"); //Register Class
+			if (RIsReflected<IStringable>::Reflect) // Is parent reflected
+				_static_Item_Class_Serializable->AddParent("IStringable"); // register parent
 	}
-};
 
-static _Refl_Static_Item_Builder_Serializable _Refl_Static_Item_Builder_Var_Serializable; //Build item when compiled
+	struct _Refl_Static_Item_Builder_Serializable{ // Item builder - Build reflection data
+		_Refl_Static_Item_Builder_Serializable() { // Builder constructor
+			_Refl_Register_Item_Serializable(); // Call to builder function
+		}
+	};
+
+	static _Refl_Static_Item_Builder_Serializable _Refl_Static_Item_Builder_Var_Serializable; //Build item when compiled

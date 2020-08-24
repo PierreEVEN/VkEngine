@@ -18,7 +18,6 @@ Rendering::StaticMeshImportWindow::StaticMeshImportWindow() : SubWindow("Import 
 void Rendering::StaticMeshImportWindow::DrawContent(const size_t& imageIndex)
 {
 	if (filePath == "") return;
-
 	ImGui::Text("Import File : %s", filePath.GetData());
 	ImGui::Text("Import to %s", "none");
 	ImGui::Dummy(ImVec2(0, 5));
@@ -37,8 +36,8 @@ void Rendering::StaticMeshImportWindow::DrawContent(const size_t& imageIndex)
 			ImGui::EndMenuBar();
 		}
 		DrawImportDetails();
-		ImGui::EndChild();
 	}
+	ImGui::EndChild();
 
 	ImGui::NextColumn();
 
@@ -52,8 +51,8 @@ void Rendering::StaticMeshImportWindow::DrawContent(const size_t& imageIndex)
 			ImGui::EndMenuBar();
 		}
 		DrawSceneDetails();
-		ImGui::EndChild();
 	}
+	ImGui::EndChild();
 
 	ImGui::Columns(1);
 
@@ -68,7 +67,6 @@ void Rendering::StaticMeshImportWindow::DrawContent(const size_t& imageIndex)
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Cancel")) { RequestClose(); }
-
 }
 
 void Rendering::StaticMeshImportWindow::DrawSceneDetails()
@@ -143,8 +141,8 @@ void Rendering::StaticMeshImportWindow::DrawImportDetails()
 		}
 
 
-		ImGui::EndChild();
 	}
+	ImGui::EndChild();
 
 
 
@@ -188,8 +186,8 @@ void Rendering::StaticMeshImportWindow::DrawImportDetails()
 				ImGui::TreePop();
 			}
 		}
-		ImGui::EndChild();
 	}
+	ImGui::EndChild();
 
 }
 

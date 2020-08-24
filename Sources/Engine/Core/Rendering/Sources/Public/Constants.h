@@ -7,6 +7,8 @@
 #define VK_ENSURE(condition, message) if (condition != VK_SUCCESS) { LOG_ASSERT(String("VK_ERROR : ") + String(message)); }
 #define VK_CHECK(object, message) if (object == VK_NULL_HANDLE) { LOG_ASSERT(String("VK_ERROR_NULL_HANDLE : ") + String(message)); }
 
+inline std::mutex G_TEST_MUTEX;
+
 namespace Rendering
 {
 	inline IniLoader									G_RENDERING_INI("Saved/Config/Rendering.ini");
@@ -21,10 +23,10 @@ namespace Rendering
 	inline VkSurfaceKHR									G_SURFACE = VK_NULL_HANDLE;
 	inline VkPhysicalDevice								G_PHYSICAL_DEVICE = VK_NULL_HANDLE;
 	inline VkDevice										G_LOGICAL_DEVICE = VK_NULL_HANDLE;
-	inline VkCommandPool								G_COMMAND_POOL = VK_NULL_HANDLE;
 
 	/** Queues */
 	inline QueueFamilyIndices							G_QUEUE_FAMILY_INDICES;
+	inline VkQueue										G_TRANSFERT_QUEUE = VK_NULL_HANDLE;
 	inline VkQueue										G_GRAPHIC_QUEUE = VK_NULL_HANDLE;
 	inline VkQueue										G_PRESENT_QUEUE = VK_NULL_HANDLE;
 
@@ -62,10 +64,6 @@ namespace Rendering
 	/** Materials */
 	inline class ShaderModule*							G_DEFAULT_VERTEX_MODULE = nullptr;
 	inline class ShaderModule*							G_DEFAULT_FRAGMENT_MODULE = nullptr;
-	inline class Material*								G_DEFAULT_MATERIAL = nullptr;
-	inline class Material*								G_MATERIAL_WIREFRAME = nullptr;
-	inline class Texture2D*								G_DEFAULT_TEXTURE = nullptr;
-	inline class StaticMesh*							G_DEFAULT_MESH = nullptr;
 
 
 	template<typename T>

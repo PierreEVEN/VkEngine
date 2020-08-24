@@ -22,6 +22,9 @@
 /** Events */
 #include "Events/EventManager.h"
 
+/** Job */
+#include "JobSystem/JobSystem.h"
+
 /** std */
 #include <set>
 #include <array>

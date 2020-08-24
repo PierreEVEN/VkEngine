@@ -2,16 +2,28 @@
 #include "Rendering.h"
 #include "EngineConfig.h"
 #include "Assets/AssetFactory.h"
+#include "JobSystem/JobSystem.h"
 
+std::mutex testMutex;
+std::condition_variable testCond;
 
 int main(int argc, char* argv[])
 {
-	Rendering::InitializeWindow();
-	Rendering::InitializeRendering();
+	JobSystem::Initialize();
 
-	Rendering::ExecuteRenderLoop();
 
-	Rendering::CleanupRendering();
-	Rendering::CleaneupWindow();
+	JobSystem::NewJob([] {
+		Rendering::InitializeWindow();
+		Rendering::InitializeRendering();
 
+		Rendering::ExecuteRenderLoop();
+
+		Rendering::CleanupRendering();
+		Rendering::CleaneupWindow();
+		testCond.notify_all();
+		});
+
+
+	std::unique_lock<std::mutex> ReleaseThreadsLock(testMutex);
+	testCond.wait(ReleaseThreadsLock);
 }

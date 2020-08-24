@@ -16,13 +16,11 @@ namespace Rendering::Initialization
 	void CreateRenderPass();
 	void InitializeSwapchainProperties();
 	void CreateDefaultObjects();
-	void CreateCommandPool();
 
 
 	void Draw();
 
 
-	void DestroyCommandPool();
 	void DestroyRenderPass();
 	void DestroyAllocators();
 	void DestroyLogicalDevice();

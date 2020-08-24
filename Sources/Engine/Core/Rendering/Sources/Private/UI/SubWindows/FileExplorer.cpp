@@ -39,7 +39,6 @@ void Rendering::FileExplorer::DrawContent(const size_t& imageIndex)
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(1.f, .2f, .2f, .5f));
 	}
 
-
 	/** Search bar */
 	ImGui::InputText("", currentPath, 256);
 	if (std::filesystem::path(currentPath).has_parent_path())
@@ -89,10 +88,11 @@ void Rendering::FileExplorer::DrawContent(const size_t& imageIndex)
 	ImGui::NextColumn();
 
 	/** Content */
-	ImGui::BeginChild("outer_child", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y - 100), false);
-	ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0, 0.5));
-	if (bIsPathValid) DrawDirContent(currentPath, imageIndex);
-	ImGui::PopStyleVar();
+	if (ImGui::BeginChild("outer_child", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y - 100), false)) {
+		ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0, 0.5));
+		if (bIsPathValid) DrawDirContent(currentPath, imageIndex);
+		ImGui::PopStyleVar();
+	}
 	ImGui::EndChild();
 
 	ImGui::NextColumn();
@@ -101,8 +101,8 @@ void Rendering::FileExplorer::DrawContent(const size_t& imageIndex)
 	ImGui::Separator();
 	if (ImGui::BeginChild("selected_element", ImVec2(ImGui::GetContentRegionAvail().x - 450, 32), true)) {
 		ImGui::Text(selectedElement.GetData());
-		ImGui::EndChild();
 	}
+	ImGui::EndChild();
 	ImGui::SameLine(ImGui::GetContentRegionAvail().x - 400);
 
 	/** Extensions */
@@ -116,9 +116,6 @@ void Rendering::FileExplorer::DrawContent(const size_t& imageIndex)
 	ImGui::SameLine();
 	ImGui::Combo("Extension", &currentFilter, extensionItems, (int)extensionFilters.size());
 
-	for (int i = 0; i < extensionFilters.size(); ++i) {
-		free(extensionItems[i]);
-	}
 	free(extensionItems);
 
 	/** Validate */

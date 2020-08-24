@@ -182,10 +182,6 @@ void Rendering::DebugUI::DrawContent(const size_t& imageIndex)
 	ImGui::SliderFloat("clip min", &mi, 0, 1);
 	ImGui::SliderFloat("clip max", &mx, 0, 1000);
 	ImGui::Separator();
-	ImGui::Text("Default texture");
-	ImGui::Image(G_DEFAULT_TEXTURE->GetTextureID(imageIndex), ImVec2(512, 512));
-
-
 	if (ImGui::Button("log")) LOG("log");
 	if (ImGui::Button("warning")) LOG_WARNING("warning");
 	if (ImGui::Button("error")) LOG_ERROR("error");

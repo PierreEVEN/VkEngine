@@ -59,6 +59,7 @@ namespace Rendering {
 		inline VkDescriptorSet& GetDescriptorSet(const size_t& imageIndex) { return descriptorSets[imageIndex]; }
 		inline VkPipelineLayout& GetPipelineLayout() { return pipelineLayout; }
 
+		// @TODO handle material instanciation
 		inline static MaterialRessource* FindMaterialRessource(const SMaterialStaticProperties materialProperties) {
 			if (materialRessources.count(materialProperties) == 0) {
 				MaterialRessource* newMat = new MaterialRessource(materialProperties);
@@ -100,7 +101,7 @@ namespace Rendering {
 	public:
 
 		MaterialRessourceItem(const SMaterialStaticProperties& materialProperties, const SMaterialDynamicProperties& materialDynProps)
-			: parent(MaterialRessource::FindMaterialRessource(materialProperties)), dynamicMaterialProperties(materialDynProps), staticMaterialProperties(materialProperties) {}
+			: parent(MaterialRessource::FindMaterialRessource(materialProperties)), dynamicMaterialProperties(materialDynProps), staticMaterialProperties(materialProperties), Ressource() {}
 
 		void PreDraw(ViewportInstance* inViewport, const size_t& imageIndex);
 		void Draw(VkCommandBuffer commandBuffer, ViewportInstance* drawViewport, const size_t& imageIndex);
@@ -116,8 +117,8 @@ namespace Rendering {
 
 		void UpdateDescriptorSets(ViewportInstance* drawViewport);
 
-		const SMaterialDynamicProperties& dynamicMaterialProperties;
-		const SMaterialStaticProperties& staticMaterialProperties;
+		const SMaterialDynamicProperties dynamicMaterialProperties;
+		const SMaterialStaticProperties staticMaterialProperties;
 
 		size_t lastDrawIamgeIndex = -1;
 		ViewportInstance* lastWriteViewport = nullptr;

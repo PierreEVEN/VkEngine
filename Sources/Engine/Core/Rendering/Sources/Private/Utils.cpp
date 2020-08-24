@@ -1,6 +1,7 @@
 #include "Utils.h"
 #include <set>
 #include "Maths/BaseOperations.h"
+#include "CommandPool.h"
 
 void Rendering::CheckExtensions()
 {
@@ -147,6 +148,13 @@ Rendering::QueueFamilyIndices Rendering::FindDeviceQueueFamilies(VkPhysicalDevic
 	for (const auto& queueFamily : queueFamilies) {
 		if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
 			indices.graphicsFamily = i;
+		}
+		if (!indices.transfertFamily.has_value() && queueFamily.queueFlags & VK_QUEUE_TRANSFER_BIT) {
+			indices.transfertFamily = i;
+		}
+
+		if (queueFamily.queueFlags == VK_QUEUE_TRANSFER_BIT) {
+			indices.transfertFamily = i;
 		}
 		VkBool32 presentSupport = false;
 		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, G_SURFACE, &presentSupport);
@@ -328,13 +336,12 @@ uint32_t Rendering::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags pr
 	return -1;
 }
 
-
 VkCommandBuffer Rendering::BeginSingleTimeCommands()
 {
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandPool = G_COMMAND_POOL;
+	allocInfo.commandPool = GetCommandPool();
 	allocInfo.commandBufferCount = 1;
 
 	VkCommandBuffer commandBuffer;
@@ -345,7 +352,6 @@ VkCommandBuffer Rendering::BeginSingleTimeCommands()
 	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
 	vkBeginCommandBuffer(commandBuffer, &beginInfo);
-
 	return commandBuffer;
 }
 
@@ -358,8 +364,9 @@ void Rendering::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &commandBuffer;
 
+	G_TEST_MUTEX.lock();
 	vkQueueSubmit(G_GRAPHIC_QUEUE, 1, &submitInfo, VK_NULL_HANDLE);
 	vkQueueWaitIdle(G_GRAPHIC_QUEUE);
-
-	vkFreeCommandBuffers(G_LOGICAL_DEVICE, G_COMMAND_POOL, 1, &commandBuffer);
+	G_TEST_MUTEX.unlock();
+	vkFreeCommandBuffers(G_LOGICAL_DEVICE, GetCommandPool(), 1, &commandBuffer);
 }

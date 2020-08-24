@@ -67,17 +67,14 @@ void Rendering::TextureRessource::CreateImage(uint32_t width, uint32_t height, u
 	vkBindImageMemory(G_LOGICAL_DEVICE, image, imageMemory, 0);
 }
 
-void Rendering::TextureRessource::GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels)
+void Rendering::TextureRessource::GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, VkCommandBuffer commandBuffer)
 
 {
-
 	VkFormatProperties formatProperties;
 	vkGetPhysicalDeviceFormatProperties(G_PHYSICAL_DEVICE, imageFormat, &formatProperties);
 	if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)) {
 		LOG_ASSERT("This texture image format doesn't support image blitting");
 	}
-
-	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
 	VkImageMemoryBarrier barrier{};
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -140,7 +137,6 @@ void Rendering::TextureRessource::GenerateMipmaps(VkImage image, VkFormat imageF
 
 	vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
-	EndSingleTimeCommands(commandBuffer);
 }
 
 void Rendering::TextureRessource::CreateTextureImage(unsigned char* textureData, SIntVector2D imageResolution, uint8_t channelsCount)
@@ -178,10 +174,13 @@ void Rendering::TextureRessource::CreateTextureImage(unsigned char* textureData,
 
 	CreateImage(imageResolution.x, imageResolution.y, textureMipsLevels, VK_SAMPLE_COUNT_1_BIT, imageFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
 
-	TransitionImageLayout(textureImage, imageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, textureMipsLevels);
-	CopyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(imageResolution.x), static_cast<uint32_t>(imageResolution.y));
+	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
-	GenerateMipmaps(textureImage, imageFormat, imageResolution.x, imageResolution.y, textureMipsLevels);
+	TransitionImageLayout(textureImage, imageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, textureMipsLevels, commandBuffer);
+	CopyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(imageResolution.x), static_cast<uint32_t>(imageResolution.y), commandBuffer);
+
+	GenerateMipmaps(textureImage, imageFormat, imageResolution.x, imageResolution.y, textureMipsLevels, commandBuffer);
+	EndSingleTimeCommands(commandBuffer);
 
 	CreateImageView(textureImage, textureImageView, imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, textureMipsLevels);
 
@@ -223,10 +222,8 @@ void Rendering::TextureRessource::DestroyImage()
 	vkDestroyDescriptorSetLayout(G_LOGICAL_DEVICE, uiDisplayLayout, G_ALLOCATION_CALLBACK);
 }
 
-void Rendering::TextureRessource::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevel)
+void Rendering::TextureRessource::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevel, VkCommandBuffer commandBuffer)
 {
-	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
-
 	VkImageMemoryBarrier barrier{};
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	barrier.oldLayout = oldLayout;
@@ -263,15 +260,11 @@ void Rendering::TextureRessource::TransitionImageLayout(VkImage image, VkFormat 
 	}
 
 	vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-
-	EndSingleTimeCommands(commandBuffer);
 }
 
 
-void Rendering::TextureRessource::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
+void Rendering::TextureRessource::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkCommandBuffer commandBuffer)
 {
-	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
-
 	VkBufferImageCopy region{};
 	region.bufferOffset = 0;
 	region.bufferRowLength = 0;
@@ -286,8 +279,6 @@ void Rendering::TextureRessource::CopyBufferToImage(VkBuffer buffer, VkImage ima
 	region.imageExtent = { width, height, 1 };
 
 	vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
-
-	EndSingleTimeCommands(commandBuffer);
 }
 
 void Rendering::TextureRessource::InitializeUIObjects()

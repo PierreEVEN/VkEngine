@@ -68,14 +68,12 @@ void Rendering::Console::DrawContent(const size_t& imageIndex)
 		}
 		ImGui::SetWindowFontScale(1.f);
 		ImGui::EndChild();
+	}
 
-		if (ImGui::InputText("input", ConsoleInputBuffer, IM_ARRAYSIZE(ConsoleInputBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
-		{
-			LOG("Console - " + String(ConsoleInputBuffer));
-			for (int i = 0; i < IM_ARRAYSIZE(ConsoleInputBuffer); ++i) ConsoleInputBuffer[i] = '\0';
-		}
-
-
+	if (ImGui::InputText("input", ConsoleInputBuffer, IM_ARRAYSIZE(ConsoleInputBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+	{
+		LOG("Console - " + String(ConsoleInputBuffer));
+		for (int i = 0; i < IM_ARRAYSIZE(ConsoleInputBuffer); ++i) ConsoleInputBuffer[i] = '\0';
 	}
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Constants.h"
+#include <sstream>
 
 namespace Rendering
 {
@@ -9,19 +10,24 @@ namespace Rendering
 	public:
 		static void FindOrCreatePool(VkDescriptorSetAllocateInfo& allocInfos)
 		{
+			findPoolMutex.lock();
 			if (allocInfos.descriptorSetCount > G_MAX_SET_PER_POOL)
 			{
 				LOG_ASSERT(String("Cannot allocate mor than ") + ToString(G_MAX_SET_PER_POOL) + " descriptors per pool.");
 			}
 			for (auto& pool : usedPools)
 			{
-				if (pool->HasSpaceFor(allocInfos.descriptorSetCount))
-				{
-					pool->BindAllocInfos(allocInfos);
-					return;
+				if (pool->myPoolThread == std::this_thread::get_id()) {
+					if (pool->HasSpaceFor(allocInfos.descriptorSetCount))
+					{
+						pool->BindAllocInfos(allocInfos);
+						findPoolMutex.unlock();
+						return;
+					}
 				}
 			}
-			usedPools.push_back(new DescriptorPoolDynamicHandle(allocInfos));
+			usedPools.push_back(new DescriptorPoolDynamicHandle(allocInfos, JobSystem::Workers::GetCurrentWorker().GetWorkerThreadID()));
+			findPoolMutex.unlock();
 		}
 
 		static void ClearPools()
@@ -33,9 +39,12 @@ namespace Rendering
 			usedPools.clear();
 		}
 
+
 	private:
 
-		DescriptorPoolDynamicHandle(VkDescriptorSetAllocateInfo& allocInfos)
+
+		DescriptorPoolDynamicHandle(VkDescriptorSetAllocateInfo& allocInfos, std::thread::id inThreadId)
+			: myPoolThread(inThreadId)
 		{
 			std::array<VkDescriptorPoolSize, 11> poolSizes;
 			poolSizes[0] = { VK_DESCRIPTOR_TYPE_SAMPLER, G_POOL_DESCRIPTOR_COUNT_PER_TYPE };
@@ -75,9 +84,12 @@ namespace Rendering
 			allocInfos.descriptorPool = pool;
 		}
 
+
 		inline static std::vector<DescriptorPoolDynamicHandle*> usedPools;
+		inline static std::mutex findPoolMutex;
 		VkDescriptorPool pool = VK_NULL_HANDLE;
 		uint32_t spaceLeft = 0;
+		std::thread::id myPoolThread;
 	};
 	inline void ReserveDescriptorPoolMemory(VkDescriptorSetAllocateInfo& allocInfos) { DescriptorPoolDynamicHandle::FindOrCreatePool(allocInfos); }
 }

@@ -44,7 +44,6 @@ Rendering::ViewportInstance::ViewportInstance(const SIntVector2D& inDesiredViewp
 
  	new DebugUI(this);
  	new ContentBrowser();
-
 }
 
 Rendering::ViewportInstance::~ViewportInstance()
@@ -66,11 +65,8 @@ Mat4f Rendering::ViewportInstance::GetProjectionMatrix() const {
 }
 
 
-
 void Rendering::ViewportInstance::DrawViewport()
 {
-	uint32_t imageIndex;
-
 	/** Compute DeltaTime */
 	DeltaTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - LastFrameTime).count() / 1000000.0;
 
@@ -86,10 +82,11 @@ void Rendering::ViewportInstance::DrawViewport()
 	/** Destroy unused ressources */
 	Ressource::FlushRessources();
 
-	/** Ensure we are not drawing on unfinnished frame */
+	/** Ensure we are not drawing on unsubmited frame */
 	vkWaitForFences(G_LOGICAL_DEVICE, 1, &frameObjects->GetInFlightFence(CurrentFrameId), VK_TRUE, UINT64_MAX);
 
 
+	uint32_t imageIndex;
 	VkResult result = vkAcquireNextImageKHR(G_LOGICAL_DEVICE, viewportSwapChain->GetSwapChainKhr(), UINT64_MAX, frameObjects->GetImageAvailableAvailableSemaphore(CurrentFrameId), VK_NULL_HANDLE, &imageIndex);
 	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
 		ResizeViewport();
@@ -204,9 +201,9 @@ void Rendering::ViewportInstance::DrawViewport()
 		if (ImGui::Begin("__BackgroundLayout__", nullptr, ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground))
 		{
 			ImGuiID dockspace_id = ImGui::GetID("__BackgroundLayout_Dockspace__");
-			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode); ImGui::End();
-			ImGui::End();
+			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
 		}
+		ImGui::End();
 
 		if (bShowDemo) ImGui::ShowDemoWindow(&bShowDemo);
 
@@ -236,15 +233,17 @@ void Rendering::ViewportInstance::DrawViewport()
 	submitInfo.pWaitSemaphores = waitSemaphores;
 	submitInfo.pWaitDstStageMask = waitStages;
 	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &commandBuffer->GetCommandBuffer(imageIndex);
+	submitInfo.pCommandBuffers = &currentCommandBfr;
 
 	VkSemaphore signalSemaphores[] = { frameObjects->GetRenderFinnishedSemaphore(CurrentFrameId) };
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = signalSemaphores;
 
+	/** Submit command buffers */
 	vkResetFences(G_LOGICAL_DEVICE, 1, &frameObjects->GetInFlightFence(CurrentFrameId));
-
+	G_TEST_MUTEX.lock();
 	VK_ENSURE(vkQueueSubmit(G_GRAPHIC_QUEUE, 1, &submitInfo, frameObjects->GetInFlightFence(CurrentFrameId)), "Failed to send command buffer");
+	G_TEST_MUTEX.unlock();
 
 	VkPresentInfoKHR presentInfo{};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

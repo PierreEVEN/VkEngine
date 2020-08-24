@@ -13,6 +13,7 @@
 #include "UI/SubWindows/SubWindow.h"
 #include "Assets/Material.h"
 #include "Assets/Texture2D.h"
+#include "CommandPool.h"
 
 Rendering::ViewportInstance* viewportInstance;
 
@@ -21,25 +22,18 @@ void Rendering::Initialization::Initialize()
 	CheckExtensions();
 	CheckValidationLayerSupport();
 	CreateInstance();
-	CreateValidationLayers();
+	ValidationLayers::CreateValidationLayers();
 	CreateSurface();
 	PickPhysicalDevice();
 	CreateLogicalDevice();
 	CreateAllocators();
-	CreateCommandPool();
+	CommandPool::CreateCommandPools();
 	InitializeSwapchainProperties();
 	CreateRenderPass();
 	PreInitializeImGui();
-
+	UIRessources::LoadUIRessources();
 	CreateDefaultObjects();
 
-
-	UIRessources::LoadUIRessources();
-
-
-	if (!UIRessources::upArrowCircleIcon) {
-		LOG_ASSERT("what");
-	}
 	int sizeX, sizeY;
 	glfwGetWindowSize(GetPrimaryWindow(), &sizeX, &sizeY);
 
@@ -55,12 +49,12 @@ void Rendering::Initialization::Shutdown()
 
 	DestroyImGuiRessources();
 	DestroyRenderPass();
-	DestroyCommandPool();
+	CommandPool::CleanupCommandPools();
 	DescriptorPoolDynamicHandle::ClearPools();
 	DestroyAllocators();
 	DestroyLogicalDevice();
 	DestroySurface();
-	DestroyValidationLayers();
+	ValidationLayers::DestroyValidationLayers();
 	DestroyInstance();
 }
 
@@ -90,7 +84,8 @@ void Rendering::Initialization::CreateInstance()
 	/* Enable validation layer (optional) */
 	if (G_ENABLE_VALIDATION_LAYERS.GetValue())
 	{
-		Rendering::LinkValidationLayers(vkInstanceCreateInfo);
+		ValidationLayers::LinkValidationLayers(vkInstanceCreateInfo);
+		vkInstanceCreateInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&ValidationLayers::PopulateDebugMessengerCreateInfo();
 	}
 	else
 	{
@@ -195,6 +190,7 @@ void Rendering::Initialization::CreateLogicalDevice()
 
 	VK_ENSURE(vkCreateDevice(G_PHYSICAL_DEVICE, &createInfo, G_ALLOCATION_CALLBACK, &G_LOGICAL_DEVICE), "Failed to create logical device");
 
+	if (G_QUEUE_FAMILY_INDICES.transfertFamily.has_value())	vkGetDeviceQueue(G_LOGICAL_DEVICE, G_QUEUE_FAMILY_INDICES.transfertFamily.value(), 0, &G_TRANSFERT_QUEUE);
 	vkGetDeviceQueue(G_LOGICAL_DEVICE, G_QUEUE_FAMILY_INDICES.graphicsFamily.value(), 0, &G_GRAPHIC_QUEUE);
 	vkGetDeviceQueue(G_LOGICAL_DEVICE, G_QUEUE_FAMILY_INDICES.presentFamily.value(), 0, &G_PRESENT_QUEUE);
 
@@ -367,53 +363,14 @@ void Rendering::Initialization::CreateDefaultObjects()
 	LOG("Create default objects");
 
 	/** Default texture */
-	G_DEFAULT_TEXTURE = TAssetFactory<Texture2D>::ImportFromPath(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultTexturePath", "Ressources/Textures/DefaultTexture.png"));
+	Texture2D::CreateDefaultRessources();
 
 	G_DEFAULT_VERTEX_MODULE = TAssetFactory<ShaderModule>::ImportFromPath(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultVertexShaderPath", "Shaders/DefaultShader.vert.spv"));
 	G_DEFAULT_FRAGMENT_MODULE = TAssetFactory<ShaderModule>::ImportFromPath(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultFragmentShaderPath", "Shaders/DefaultShader.frag.spv"));
 
-	/** Default material */
-	SMaterialStaticProperties defaultMaterialProperties{};
-	defaultMaterialProperties.bUseGlobalUbo = true;
-	defaultMaterialProperties.vertexShaderModule = G_DEFAULT_VERTEX_MODULE;
-	defaultMaterialProperties.fragmentShaderModule = G_DEFAULT_FRAGMENT_MODULE;
-	defaultMaterialProperties.VertexTexture2DCount = 0;
-	defaultMaterialProperties.FragmentTexture2DCount = 3;
-	defaultMaterialProperties.materialCreationFlag = EMATERIAL_CREATION_FLAG_NONE;
+	Material::CreateDefaultRessources();
 
-	SMaterialDynamicProperties defaultMaterialDynProperties{};
-	defaultMaterialDynProperties.fragmentTextures2D.push_back(G_DEFAULT_TEXTURE);
-	defaultMaterialDynProperties.fragmentTextures2D.push_back(G_DEFAULT_TEXTURE);
-	defaultMaterialDynProperties.fragmentTextures2D.push_back(G_DEFAULT_TEXTURE);
-	G_DEFAULT_MATERIAL = TAssetFactory<Material>::CreateFromData(defaultMaterialProperties, "DefaultMaterial", defaultMaterialDynProperties);
 
-	/** Wireframe material */
-	SMaterialStaticProperties wireframeMaterialProperties {};
-	wireframeMaterialProperties.bUseGlobalUbo = true;
-	wireframeMaterialProperties.vertexShaderModule = TAssetFactory<ShaderModule>::ImportFromPath(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "WireframeVertexShaderPath", "Shaders/WireframeShader.vert.spv"));
-	wireframeMaterialProperties.fragmentShaderModule = TAssetFactory<ShaderModule>::ImportFromPath(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "WireframeFragmentShaderPath", "Shaders/WireframeShader.frag.spv"));
-	wireframeMaterialProperties.VertexTexture2DCount = 0;
-	wireframeMaterialProperties.FragmentTexture2DCount = 0;
-	wireframeMaterialProperties.materialCreationFlag = EMATERIAL_CREATION_FLAG_WIREFRAME | EMATERIAL_CREATION_FLAG_DOUBLESIDED;
-	G_MATERIAL_WIREFRAME = TAssetFactory<Material>::CreateFromData(wireframeMaterialProperties, "WireframeMaterial");
-
-}
-
-void Rendering::Initialization::CreateCommandPool()
-{
-	LOG("Create command pool");
-
-	VkCommandPoolCreateInfo poolInfo{};
-	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	poolInfo.queueFamilyIndex = G_QUEUE_FAMILY_INDICES.graphicsFamily.value();
-	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT; // Optional
-	VK_ENSURE(vkCreateCommandPool(G_LOGICAL_DEVICE, &poolInfo, G_ALLOCATION_CALLBACK, &G_COMMAND_POOL), "Failed to create command pool");
-}
-
-void Rendering::Initialization::DestroyCommandPool()
-{
-	LOG("Destroy command pool");
-	vkDestroyCommandPool(G_LOGICAL_DEVICE, G_COMMAND_POOL, G_ALLOCATION_CALLBACK);
 }
 
 void Rendering::Initialization::Draw()

@@ -21,7 +21,7 @@ namespace Rendering
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
 	private:
-
+		inline static std::mutex ressourceAccessorMutex;
 		bool bShouldDestroy;
 		inline static std::vector<Ressource*> ressources;
 	};

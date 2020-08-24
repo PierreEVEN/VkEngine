@@ -7,6 +7,7 @@
 namespace Rendering {
 
 	struct MeshRessource;
+	class ViewportInstance;
 
 	REFLECT()
 		class StaticMesh : public Asset {
@@ -17,11 +18,17 @@ namespace Rendering {
 
 			virtual ~StaticMesh();
 
-			inline std::vector<SMeshSectionData>& GetSectionData() { return sectionDatas; }
-
 			virtual Texture2D* GetAssetIcon() const;
 
+
+			void PreDraw(ViewportInstance* writeViewport, const size_t& imageIndex);
+
+			void Draw(VkCommandBuffer& inCommandBuffer, ViewportInstance* viewport, const size_t& imageIndex, Mat4f objectTransform);
+
+
 		private:
+
+			static void CreateMeshRessource(SMeshSectionData* inSectionDatas);
 
 			inline static Texture2D* staticMeshIcon = nullptr;
 
@@ -29,7 +36,7 @@ namespace Rendering {
 			std::vector<SMeshSectionData> sectionDatas;
 
 
-			StaticMesh(const std::vector<SMeshSectionData>& inSectionDatas, const String& assetName);
+			StaticMesh(const std::vector<SMeshSectionData>& inSectionDatas, const String& assetName, bool bLoadAsync = true);
 
 	};
 

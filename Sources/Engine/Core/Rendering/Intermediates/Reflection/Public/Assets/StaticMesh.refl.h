@@ -1,4 +1,4 @@
-//VERSION : Thursday, 20 August 2020 18:45:09
+//VERSION : Sunday, 23 August 2020 23:34:45
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 
@@ -21,7 +21,7 @@ namespace Rendering
 {
 	class StaticMesh; // Forward declaration
 
-	#define _REFLECTION_BODY_RUID_4_LINE_13 REFL_DECLARE_CLASS(StaticMesh)
+	#define _REFLECTION_BODY_RUID_4_LINE_14 REFL_DECLARE_CLASS(StaticMesh)
 
 	REFL_DECLARE_TYPENAME(StaticMesh); // Declare typename
 

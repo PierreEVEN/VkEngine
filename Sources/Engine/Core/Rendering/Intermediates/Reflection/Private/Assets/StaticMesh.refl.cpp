@@ -1,4 +1,4 @@
-//VERSION : Thursday, 20 August 2020 18:45:09
+//VERSION : Sunday, 23 August 2020 23:34:45
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 #include "C:/Users/pierre/Documents/Engine/Sources/Engine/Core/Rendering/Sources/Public\Assets\StaticMesh.h"

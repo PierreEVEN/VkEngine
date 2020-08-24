@@ -23,39 +23,33 @@ VKAPI_ATTR VkBool32 VKAPI_CALL ValidationLayerDebugCallback(VkDebugUtilsMessageS
 	return VK_FALSE;
 }
 
-void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
-	createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-	createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT/* | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT*/;
-	createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-	createInfo.pfnUserCallback = ValidationLayerDebugCallback;
-}
-
-void Rendering::LinkValidationLayers(VkInstanceCreateInfo& createInfos)
+void Rendering::ValidationLayers::LinkValidationLayers(VkInstanceCreateInfo& createInfos)
 {
-	VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
-
 	createInfos.enabledLayerCount = static_cast<uint32_t>(G_REQUIRED_VALIDATION_LAYERS.size());
 	createInfos.ppEnabledLayerNames = G_REQUIRED_VALIDATION_LAYERS.data();
-
-	PopulateDebugMessengerCreateInfo(debugCreateInfo);
-	createInfos.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
 
 	LOG("Linked validation layers");
 }
 
-void Rendering::CreateValidationLayers()
+VkDebugUtilsMessengerCreateInfoEXT Rendering::ValidationLayers::PopulateDebugMessengerCreateInfo()
+{
+	VkDebugUtilsMessengerCreateInfoEXT createInfo{};
+	createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+	createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT/* | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT*/;
+	createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+	createInfo.pfnUserCallback = ValidationLayerDebugCallback;
+	return createInfo;
+}
+
+void Rendering::ValidationLayers::CreateValidationLayers()
 {
 	if (!G_ENABLE_VALIDATION_LAYERS.GetValue()) return;
 
 	LOG("Create validation layer");
 
-	VkDebugUtilsMessengerCreateInfoEXT createInfo;
-	PopulateDebugMessengerCreateInfo(createInfo);
-
 	auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(G_INSTANCE, "vkCreateDebugUtilsMessengerEXT");
 	if (func != nullptr) {
-		if (func(G_INSTANCE, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
+		if (func(G_INSTANCE, &PopulateDebugMessengerCreateInfo(), nullptr, &debugMessenger) != VK_SUCCESS)
 		{
 			LOG_ASSERT("Failed to create debug messenger");
 		}
@@ -65,7 +59,7 @@ void Rendering::CreateValidationLayers()
 	}
 }
 
-void Rendering::DestroyValidationLayers()
+void Rendering::ValidationLayers::DestroyValidationLayers()
 {
 	if (!G_ENABLE_VALIDATION_LAYERS.GetValue()) return;
 

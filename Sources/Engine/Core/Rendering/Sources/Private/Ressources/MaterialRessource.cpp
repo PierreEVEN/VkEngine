@@ -257,7 +257,7 @@ void Rendering::MaterialRessourceItem::Draw(VkCommandBuffer commandBuffer, Viewp
 void Rendering::MaterialRessourceItem::UpdateDescriptorSets(ViewportInstance* drawViewport)
 {
 	if (dynamicMaterialProperties.vertexTextures2D.size() != staticMaterialProperties.VertexTexture2DCount) {
-		LOG_ASSERT("Vertex texure number should be the same than material properties VertexTexture2DCount");
+		LOG_ASSERT("Vertex texure number (" + ToString(dynamicMaterialProperties.vertexTextures2D.size()) + ") should be the same than material properties VertexTexture2DCount (" + ToString(staticMaterialProperties.VertexTexture2DCount) + ")");
 	}
 
 	if (dynamicMaterialProperties.fragmentTextures2D.size() != staticMaterialProperties.FragmentTexture2DCount) {

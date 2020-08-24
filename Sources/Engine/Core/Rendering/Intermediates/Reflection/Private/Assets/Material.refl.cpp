@@ -1,4 +1,4 @@
-//VERSION : Friday, 21 August 2020 14:59:04
+//VERSION : Sunday, 23 August 2020 23:22:15
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 #include "C:/Users/pierre/Documents/Engine/Sources/Engine/Core/Rendering/Sources/Public\Assets\Material.h"

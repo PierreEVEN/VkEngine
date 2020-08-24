@@ -20,7 +20,7 @@ void Rendering::Importers::GltfImporter::FillJsonData(const String& filePath)
 	char* line = new char[1000];
 	while (inputFile.getline(line, 1000, '\n'))
 		fileString += line;
-	delete line;
+	free(line);
 
 	rapidjson::Document d;
 	d.Parse(fileString.GetData());
@@ -31,7 +31,7 @@ void Rendering::Importers::GltfImporter::FillJsonData(const String& filePath)
 	scenes.resize(scenesarray.Size());
 	for (rapidjson::SizeType i = 0; i < scenesarray.Size(); ++i) {
 		scenes[i] = GltfScene(scenesarray[i]);
-	}
+	}	
 
 	const rapidjson::Value& nodesArray = d["nodes"];
 	nodes.resize(nodesArray.Size());
@@ -39,10 +39,12 @@ void Rendering::Importers::GltfImporter::FillJsonData(const String& filePath)
 		nodes[i] = GltfNode(nodesArray[i]);
 	}
 
-	const rapidjson::Value& meshesArray = d["meshes"];
-	meshes.resize(meshesArray.Size());
-	for (rapidjson::SizeType i = 0; i < meshesArray.Size(); ++i) {
-		meshes[i] = GLtfMesh(meshesArray[i], this);
+	if (d.HasMember("meshes")) {
+		const rapidjson::Value& meshesArray = d["meshes"];
+		meshes.resize(meshesArray.Size());
+		for (rapidjson::SizeType i = 0; i < meshesArray.Size(); ++i) {
+			meshes[i] = GLtfMesh(meshesArray[i], this);
+		}
 	}
 
 	const rapidjson::Value& accessorArray = d["accessors"];
@@ -63,7 +65,6 @@ void Rendering::Importers::GltfImporter::FillJsonData(const String& filePath)
 		images[i] = GltfImage(imagesArray[i], filePath);
 	}
 
-	
 	const rapidjson::Value& bufferViewArray = d["bufferViews"];
 	bufferViews.resize(bufferViewArray.Size());
 	for (rapidjson::SizeType i = 0; i < bufferViewArray.Size(); ++i) {
@@ -128,7 +129,7 @@ std::vector<Rendering::SMeshSectionData> Rendering::Importers::GltfImporter::Get
 			newItem.materialLink = materials[primitive.material].GetMaterial();
 		}
 		else {
-			newItem.materialLink = G_DEFAULT_MATERIAL;
+			newItem.materialLink = Material::GetDefaultMaterial();
 		}
 
 		output.push_back(newItem);
@@ -142,9 +143,10 @@ std::vector<Rendering::SMeshSectionData> Rendering::Importers::GltfImporter::Get
 
 Rendering::Importers::GltfAssetData::GltfAssetData(const rapidjson::Value& source)
 {
-	if (source["generator"].IsString()) generator = source["generator"].GetString();
-	if (source["version"].IsString()) version = source["version"].GetString();
-	if (source["copyright"].IsString()) copyright = source["copyright"].GetString();
+
+	if (source.HasMember("generator")) generator = source["generator"].GetString();
+	if (source.HasMember("version")) version = source["version"].GetString();
+	if (source.HasMember("copyright")) copyright = source["copyright"].GetString();
 }
 
 
@@ -158,9 +160,9 @@ Rendering::Importers::GltfScene::GltfScene(const rapidjson::Value& source) {
 
 Rendering::Importers::GltfNode::GltfNode(const rapidjson::Value& source)
 {
-	if (source["mesh"].IsInt()) mesh = source["mesh"].GetInt();
+	if (source.HasMember("mesh")) mesh = source["mesh"].GetInt();
 
-	if (source["children"].IsArray())
+		if (source.HasMember("children"))
 	{
 		const rapidjson::Value& childrenArray = source["children"];
 		children.resize(childrenArray.Size());
@@ -169,7 +171,7 @@ Rendering::Importers::GltfNode::GltfNode(const rapidjson::Value& source)
 		}
 	}
 
-	if (source["matrix"].IsArray()) {
+	if (source.HasMember("matrix")) {
 		const rapidjson::Value& matrixArray = source["matrix"];
 		for (rapidjson::SizeType i = 0; i < 16; ++i) {
 			nodeMatrix.coords[i] = matrixArray[i].GetDouble();
@@ -179,19 +181,19 @@ Rendering::Importers::GltfNode::GltfNode(const rapidjson::Value& source)
 		SVectorDouble position;
 		SQuatd rotation;
 		SVectorDouble scale(1);
-		if (source["translation"].IsArray()) {
+			if (source.HasMember("translation")) {
 			const rapidjson::Value& translationArray = source["translation"];
 			for (rapidjson::SizeType i = 0; i < 3; ++i) {
 				position.coords[i] = translationArray[i].GetDouble();
 			}
 		}
-		if (source["rotation"].IsArray()) {
+		if (source.HasMember("rotation")) {
 			const rapidjson::Value& rotationArray = source["rotation"];
 			for (rapidjson::SizeType i = 0; i < 4; ++i) {
 				rotation.coords[i] = rotationArray[i].GetDouble();
 			}
 		}
-		if (source["scale"].IsArray()) {
+		if (source.HasMember("scale")) {
 			const rapidjson::Value& scaleArray = source["scale"];
 			for (rapidjson::SizeType i = 0; i < 3; ++i) {
 				scale.coords[i] = scaleArray[i].GetDouble();
@@ -204,25 +206,27 @@ Rendering::Importers::GltfNode::GltfNode(const rapidjson::Value& source)
 
 Rendering::Importers::GLtfMesh::GLtfMesh(const rapidjson::Value& source, GltfImporter* inParent)
 {
-	name = source["name"].GetString();
-	const rapidjson::Value& primitiveArray = source["primitives"];
-	primitives.resize(primitiveArray.Size());
-	for (rapidjson::SizeType i = 0; i < primitiveArray.Size(); ++i) {
-		primitives[i] = GltfPrimitive(primitiveArray[i], inParent);
+	if (source.HasMember("source")) name = source["name"].GetString();
+	if (source.HasMember("primitives")) {
+		const rapidjson::Value& primitiveArray = source["primitives"];
+		primitives.resize(primitiveArray.Size());
+		for (rapidjson::SizeType i = 0; i < primitiveArray.Size(); ++i) {
+			primitives[i] = GltfPrimitive(primitiveArray[i], inParent);
+		}
 	}
 }
 
 Rendering::Importers::GltfPrimitive::GltfPrimitive(const rapidjson::Value& source, GltfImporter* inParent)
 	: parent(inParent)
 {
-	if (source["attributes"]["POSITION"].IsInt()) attributePosition = source["attributes"]["POSITION"].GetInt();
-	if (source["attributes"]["NORMAL"].IsInt()) attributeNormal = source["attributes"]["NORMAL"].GetInt();
-	if (source["attributes"]["TEXCOORD_0"].IsInt()) attributeTexCoord = source["attributes"]["TEXCOORD_0"].GetInt();
-	if (source["attributes"]["TANGENT"].IsInt()) attributeTangent = source["attributes"]["TANGENT"].GetInt();
+	if (source.HasMember("attributes") && source["attributes"].HasMember("POSITION")) attributePosition = source["attributes"]["POSITION"].GetInt();
+	if (source.HasMember("attributes") && source["attributes"].HasMember("NORMAL")) attributeNormal = source["attributes"]["NORMAL"].GetInt();
+	if (source.HasMember("attributes") && source["attributes"].HasMember("TEXCOORD_0")) attributeTexCoord = source["attributes"]["TEXCOORD_0"].GetInt();
+	if (source.HasMember("attributes") && source["attributes"].HasMember("TANGENT")) attributeTangent = source["attributes"]["TANGENT"].GetInt();
 
-	if (source["indices"].IsInt()) indices = source["indices"].GetInt();
-	if (source["mode"].IsInt()) mode = source["mode"].GetInt();
-	if (source["material"].IsInt()) material = source["material"].GetInt();
+	if (source.HasMember("indices")) indices = source["indices"].GetInt();
+	if (source.HasMember("mode")) mode = source["mode"].GetInt();
+	if (source.HasMember("material")) material = source["material"].GetInt();
 }
 
 void Rendering::Importers::GltfPrimitive::LoadData()
@@ -287,10 +291,10 @@ void Rendering::Importers::GltfPrimitive::LoadData()
 Rendering::Importers::GLtfMaterial::GLtfMaterial(const rapidjson::Value& source, GltfImporter* inParent, size_t myIndex)
 	: parent(inParent)
 {
-	if (source["pbrMetallicRoughness"]["baseColorTexture"]["index"].IsInt()) baseColorIndex = source["pbrMetallicRoughness"]["baseColorTexture"]["index"].GetInt();
-	if (source["pbrMetallicRoughness"]["metallicRoughnessTexture"]["index"].IsInt()) metallicRoughnessIndex = source["pbrMetallicRoughness"]["metallicRoughnessTexture"]["index"].GetInt();
-	if (source["normalTexture"]["index"].IsInt()) normalTextureIndex = source["normalTexture"]["index"].GetInt();
-	if (source["name"].IsString()) name = source["name"].GetString();
+	if (source.HasMember("pbrMetallicRoughness") && source["pbrMetallicRoughness"].HasMember("baseColorTexture") && source["pbrMetallicRoughness"]["baseColorTexture"].HasMember("index")) baseColorIndex = source["pbrMetallicRoughness"]["baseColorTexture"]["index"].GetInt();
+	if (source.HasMember("pbrMetallicRoughness") && source["pbrMetallicRoughness"].HasMember("metallicRoughnessTexture") && source["pbrMetallicRoughness"]["metallicRoughnessTexture"].HasMember("index")) metallicRoughnessIndex = source["pbrMetallicRoughness"]["metallicRoughnessTexture"]["index"].GetInt();
+	if (source.HasMember("normalTexture") && source["normalTexture"].HasMember("index")) normalTextureIndex = source["normalTexture"]["index"].GetInt();
+	if (source.HasMember("name")) name = source["name"].GetString();
 	else name = String::GetFileShortName(parent->GetPath()) + "_material_" + ToString(myIndex);
 }
 
@@ -298,7 +302,7 @@ Rendering::Material* Rendering::Importers::GLtfMaterial::GetMaterial()
 {
 	if (selectedMaterial) return selectedMaterial;
 	if (bImport) return CreateMaterial();
-	return G_DEFAULT_MATERIAL;
+	return Material::GetDefaultMaterial();
 }
 
 Rendering::Material* Rendering::Importers::GLtfMaterial::CreateMaterial()
@@ -320,7 +324,7 @@ Rendering::Material* Rendering::Importers::GLtfMaterial::CreateMaterial()
 			);
 	}
 	else {
-		defaultMaterialDynProperties.fragmentTextures2D.push_back(G_DEFAULT_TEXTURE);
+		defaultMaterialDynProperties.fragmentTextures2D.push_back(Texture2D::GetDefaultTexture());
 	}
 	if (metallicRoughnessIndex >= 0) {
 		defaultMaterialDynProperties.fragmentTextures2D.push_back(
@@ -328,7 +332,7 @@ Rendering::Material* Rendering::Importers::GLtfMaterial::CreateMaterial()
 		);
 	}
 	else {
-		defaultMaterialDynProperties.fragmentTextures2D.push_back(G_DEFAULT_TEXTURE);
+		defaultMaterialDynProperties.fragmentTextures2D.push_back(Texture2D::GetDefaultTexture());
 	}
 	if (normalTextureIndex >= 0) {
 		defaultMaterialDynProperties.fragmentTextures2D.push_back(
@@ -336,40 +340,39 @@ Rendering::Material* Rendering::Importers::GLtfMaterial::CreateMaterial()
 		);
 	}
 	else {
-		defaultMaterialDynProperties.fragmentTextures2D.push_back(G_DEFAULT_TEXTURE);
+		defaultMaterialDynProperties.fragmentTextures2D.push_back(Texture2D::GetDefaultTexture());
 	}
-
 	return  TAssetFactory<Material>::MakeTransient(TAssetFactory<Material>::CreateFromData(defaultMaterialProperties, name, defaultMaterialDynProperties));
 }
 
 Rendering::Importers::GltfBufferView::GltfBufferView(const rapidjson::Value& source)
 {
-	if (source["buffer"].IsInt()) buffer = source["buffer"].GetInt();
-	if (source["byteOffset"].IsInt()) byteOffset = source["byteOffset"].GetInt();
-	if (source["byteLength"].IsInt()) byteLength = source["byteLength"].GetInt();
-	if (source["byteStride"].IsInt()) byteStride = source["byteStride"].GetInt();
-	if (source["target"].IsInt()) target = source["target"].GetInt();
+	if (source.HasMember("buffer")) buffer = source["buffer"].GetInt();
+	if (source.HasMember("byteOffset")) byteOffset = source["byteOffset"].GetInt();
+	if (source.HasMember("byteLength")) byteLength = source["byteLength"].GetInt();
+	if (source.HasMember("byteStride")) byteStride = source["byteStride"].GetInt();
+	if (source.HasMember("target")) target = source["target"].GetInt();
 }
 
 
 Rendering::Importers::GltfBuffer::GltfBuffer(const rapidjson::Value& source, const String& sourceFilePath)
 	: sourcePath(sourceFilePath)
 {
-	if (source["byteLength"].IsInt()) byteLength = source["byteLength"].GetInt();
-	if (source["uri"].GetString()) uri = source["uri"].GetString();
+	if (source.HasMember("byteLength")) byteLength = source["byteLength"].GetInt();
+	if (source.HasMember("uri")) uri = source["uri"].GetString();
 }
 
 Rendering::Importers::GltfAccessor::GltfAccessor(const rapidjson::Value& source)
 {
 
-	if (source["bufferView"].IsInt()) bufferView = source["bufferView"].GetInt();
-	if (source["byteOffset"].IsInt()) byteOffset = source["byteOffset"].GetInt();
-	if (source["componentType"].IsInt()) componentType = source["componentType"].GetInt();
-	if (source["count"].IsInt()) count = source["count"].GetInt();
-	if (source["count"].IsInt()) count = source["count"].GetInt();
-	if (source["type"].IsString()) type = source["type"].GetString();
+	if (source.HasMember("bufferView")) bufferView = source["bufferView"].GetInt();
+	if (source.HasMember("byteOffset")) byteOffset = source["byteOffset"].GetInt();
+	if (source.HasMember("componentType")) componentType = source["componentType"].GetInt();
+	if (source.HasMember("count")) count = source["count"].GetInt();
+	if (source.HasMember("count")) count = source["count"].GetInt();
+	if (source.HasMember("type")) type = source["type"].GetString();
 
-	if (source["max"].IsArray())
+	if (source.HasMember("max"))
 	{
 		const rapidjson::Value& maxArray = source["max"];
 		max.resize(maxArray.Size());
@@ -378,7 +381,7 @@ Rendering::Importers::GltfAccessor::GltfAccessor(const rapidjson::Value& source)
 		}
 	}
 
-	if (source["min"].IsArray())
+	if (source.HasMember("min"))
 	{
 		const rapidjson::Value& minArray = source["min"];
 		min.resize(minArray.Size());
@@ -391,15 +394,15 @@ Rendering::Importers::GltfAccessor::GltfAccessor(const rapidjson::Value& source)
 Rendering::Importers::GltfImage::GltfImage(const rapidjson::Value& source, const String& inFilePath)
 	: filePath(inFilePath)
 {
-	if (source["uri"].IsString()) uri = source["uri"].GetString();
-	if (source["mimeType"].IsString()) mimeType = source["mimeType"].GetString();
+	if (source.HasMember("uri")) uri = source["uri"].GetString();
+	if (source.HasMember("mimeType")) mimeType = source["mimeType"].GetString();
 }
 
 Rendering::Texture2D* Rendering::Importers::GltfImage::GetTexture()
 {
 	if (linkedTexture) return linkedTexture;
 	else if (bImportTexture) return ImportTexture();
-	return G_DEFAULT_TEXTURE;
+	return Texture2D::GetDefaultTexture();
 }
 
 Rendering::Texture2D* Rendering::Importers::GltfImage::ImportTexture()
@@ -409,7 +412,7 @@ Rendering::Texture2D* Rendering::Importers::GltfImage::ImportTexture()
 
 Rendering::Importers::GltfTexture::GltfTexture(const rapidjson::Value& source)
 {
-	if (source["source"].IsInt()) sourceId = source["source"].GetInt();
+	if (source.HasMember("source")) sourceId = source["source"].GetInt();
 }
 
 /************************************************************************/

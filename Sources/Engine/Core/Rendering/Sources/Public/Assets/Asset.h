@@ -44,14 +44,14 @@ namespace Rendering {
 			}
 
 			inline virtual Texture2D* GetAssetIcon() const { return UIRessources::defaultAssetIcon; }
-			inline virtual Texture2D* GetThumbnail() const { return assetThumnail; }
+			inline virtual Texture2D* GetThumbnail() const { return assetThumbnail; }
 			inline bool IsTransient() const { return bIsTransient; }
 
 		protected:
 
 			virtual void MakeConstant() { bIsTransient = false; }
 
-			Texture2D* assetThumnail = nullptr;
+			Texture2D* assetThumbnail = nullptr;
 
 		private:
 

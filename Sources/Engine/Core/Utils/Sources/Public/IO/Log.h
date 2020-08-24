@@ -6,7 +6,12 @@
 #define LOG(text) Logger::LogDetailed(ToString(text), LogVerbosity::VERB_DISPLAY, __LINE__, ##__FUNCTION__)
 #define LOG_ERROR(text) Logger::LogDetailed(ToString(text), LogVerbosity::VERB_ERROR, __LINE__, ##__FUNCTION__)
 #define LOG_WARNING(text) Logger::LogDetailed(ToString(text), LogVerbosity::VERB_WARNING, __LINE__, ##__FUNCTION__)
-#define LOG_ASSERT(text) Logger::LogDetailedFull(ToString(text), LogVerbosity::VERB_ASSERT, __LINE__, ##__FUNCTION__, ##__FILE__); exit(1);
+
+#if _DEBUG
+	#define LOG_ASSERT(text) { Logger::LogDetailedFull(ToString(text), LogVerbosity::VERB_ASSERT, __LINE__, ##__FUNCTION__, ##__FILE__); __debugbreak(); exit(1); }
+#else
+	#define LOG_ASSERT(text) { Logger::LogDetailedFull(ToString(text), LogVerbosity::VERB_ASSERT, __LINE__, ##__FUNCTION__, ##__FILE__); exit(1); }
+#endif
 
 enum class LogVerbosity
 {

@@ -17,6 +17,7 @@ void Rendering::ContentBrowser::DrawContent(const size_t& imageIndex)
 			ImGui::Image(asset->GetThumbnail()->GetTextureID(imageIndex), ImVec2(100, 100));
 			ImGui::SameLine();
 		}
+
 		ImGui::Image(asset->GetAssetIcon()->GetTextureID(imageIndex), ImVec2(24, 24));
 		ImGui::SameLine();
 		if (asset->GetClass() == StaticMesh::GetStaticClass()) {
@@ -27,15 +28,6 @@ void Rendering::ContentBrowser::DrawContent(const size_t& imageIndex)
 		else {
 			ImGui::Text(String(asset->GetName().GetData()).GetData());
 		}
-
-
-// 		if (currentWidth + itemWidth > width) {
-// 			currentWidth = 0;
-// 		}
-// 		else {
-// 			ImGui::SameLine();
-// 			currentWidth += itemWidth;
-// 		}
 
 	}
 }

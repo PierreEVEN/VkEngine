@@ -20,23 +20,32 @@ namespace Rendering {
 			void PreDraw(ViewportInstance* writeViewport, const size_t& imageIndex);
 			void Draw(VkCommandBuffer commandBuffer, ViewportInstance* writeViewport, const size_t& imageIndex);
 
-			virtual Texture2D* GetAssetIcon() const;
-			inline VkPipelineLayout& GetPipelineLayout() { return materialRessource->GetPipelineLayout(); }
+			inline virtual Texture2D* GetAssetIcon() const { return materialIcon; }
+			inline VkPipelineLayout& GetPipelineLayout() { return materialRessource ? materialRessource->GetPipelineLayout() : defaultMaterialRessource->GetPipelineLayout(); }
 
+
+			inline static Material* GetDefaultMaterial() { return defaultMaterial; }
+			static void CreateDefaultRessources();
 		private:
 
-			Material(const SMaterialStaticProperties& inMaterialProperties, const String& assetName, const SMaterialDynamicProperties& inMaterialDynamicProperties = {});
+			static void CreateMaterialRessource(MaterialRessourceItem** outMaterial, const SMaterialStaticProperties inMaterialProperties, const SMaterialDynamicProperties inMaterialDynamicProperties);
 
+			bool bUseDefaultRessourceThisFrame;
+
+			inline static Material* defaultMaterial = nullptr;
+			inline static MaterialRessourceItem* defaultMaterialRessource = nullptr;
 			inline static Texture2D* materialIcon = nullptr;
+
+			Material(const SMaterialStaticProperties& inMaterialProperties, const String& assetName, const SMaterialDynamicProperties& inMaterialDynamicProperties = {}, bool bLoadAsync = true);
+
 
 			/** Material properties */
 			const SMaterialDynamicProperties materialDynamicProperties;
 			const SMaterialStaticProperties materialProperties;
 
 			/** Material ressources */
-			MaterialRessourceItem* materialRessource;
+			MaterialRessourceItem* materialRessource = nullptr;
 	};
-
 
 	template<>
 	struct TAssetFactory<Material> {

@@ -7,6 +7,10 @@
 #include "rapidjson/stringbuffer.h"
 #include "Ressources/MeshRessource.h"
 
+namespace Rendering {
+	class Texture2D;
+}
+
 namespace Rendering::Importers
 {
 	class GltfImporter;
@@ -92,7 +96,7 @@ namespace Rendering::Importers
 		Material* GetMaterial();
 
 		bool bImport = false;
-		Material* selectedMaterial;
+		Material* selectedMaterial = nullptr;
 
 		inline void OnSelectedMaterial(Material* selectedAsset) { selectedMaterial = selectedAsset; }
 

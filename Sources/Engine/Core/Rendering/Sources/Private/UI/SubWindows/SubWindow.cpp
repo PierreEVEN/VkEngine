@@ -70,12 +70,12 @@ void Rendering::SubWindow::Draw(const size_t& imageIndex)
 	if (bRenderInParent && parent) {
 		if (ImGui::BeginChild((windowName + "##" + ToString(myWindowId)).GetData(), ImGui::GetContentRegionAvail(), true, ImGuiWindowFlags_MenuBar))
 		{
-			if (ImGui::BeginMenuBar())
-			{
+			if (ImGui::BeginMenuBar()) {
 				ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvail().x / 2.f - ImGui::CalcTextSize(windowName.GetData()).x / 2.f, 0));
 				ImGui::Text(windowName.GetData());
 				ImGui::EndMenuBar();
 			}
+
 			for (auto& child : childs) {
 				if (child->bRenderInParent) {
 					child->Draw(imageIndex);
@@ -83,8 +83,8 @@ void Rendering::SubWindow::Draw(const size_t& imageIndex)
 			}
 
 			DrawContent(imageIndex);
-			ImGui::End();
 		}
+		ImGui::EndChild();
 	}
 	else
 	{
@@ -99,9 +99,8 @@ void Rendering::SubWindow::Draw(const size_t& imageIndex)
 					child->Draw(imageIndex);
 				}
 			}
-
-			ImGui::End();
 		}
+		ImGui::End();
 	}
 
 	

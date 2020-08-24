@@ -13,22 +13,29 @@ namespace Rendering {
 
 			friend struct TAssetFactory<Texture2D>;
 
-			inline VkImageView& GetImageView() { return ressource->GetImageView(); }
-			inline VkSampler& GetSampler() { return ressource->GetSampler(); }
-			inline ImTextureID GetTextureID(const size_t& imageIndex) { return ressource->GetTextureID(imageIndex); }
+			inline VkImageView& GetImageView() { return ressource ? ressource->GetImageView() : defaultTextureRessource->GetImageView(); }
+			inline VkSampler& GetSampler() { return ressource ? ressource->GetSampler() : defaultTextureRessource->GetSampler(); }
+			inline ImTextureID GetTextureID(const size_t& imageIndex) { return ressource ? ressource->GetTextureID(imageIndex) : defaultTextureRessource->GetTextureID(imageIndex); }
 
-			virtual Texture2D* GetAssetIcon() const;
+			static void CreateDefaultRessources();
+
+			inline virtual Texture2D* GetAssetIcon() const { return texture2DIcon; }
+			inline static Texture2D* GetDefaultTexture() { return defaultTexture2D; }
 
 		private:
 
 			inline static Texture2D* texture2DIcon = nullptr;
+			inline static Texture2D* defaultTexture2D = nullptr;
+			inline static TextureRessource* defaultTextureRessource = nullptr;
 
-			Texture2D(const String& filePath);
-			Texture2D(unsigned char* textureData, SIntVector2D imageResolution, uint8_t channelsCount, const String& fileName);
+			Texture2D(const String& filePath, bool bLoadAsync = true);
+			Texture2D(unsigned char* textureData, SIntVector2D imageResolution, uint8_t channelsCount, const String& fileName, bool bLoadAsync = true);
 
 			static Texture2D* ImportFromPath(const String& path);
+			inline static void CreateRessource(TextureRessource** inRessource, unsigned char* textureData, SIntVector2D imageResolution, uint8_t channelsCount);
+			inline static void LoadFromPath(TextureRessource** inRessource, const String& path);
 
-			TextureRessource* ressource;
+			TextureRessource* ressource = nullptr;
 	};
 
 	template<>

@@ -2,10 +2,11 @@
 
 #include "Constants.h"
 
-namespace Rendering
+namespace Rendering::ValidationLayers
 {
 	void LinkValidationLayers(VkInstanceCreateInfo& createInfos);
 
+	VkDebugUtilsMessengerCreateInfoEXT PopulateDebugMessengerCreateInfo();
 	void CreateValidationLayers();
 	void DestroyValidationLayers();
 }

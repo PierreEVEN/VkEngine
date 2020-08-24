@@ -38,6 +38,7 @@ namespace Rendering
 	struct QueueFamilyIndices {
 		QueueFamilyIndices() {}
 		std::optional<uint32_t> graphicsFamily;
+		std::optional<uint32_t> transfertFamily;
 		std::optional<uint32_t> presentFamily;
 		inline bool IsComplete() { return graphicsFamily.has_value() && presentFamily.has_value(); }
 	};

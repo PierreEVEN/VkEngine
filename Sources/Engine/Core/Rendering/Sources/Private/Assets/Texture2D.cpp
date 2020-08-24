@@ -3,43 +3,68 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-Rendering::Texture2D* Rendering::Texture2D::GetAssetIcon() const
+
+void Rendering::Texture2D::CreateDefaultRessources()
 {
-	if (!texture2DIcon) {
-		texture2DIcon = TAssetFactory<Texture2D>::ImportFromPath("Ressources/Textures/Icons/Assets/icon-texture2D.png");
-	}
-	return texture2DIcon;
+	defaultTexture2D = new Texture2D(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultTexturePath", "Ressources/Textures/DefaultTexture.png"), false);
+	defaultTextureRessource = defaultTexture2D->ressource;
+	texture2DIcon = TAssetFactory<Texture2D>::ImportFromPath("Ressources/Textures/Icons/Assets/icon-texture2D.png");
 }
 
-Rendering::Texture2D::Texture2D(const String& filePath)
-	: Asset(filePath)
+void Rendering::Texture2D::CreateRessource(TextureRessource** inRessource, unsigned char* textureData, SIntVector2D imageResolution, uint8_t channelsCount)
+{
+	TextureRessource* createdRessource = new TextureRessource(textureData, imageResolution, channelsCount);
+	(*inRessource) = createdRessource;
+}
+
+void Rendering::Texture2D::LoadFromPath(TextureRessource** inRessource, const String& path)
 {
 	int texWidth, texHeight, texChannels;
-	stbi_uc* pixels = stbi_load(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultTexturePath", "Assets/DefaultTexture.png").GetData(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-
-	ressource = new TextureRessource(pixels, SIntVector2D(texWidth, texHeight), texChannels);
-
-	assetThumnail = this;
-}
-
-Rendering::Texture2D::Texture2D(unsigned char* textureData, SIntVector2D imageResolution, uint8_t channelsCount, const String& fileName)
-	: Asset(fileName)
-{
-	ressource = new TextureRessource(textureData, imageResolution, channelsCount);
-
-	assetThumnail = this;
-}
-
-Rendering::Texture2D* Rendering::Texture2D::ImportFromPath(const String& path) {
-
-	int texWidth, texHeight, texChannels;
-	if (stbi_uc * pixels = stbi_load(path.GetData(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha)) {
-		Texture2D* texture = new Texture2D(pixels, SIntVector2D(texWidth, texHeight), texChannels, String::GetFileShortName(path));
-		stbi_image_free(pixels);
-		return texture;
+	if (stbi_uc* pixels = stbi_load(path.GetData(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha)) {
+		CreateRessource(inRessource, pixels, SIntVector2D(texWidth, texHeight), texChannels);
 	}
 	else {
 		LOG_ERROR("Failed to import image from : " + path);
-		return nullptr;
+		inRessource = nullptr;
 	}
+}
+
+Rendering::Texture2D::Texture2D(const String& filePath, bool bLoadAsync)
+	: Asset(filePath)
+{
+	TextureRessource** textRessource = &ressource;
+
+	if (bLoadAsync) {
+		JobSystem::NewJob([textRessource, filePath]
+			{
+				Texture2D::LoadFromPath(textRessource, filePath);
+			});
+	}
+	else
+	{
+		LoadFromPath(&ressource, filePath);
+	}
+	assetThumbnail = this;
+}
+
+Rendering::Texture2D::Texture2D(unsigned char* textureData, SIntVector2D imageResolution, uint8_t channelsCount, const String& fileName, bool bLoadAsync)
+	: Asset(fileName)
+{
+	TextureRessource** textRessource = &ressource;
+
+	if (bLoadAsync) {
+		JobSystem::NewJob([textRessource, textureData, imageResolution, channelsCount]
+			{
+				Texture2D::CreateRessource(textRessource, textureData, imageResolution, channelsCount);
+			});
+	}
+	else
+	{
+		CreateRessource(&ressource, textureData, imageResolution, channelsCount);
+	}
+	assetThumbnail = this;
+}
+
+Rendering::Texture2D* Rendering::Texture2D::ImportFromPath(const String& path) {
+	return new Texture2D(path);
 }

@@ -41,25 +41,31 @@ void Rendering::Ressource::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, Vk
 
 Rendering::Ressource::Ressource() : bShouldDestroy(false) 
 {
+	ressourceAccessorMutex.lock();
 	ressources.push_back(this);
+	ressourceAccessorMutex.unlock();
 }
 
 Rendering::Ressource::~Ressource() {}
 
 void Rendering::Ressource::FlushRessources()
 {
+	ressourceAccessorMutex.lock();
 	for (int64_t i = ressources.size() - 1; i >= 0; --i) {
 		if (ressources[i]->bShouldDestroy) {
 			delete ressources[i];
 			ressources.erase(ressources.begin() + i);
 		}
 	}
+	ressourceAccessorMutex.unlock();
 }
 
 void Rendering::Ressource::FreeRessources()
 {
+	ressourceAccessorMutex.lock();
 	for (int64_t i = ressources.size() - 1; i >= 0; --i) {
 		delete ressources[i];
 	}
 	ressources.clear();
+	ressourceAccessorMutex.unlock();
 }

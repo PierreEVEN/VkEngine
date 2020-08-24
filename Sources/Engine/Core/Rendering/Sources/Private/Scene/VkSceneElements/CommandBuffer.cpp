@@ -1,5 +1,6 @@
 #include "Scene/VkSceneElements/CommandBuffer.h"
 #include "Scene/Scene.h"
+#include "CommandPool.h"
 
 Rendering::CommandBuffer::CommandBuffer(ViewportInstance* viewportInstance)
 {
@@ -16,7 +17,7 @@ void Rendering::CommandBuffer::CreateCommandBuffer(ViewportInstance* viewportIns
 	commandBuffers.resize(G_SWAP_CHAIN_IMAGE_COUNT);
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.commandPool = G_COMMAND_POOL;
+	allocInfo.commandPool = GetCommandPool();
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
 
@@ -25,6 +26,6 @@ void Rendering::CommandBuffer::CreateCommandBuffer(ViewportInstance* viewportIns
 
 void Rendering::CommandBuffer::DestroyCommandBuffer()
 {
-	vkFreeCommandBuffers(G_LOGICAL_DEVICE, G_COMMAND_POOL, static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
+	vkFreeCommandBuffers(G_LOGICAL_DEVICE, GetCommandPool(), static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
 }
 

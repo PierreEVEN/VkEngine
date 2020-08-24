@@ -27,20 +27,30 @@ function includeVMA()
 	includedirs(LibDir.."VulkanMemoryAllocator/src");
 end
 
-function includeObjLoad()
-	includedirs(LibDir.."tinyobjloader");
-end
-
-function includeGlm()
-	includedirs(LibDir.."glm")
-end
-
 function includeStb()
 	includedirs(LibDir.."stb")
 end
 
 function includeRapidJson()
 	includedirs(LibDir.."rapidjson/include/")
+end
+
+function includeShaderc()
+	includedirs(LibDir.."shaderc/libshaderc/include");
+	includedirs(LibDir.."shaderc/libshaderc_spvc/include");
+	includedirs(LibDir.."shaderc/libshaderc_util/include");
+	links(LibDir.."/Libs/Shaderc/Release/GenericCodeGen.lib")
+	links(LibDir.."/Libs/Shaderc/Release/glslang.lib")
+	links(LibDir.."/Libs/Shaderc/Release/HLSL.lib")
+	links(LibDir.."/Libs/Shaderc/Release/MachineIndependent.lib")
+	links(LibDir.."/Libs/Shaderc/Release/OGLCompiler.lib")
+	links(LibDir.."/Libs/Shaderc/Release/OSDependent.lib")
+	links(LibDir.."/Libs/Shaderc/Release/shaderc_util.lib")
+	
+	links(LibDir.."/Libs/Shaderc/Release/shaderc.lib")
+	links(LibDir.."/Libs/Shaderc/Release/SPIRV.lib")
+	links(LibDir.."/Libs/Shaderc/Release/SPIRV-Tools.lib")
+	links(LibDir.."/Libs/Shaderc/Release/SPIRV-Tools-opt.lib")
 end
 
 function includeVulkan()
@@ -51,11 +61,6 @@ function includeVulkan()
 	else
 		print("failed to find vulkan sdk path 'vulkan_sdk'")
 	end
-end
-
-function includeGaInput()
-	includedirs(LibDir.."gainput/lib/include")
-	links(LibDir.."/Libs/GaInput/Release/gainputstatic.lib")
 end
 
 function includeGlfw()

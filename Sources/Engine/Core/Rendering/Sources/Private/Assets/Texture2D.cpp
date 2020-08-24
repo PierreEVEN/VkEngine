@@ -32,9 +32,8 @@ void Rendering::Texture2D::LoadFromPath(TextureRessource** inRessource, const St
 Rendering::Texture2D::Texture2D(const String& filePath, bool bLoadAsync)
 	: Asset(filePath)
 {
-	TextureRessource** textRessource = &ressource;
-
 	if (bLoadAsync) {
+		TextureRessource** textRessource = &ressource;
 		JobSystem::NewJob([textRessource, filePath]
 			{
 				Texture2D::LoadFromPath(textRessource, filePath);
@@ -50,9 +49,9 @@ Rendering::Texture2D::Texture2D(const String& filePath, bool bLoadAsync)
 Rendering::Texture2D::Texture2D(unsigned char* textureData, SIntVector2D imageResolution, uint8_t channelsCount, const String& fileName, bool bLoadAsync)
 	: Asset(fileName)
 {
-	TextureRessource** textRessource = &ressource;
-
 	if (bLoadAsync) {
+		TextureRessource** textRessource = &ressource;
+
 		JobSystem::NewJob([textRessource, textureData, imageResolution, channelsCount]
 			{
 				Texture2D::CreateRessource(textRessource, textureData, imageResolution, channelsCount);

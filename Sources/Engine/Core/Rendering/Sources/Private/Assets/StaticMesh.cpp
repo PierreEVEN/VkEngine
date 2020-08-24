@@ -29,8 +29,6 @@ Rendering::StaticMesh::StaticMesh(const std::vector<SMeshSectionData>& inSection
 		}
 	}
 
-	LOG("elapsed time : " + ToString(std::chrono::nanoseconds(std::chrono::high_resolution_clock::now() - start).count() / 1000.0));
-
 }
 
 Rendering::StaticMesh::~StaticMesh()

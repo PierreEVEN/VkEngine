@@ -3,6 +3,7 @@
 #include <fstream>
 #include <Windows.h>
 #include <filesystem>
+#include "IO/Log.h"
 
 std::ofstream outputFile;
 
@@ -114,4 +115,20 @@ void EngineInputOutput::TextToScreen(const String& text)
 {
 	SetConsoleTextAttribute(hConsoleout, consoleColor);
 	printf(text.GetData());
+}
+
+std::vector<char> ReadFile(const String& filePath)
+{
+	std::ifstream file(filePath.GetData(), std::ios::ate);
+
+	if (!file.is_open()) {
+		LOG_ASSERT(String("Failed to open file ") + filePath);
+	}
+	size_t fileSize = (size_t)file.tellg();
+	std::vector<char> buffer(fileSize);
+	file.seekg(0);
+	file.read(buffer.data(), fileSize);
+	file.close();
+
+	return buffer;
 }

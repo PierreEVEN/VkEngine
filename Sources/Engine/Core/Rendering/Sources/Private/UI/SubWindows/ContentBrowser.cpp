@@ -21,9 +21,14 @@ void Rendering::ContentBrowser::DrawContent(const size_t& imageIndex)
 		ImGui::Image(asset->GetAssetIcon()->GetTextureID(imageIndex), ImVec2(24, 24));
 		ImGui::SameLine();
 		if (asset->GetClass() == StaticMesh::GetStaticClass()) {
-			if (ImGui::Button(String(asset->GetName().GetData()).GetData())) {
+
+			if (!G_TEST_COMP) {
 				G_TEST_COMP = new StaticMeshComponent(STransform(), (StaticMesh*)asset);
 			}
+
+// 			if (ImGui::Button(String(asset->GetName().GetData()).GetData())) {
+// 				G_TEST_COMP = new StaticMeshComponent(STransform(), (StaticMesh*)asset);
+// 			}
 		}
 		else {
 			ImGui::Text(String(asset->GetName().GetData()).GetData());

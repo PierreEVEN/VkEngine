@@ -2,37 +2,38 @@
 
 #include "Assets/Asset.h"
 #include "AssetFactory.h"
+#include <shaderc/shaderc.hpp>
 #include "Assets\ShaderModule.refl.h" // automatically generated reflection header
 
 namespace Rendering {
+
 
 
 	REFLECT()
 		class ShaderModule : public Asset {
 		REFLECT_BODY()
 		public:
-
 			friend TAssetFactory<ShaderModule>;
-
-			inline ~ShaderModule() {
-				vkDestroyShaderModule(G_LOGICAL_DEVICE, shaderModule, G_ALLOCATION_CALLBACK);
-			}
-
-			inline bool operator==(const ShaderModule& other) const {
-				return shaderModule == other.shaderModule;
-			}
-
-			VkShaderModule shaderModule = VK_NULL_HANDLE;
+			inline ~ShaderModule();
 
 			virtual Texture2D* GetAssetIcon() const;
+			inline String GetShaderCode() const { return shaderCode.data(); }
+			inline VkShaderModule& GetShaderModule() { return shaderModule; }
+
+			inline bool operator==(const ShaderModule& other) const { return shaderModule == other.shaderModule; }
+
+		protected:
+
+			static void CompileShader(VkShaderModule& outModule, const std::vector<char> shaderData, const shaderc_shader_kind& shaderStage, const String& fileName, bool bOptimize = true);
 
 		private:
 
-			ShaderModule(const std::vector<char>& shaderFilePath, const String& assetName);
-
+			std::vector<char> shaderCode;
+			VkShaderModule shaderModule = VK_NULL_HANDLE;
+			ShaderModule(const std::vector<char>& shaderTextData, const shaderc_shader_kind& shaderStage, const String& assetName);
 			static ShaderModule* ImportFromPath(const String& path);
-
 			inline static Texture2D* shaderIcon = nullptr;
+
 
 	};
 

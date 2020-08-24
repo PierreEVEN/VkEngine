@@ -121,7 +121,6 @@ namespace Rendering {
 		const SMaterialStaticProperties staticMaterialProperties;
 
 		size_t lastDrawIamgeIndex = -1;
-		ViewportInstance* lastWriteViewport = nullptr;
 		MaterialRessource* parent;
 	};
 }

@@ -33,6 +33,7 @@ namespace Rendering {
 
 			template<typename T = Asset>
 			inline static const std::vector<T*> FindAssetByClass(RClass* assetClass) {
+				std::lock_guard lock(assetVectorMutex);
 				std::vector<T*> foundAssets;
 				for (const auto& asset : assets) {
 					if (asset->IsTransient()) continue;
@@ -59,7 +60,7 @@ namespace Rendering {
 			String dataPath;
 
 			bool bIsTransient = true;
-
+			inline static std::mutex assetVectorMutex;
 			inline static std::vector<Asset*> assets;
 	};
 }

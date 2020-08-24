@@ -310,8 +310,8 @@ Rendering::Material* Rendering::Importers::GLtfMaterial::CreateMaterial()
 	/** Default material */
 	SMaterialStaticProperties defaultMaterialProperties{};
 	defaultMaterialProperties.bUseGlobalUbo = true;
-	defaultMaterialProperties.vertexShaderModule = G_DEFAULT_VERTEX_MODULE;
-	defaultMaterialProperties.fragmentShaderModule = G_DEFAULT_FRAGMENT_MODULE;
+	defaultMaterialProperties.vertexShaderModule = G_GLTF_VERTEX_MODULE;
+	defaultMaterialProperties.fragmentShaderModule = G_GLTF_FRAGMENT_MODULE;
 	defaultMaterialProperties.VertexTexture2DCount = 0;
 	defaultMaterialProperties.FragmentTexture2DCount = 3;
 	defaultMaterialProperties.materialCreationFlag = EMATERIAL_CREATION_FLAG_NONE;

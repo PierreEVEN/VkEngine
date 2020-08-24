@@ -7,6 +7,6 @@ project "Rendering"
 	includeVulkan()
 	includeGlfw()
 	includeStb()
-	includeObjLoad()
 	includeVMA()
 	includeRapidJson()
+	includeShaderc()

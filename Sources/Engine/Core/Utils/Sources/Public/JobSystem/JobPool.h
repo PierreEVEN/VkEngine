@@ -2,43 +2,90 @@
 
 #include "Job.h"
 #include <mutex>
+#include <atomic>
 
-#define JOB_POOL_MAX_TASK 1024
+
+
+
+static const unsigned int NUMBER_OF_JOBS = 4096;
+static const unsigned int MASK = NUMBER_OF_JOBS - 1;
 
 namespace JobSystem::JobPool {
-	inline Job::IJobTask* jobTable[JOB_POOL_MAX_TASK];
-	inline size_t jobPoolHead = 0;
-	inline size_t jobPoolTail = 0;
-	inline std::mutex jobPoolLock;
+	inline Job::IJobTask* jobTable[NUMBER_OF_JOBS];
+	inline long jobPoolTop = 0;
+	inline long jobPoolBottom = 0;
+	inline std::mutex testLock;
 	inline std::condition_variable WakeUpWorkerConditionVariable;
 
-	inline bool AddJob(Job::IJobTask* item)
+	inline void PushJob(Job::IJobTask* item)
 	{
-		bool result = false;
-		jobPoolLock.lock();
-		size_t next = (jobPoolHead + 1) % JOB_POOL_MAX_TASK;
-		if (next != jobPoolTail)
-		{
-			jobTable[jobPoolHead] = item;
-			jobPoolHead = next;
-			result = true;
-		}
+		std::lock_guard lock(testLock);
+		long newB = jobPoolBottom;
+		jobTable[jobPoolBottom & MASK] = item;
+
+		std::atomic_thread_fence(std::memory_order_acq_rel);
+
+		jobPoolBottom = newB + 1;
 		WakeUpWorkerConditionVariable.notify_one();
-		jobPoolLock.unlock();
-		return result;
 	}
 
-	/** On traverse la rue */
-	inline Job::IJobTask* FindJob()
+	inline Job::IJobTask* PopJob()
 	{
-		Job::IJobTask* result = nullptr;
-		jobPoolLock.lock();
-		if (jobPoolTail != jobPoolHead)
+		std::lock_guard lock(testLock);
+		long b = jobPoolBottom - 1;
+		jobPoolBottom = b;
+
+		std::atomic_thread_fence(std::memory_order_acq_rel);
+
+		long t = jobPoolTop;
+
+		if (t <= b)
 		{
-			result = jobTable[jobPoolTail];
-			jobPoolTail = (jobPoolTail + 1) % JOB_POOL_MAX_TASK;
+			Job::IJobTask* job = jobTable[b & MASK];
+			if (t != b)
+			{
+				// there's still more than one item left in the queue
+				return job;
+			}
+
+			// this is the last item in the queue
+			if (_InterlockedCompareExchange(&jobPoolTop, t + 1, t) != t)
+			{
+				// failed race against steal operation
+				job = nullptr;
+			}
+
+			jobPoolBottom = t + 1;
+			return job;
 		}
-		jobPoolLock.unlock();
-		return result;
+		else {
+			// deque was already empty
+			jobPoolBottom = t;
+			return nullptr;
+		}
+	}
+
+	inline Job::IJobTask* StealJob()
+	{
+		std::lock_guard lock(testLock);
+		long t = jobPoolTop;
+
+		std::atomic_thread_fence(std::memory_order_acq_rel);
+
+		long b = jobPoolBottom;
+		if (t < b) {
+			Job::IJobTask* job = jobTable[t & MASK];
+
+			if (_InterlockedCompareExchange(&t, t + 1, t) != t)
+			{
+				// a concurrent steal or pop operation removed an element from the deque in the meantime.
+				return nullptr;
+			}
+
+			return job;
+		}
+		else {
+			return nullptr;
+		}
 	}
 }

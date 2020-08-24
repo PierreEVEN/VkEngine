@@ -1,4 +1,4 @@
-//VERSION : Sunday, 23 August 2020 12:46:59
+//VERSION : Monday, 24 August 2020 11:21:57
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 
@@ -21,7 +21,7 @@ namespace Rendering
 {
 	class Texture2D; // Forward declaration
 
-	#define _REFLECTION_BODY_RUID_5_LINE_11 REFL_DECLARE_CLASS(Texture2D)
+	#define _REFLECTION_BODY_RUID_5_LINE_12 REFL_DECLARE_CLASS(Texture2D)
 
 	REFL_DECLARE_TYPENAME(Texture2D); // Declare typename
 

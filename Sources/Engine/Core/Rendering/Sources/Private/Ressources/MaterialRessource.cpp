@@ -81,13 +81,13 @@ void Rendering::MaterialRessource::CreatePipeline(const SMaterialStaticPropertie
 	VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
 	vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-	vertShaderStageInfo.module = materialProperties.vertexShaderModule->shaderModule;
+	vertShaderStageInfo.module = materialProperties.vertexShaderModule->GetShaderModule();
 	vertShaderStageInfo.pName = "main";
 
 	VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
 	fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-	fragShaderStageInfo.module = materialProperties.fragmentShaderModule->shaderModule;
+	fragShaderStageInfo.module = materialProperties.fragmentShaderModule->GetShaderModule();
 	fragShaderStageInfo.pName = "main";
 
 	/** Model transform */
@@ -239,10 +239,8 @@ void Rendering::MaterialRessource::DestroyShadersObjects()
 
 void Rendering::MaterialRessourceItem::PreDraw(ViewportInstance* inViewport, const size_t& imageIndex)
 {
-	if (lastWriteViewport != inViewport) {
-		lastWriteViewport = inViewport;
-		UpdateDescriptorSets(inViewport);
-	}
+	// @TODO not always update descriptor sets
+	UpdateDescriptorSets(inViewport);
 }
 
 void Rendering::MaterialRessourceItem::Draw(VkCommandBuffer commandBuffer, ViewportInstance* drawViewport, const size_t& imageIndex)
@@ -261,7 +259,7 @@ void Rendering::MaterialRessourceItem::UpdateDescriptorSets(ViewportInstance* dr
 	}
 
 	if (dynamicMaterialProperties.fragmentTextures2D.size() != staticMaterialProperties.FragmentTexture2DCount) {
-		LOG_ASSERT("Fragment texure number should be the same than material propertiesFragmentTexture2DCount");
+		LOG_ASSERT("Fragment texure number (" + ToString(dynamicMaterialProperties.fragmentTextures2D.size()) + ") should be the same than material properties FragmentTexture2DCount (" + ToString(staticMaterialProperties.FragmentTexture2DCount) + ")");
 	}
 
 	for (int iIndex = 0; iIndex < G_SWAP_CHAIN_IMAGE_COUNT; ++iIndex) {

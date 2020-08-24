@@ -241,9 +241,9 @@ void Rendering::ViewportInstance::DrawViewport()
 
 	/** Submit command buffers */
 	vkResetFences(G_LOGICAL_DEVICE, 1, &frameObjects->GetInFlightFence(CurrentFrameId));
-	G_TEST_MUTEX.lock();
+	G_GRAPHIC_QUEUE_SUBMIT_GUARD.lock();
 	VK_ENSURE(vkQueueSubmit(G_GRAPHIC_QUEUE, 1, &submitInfo, frameObjects->GetInFlightFence(CurrentFrameId)), "Failed to send command buffer");
-	G_TEST_MUTEX.unlock();
+	G_GRAPHIC_QUEUE_SUBMIT_GUARD.unlock();
 
 	VkPresentInfoKHR presentInfo{};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

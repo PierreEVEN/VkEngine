@@ -7,7 +7,7 @@ namespace JobSystem::Job {
 	template <typename Lambda>
 	struct TJobTask : public IJobTask {
 		inline TJobTask(Lambda&& inFunc) : func(std::forward<Lambda>(inFunc)) {
-			JobPool::AddJob(this);
+			JobPool::PushJob(this);
 		}
 
 		inline virtual void DoJob() { func(); }

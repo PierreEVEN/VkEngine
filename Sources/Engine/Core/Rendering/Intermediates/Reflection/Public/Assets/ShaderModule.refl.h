@@ -1,4 +1,4 @@
-//VERSION : Friday, 21 August 2020 19:38:25
+//VERSION : Monday, 24 August 2020 22:42:16
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 
@@ -21,7 +21,7 @@ namespace Rendering
 {
 	class ShaderModule; // Forward declaration
 
-	#define _REFLECTION_BODY_RUID_3_LINE_12 REFL_DECLARE_CLASS(ShaderModule)
+	#define _REFLECTION_BODY_RUID_3_LINE_14 REFL_DECLARE_CLASS(ShaderModule)
 
 	REFL_DECLARE_TYPENAME(ShaderModule); // Declare typename
 

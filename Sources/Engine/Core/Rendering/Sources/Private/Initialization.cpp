@@ -81,11 +81,14 @@ void Rendering::Initialization::CreateInstance()
 	vkInstanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(RequiredExtensions.size());;
 	vkInstanceCreateInfo.ppEnabledExtensionNames = RequiredExtensions.data();
 
+	VkDebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfos{};
+
 	/* Enable validation layer (optional) */
 	if (G_ENABLE_VALIDATION_LAYERS.GetValue())
 	{
 		ValidationLayers::LinkValidationLayers(vkInstanceCreateInfo);
-		vkInstanceCreateInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&ValidationLayers::PopulateDebugMessengerCreateInfo();
+		debugMessengerCreateInfos = (VkDebugUtilsMessengerCreateInfoEXT)ValidationLayers::PopulateDebugMessengerCreateInfo();
+		vkInstanceCreateInfo.pNext = &debugMessengerCreateInfos;
 	}
 	else
 	{
@@ -365,8 +368,11 @@ void Rendering::Initialization::CreateDefaultObjects()
 	/** Default texture */
 	Texture2D::CreateDefaultRessources();
 
-	G_DEFAULT_VERTEX_MODULE = TAssetFactory<ShaderModule>::ImportFromPath(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultVertexShaderPath", "Shaders/DefaultShader.vert.spv"));
-	G_DEFAULT_FRAGMENT_MODULE = TAssetFactory<ShaderModule>::ImportFromPath(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultFragmentShaderPath", "Shaders/DefaultShader.frag.spv"));
+	G_DEFAULT_VERTEX_MODULE = TAssetFactory<ShaderModule>::ImportFromPath(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultVertexShaderPath", "Shaders/DefaultShader.vert"));
+	G_DEFAULT_FRAGMENT_MODULE = TAssetFactory<ShaderModule>::ImportFromPath(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultFragmentShaderPath", "Shaders/DefaultShader.frag"));
+
+	G_GLTF_VERTEX_MODULE = TAssetFactory<ShaderModule>::ImportFromPath("Shaders/GltfShader.vert");
+	G_GLTF_FRAGMENT_MODULE = TAssetFactory<ShaderModule>::ImportFromPath("Shaders/GltfShader.frag");
 
 	Material::CreateDefaultRessources();
 

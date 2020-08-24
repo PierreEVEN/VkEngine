@@ -6,6 +6,7 @@
 
 namespace Rendering {
 
+
 	REFLECT()
 		class Texture2D : public Asset {
 		REFLECT_BODY()

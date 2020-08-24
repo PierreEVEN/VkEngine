@@ -35,6 +35,9 @@ enum ConsoleColor {
 
 DECLARE_DELEGATE_MULTICAST(Del_BroadcastMessage, const String&);
 
+std::vector<char> ReadFile(const String& filePath);
+
+
 class EngineInputOutput
 {
 public:

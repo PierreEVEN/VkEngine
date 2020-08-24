@@ -62,7 +62,15 @@ void Rendering::StaticMeshImportWindow::DrawContent(const size_t& imageIndex)
 	ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvailWidth() - 320, 0));
 	ImGui::SameLine();
 	if (ImGui::Button("Import", ImVec2(230, 0))) {
-		TAssetFactory<StaticMesh>::MakeTransient(TAssetFactory<StaticMesh>::CreateFromData(importer->GenerateData(), String::GetFileShortName(filePath)));
+
+		Importers::GltfImporter* gltfImporter = importer;
+		const String sourceFilePath = filePath;
+		JobSystem::NewJob([gltfImporter, sourceFilePath] {
+			std::vector<SMeshSectionData> generatedData = gltfImporter->GenerateData();
+			TAssetFactory<StaticMesh>::MakeTransient(TAssetFactory<StaticMesh>::CreateFromData(generatedData, String::GetFileShortName(sourceFilePath)));
+			delete gltfImporter;
+			});
+
 		RequestClose();
 	}
 	ImGui::SameLine();

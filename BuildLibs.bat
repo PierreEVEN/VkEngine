@@ -34,6 +34,7 @@ IF NOT DEFINED CMAKEPATH (
 
 SET GLFWPATH=%cd%\Sources\ThirdParty\glfw\
 SET SHADERCPATH=%cd%\Sources\ThirdParty\shaderc\
+SET SPIRVCROSSPATH=%SHADERCPATH%\third_party\spirv_cross
 
 REM BUILD SHADERC
 echo Downloading shaderc dependencies...
@@ -44,14 +45,24 @@ mkdir %SHADERCPATH%\build > NUL 2>&1
 CD %SHADERCPATH%\build
 
 echo building SHADERC x64...
-cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE={Release} %SHADERCPATH%
+cmake -DSHADERC_ENABLE_SHARED_CRT=true %SHADERCPATH%
 IF NOT %errorLevel% == 0 ECHO failed to generate vs files for SHADERC.
 
-pause
 echo compiling SHADERC for Release x64...
-"%VSPATH%" lib/gainputstatic.vcxproj /t:build /p:Configuration="Release" /p:Platform="x64" /p:BuildInParallel=true /p:OutDir=%LIBPATH%\GaInput\Release
+"%VSPATH%" libshaderc/shaderc.vcxproj /t:build /p:Configuration="Release" /p:Platform="x64" /p:BuildInParallel=true /p:OutDir=%LIBPATH%\Shaderc\Release
 IF NOT %errorLevel% == 0 ECHO failed to compile SHADERC.
 
+
+REM BUILD SPIRV_CROSS
+echo Building SPIRV_CROSS
+mkdir %SPIRVCROSSPATH%\build > NUL 2>&1
+CD %SPIRVCROSSPATH%\build
+
+echo building SPIRV_CROSS x64...
+cmake -G "Visual Studio 16 2019" -A x64 %SPIRVCROSSPATH%
+IF NOT %errorLevel% == 0 ECHO failed to generate vs files for SPIRV_CROSS.
+
+pause
 
 REM BUILD GLFW
 echo Building GLFW

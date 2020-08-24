@@ -364,9 +364,18 @@ void Rendering::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &commandBuffer;
 
-	G_TEST_MUTEX.lock();
-	vkQueueSubmit(G_GRAPHIC_QUEUE, 1, &submitInfo, VK_NULL_HANDLE);
-	vkQueueWaitIdle(G_GRAPHIC_QUEUE);
-	G_TEST_MUTEX.unlock();
+	VkFenceCreateInfo fenceInfo{};
+	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+	VkFence submitFence = VK_NULL_HANDLE;
+	vkCreateFence(G_LOGICAL_DEVICE, &fenceInfo, G_ALLOCATION_CALLBACK, &submitFence);
+
+	vkResetFences(G_LOGICAL_DEVICE, 1, &submitFence);
+	{
+		std::lock_guard lock(G_GRAPHIC_QUEUE_SUBMIT_GUARD);
+		vkQueueSubmit(G_GRAPHIC_QUEUE, 1, &submitInfo, submitFence);
+	}
+	vkWaitForFences(G_LOGICAL_DEVICE, 1, &submitFence, VK_TRUE, UINT64_MAX);
+	vkDestroyFence(G_LOGICAL_DEVICE, submitFence, G_ALLOCATION_CALLBACK);
 	vkFreeCommandBuffers(G_LOGICAL_DEVICE, GetCommandPool(), 1, &commandBuffer);
 }

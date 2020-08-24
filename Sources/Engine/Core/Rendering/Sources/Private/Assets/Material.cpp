@@ -12,12 +12,10 @@ void Rendering::Material::CreateDefaultRessources()
 	defaultMaterialProperties.vertexShaderModule = G_DEFAULT_VERTEX_MODULE;
 	defaultMaterialProperties.fragmentShaderModule = G_DEFAULT_FRAGMENT_MODULE;
 	defaultMaterialProperties.VertexTexture2DCount = 0;
-	defaultMaterialProperties.FragmentTexture2DCount = 3;
+	defaultMaterialProperties.FragmentTexture2DCount = 1;
 	defaultMaterialProperties.materialCreationFlag = EMATERIAL_CREATION_FLAG_NONE;
 
 	SMaterialDynamicProperties defaultMaterialDynProperties{};
-	defaultMaterialDynProperties.fragmentTextures2D.push_back(Texture2D::GetDefaultTexture());
-	defaultMaterialDynProperties.fragmentTextures2D.push_back(Texture2D::GetDefaultTexture());
 	defaultMaterialDynProperties.fragmentTextures2D.push_back(Texture2D::GetDefaultTexture());
 
 	defaultMaterial = new Material(defaultMaterialProperties, "DefaultMaterial", defaultMaterialDynProperties, false);
@@ -33,10 +31,12 @@ void Rendering::Material::CreateMaterialRessource(MaterialRessourceItem** outMat
 
 Rendering::Material::Material(const SMaterialStaticProperties& inMaterialProperties, const String& assetName, const SMaterialDynamicProperties& inMaterialDynamicProperties, bool bLoadAsync)
 	: Asset(assetName), materialProperties(inMaterialProperties), materialDynamicProperties(inMaterialDynamicProperties) {
+
 	if (bLoadAsync) {
 		MaterialRessourceItem** ressource = &materialRessource;
 		JobSystem::NewJob([ressource, inMaterialProperties, inMaterialDynamicProperties] 
 			{
+
 			CreateMaterialRessource(ressource, inMaterialProperties, inMaterialDynamicProperties);
 			});
 	}

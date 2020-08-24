@@ -16,7 +16,7 @@ namespace JobSystem {
 
 		inline void Worker::Execute()
 		{
-			if (Job::IJobTask* foundJob = JobPool::FindJob())
+			if (Job::IJobTask* foundJob = JobPool::PopJob())
 			{
 				foundJob->DoJob();
 			}

@@ -6,7 +6,7 @@
 #include "Parser/RClassParser.h"
 #include "Parser/RInheritanceTable.h"
 
-RClassParser::RClassParser(const LineReader& inData, uint32_t startLine, const std::string& path, const uint64_t& uniqueID, const std::string& inClassNamespace)
+RClassParser::RClassParser(const LineReader& inData, uint32_t startLine, const std::string& path, const uint64_t& uniqueID, const std::string& inClassNamespace, const std::string& classNameOverride)
 	: data(inData), RBodyLine(startLine), classpath(path), fileUniqueID(uniqueID), classNamespace(inClassNamespace)
 {
 	if (StringLibrary::GetStringField(data.GetLine(1), {' ', '\t'}, 0) == "class")
@@ -41,7 +41,12 @@ RClassParser::RClassParser(const LineReader& inData, uint32_t startLine, const s
 					parents.push_back(StringLibrary::CleanupLine(cont.size() == 2 ? cont[1] : cont[0]));
 				}
 			}
-			InheritanceTable::RegisterClass(className, parents);
+			if (classNameOverride != "") {
+				InheritanceTable::RegisterClass(classNameOverride, parents);
+			}
+			else {
+				InheritanceTable::RegisterClass(className, parents);
+			}
 		}
 	}
 	else
@@ -50,7 +55,12 @@ RClassParser::RClassParser(const LineReader& inData, uint32_t startLine, const s
 		StringLibrary::SplitLine(data.GetLine(0), { '(' }, left, right, true);
 		std::string newRight = right;
 		StringLibrary::SplitLine(newRight, { ')' }, left, right, false);
-		className = StringLibrary::CleanupLine(left);
+		if (classNameOverride != "") {
+			className = StringLibrary::CleanupLine(classNameOverride);
+		}
+		else {
+			className = StringLibrary::CleanupLine(left);
+		}
 
 	}
 

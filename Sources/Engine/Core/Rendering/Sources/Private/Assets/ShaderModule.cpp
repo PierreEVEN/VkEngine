@@ -2,18 +2,11 @@
 #include "Assets/Texture2D.h"
 
 
-Rendering::ShaderModule::ShaderModule(const std::vector<char>& shaderTextData, const shaderc_shader_kind& shaderStage, const String& assetName)
-	: Asset(assetName), shaderCode(shaderTextData), moduleShaderStage(shaderStage)
+Rendering::ShaderModule::ShaderModule(const std::vector<char>& shaderTextData, const String& assetName, const EShaderType& shaderType)
+	: Asset(assetName), shaderCode(shaderTextData)
 {
-	CompileShader(shaderModule, shaderTextData, shaderStage, assetName);
+	CompileShader(shaderModule, shaderType, shaderTextData, assetName);
 }
-
-Rendering::ShaderModule* Rendering::ShaderModule::ImportFromPath(const String& path)
-{
-	return new ShaderModule(ReadFile(path), String::GetFileExtension(path) == "vert" ? shaderc_vertex_shader : shaderc_fragment_shader, String::GetFileShortName(path));
-}
-
-
 
 Rendering::ShaderModule::~ShaderModule() {
 	vkDestroyShaderModule(G_LOGICAL_DEVICE, shaderModule, G_ALLOCATION_CALLBACK);
@@ -30,12 +23,13 @@ Rendering::Texture2D* Rendering::ShaderModule::GetAssetIcon() const
 
 void Rendering::ShaderModule::UpdateShaderCode(const std::vector<char>& newShaderCode)
 {
-	shaderCode = newShaderCode;
-
-	outDatedShaderModules.push_back(shaderModule);
-
-	CompileShader(shaderModule, newShaderCode, moduleShaderStage, GetName());
-	OnRecompiledShaderModule.Execute();
+	VkShaderModule newModule;
+	if (CompileShader(newModule, GetShaderKind(), newShaderCode, GetName())) {
+		shaderCode = newShaderCode;
+		outDatedShaderModules.push_back(shaderModule);
+		shaderModule = newModule;
+		OnRecompiledShaderModule.Execute();
+	}
 
 }
 
@@ -51,10 +45,12 @@ void Rendering::ShaderModule::CreateDefaultRessources()
 
 }
 
-void Rendering::ShaderModule::CompileShader(VkShaderModule& outModule, const std::vector<char> shaderData, const shaderc_shader_kind& shaderStage, const String& fileName, bool bOptimize)
+bool Rendering::ShaderModule::CompileShader(VkShaderModule& outModule, const EShaderType& shaderType, const std::vector<char> shaderData, const String& fileName, bool bOptimize)
 {
 	shaderc::Compiler Compiler;
 	shaderc::CompileOptions Options;
+
+	const shaderc_shader_kind& shaderStage = (shaderType == EShaderType::Vertex ? shaderc_vertex_shader : shaderc_fragment_shader);
 
 	Options.AddMacroDefinition(shaderStage == shaderc_vertex_shader ? "VERTEX_SHADER" : "FRAGMENT_SHADER");
 
@@ -62,7 +58,10 @@ void Rendering::ShaderModule::CompileShader(VkShaderModule& outModule, const std
 
 	if (PreprocResult.GetCompilationStatus() != shaderc_compilation_status_success)
 	{
-		LOG_ASSERT("Failed to preprocess shader " + fileName + " : " + PreprocResult.GetErrorMessage().c_str());
+		String errorString = "Failed to preprocess shader " + fileName + " : " + PreprocResult.GetErrorMessage().c_str();
+		OnShaderCompillationGetError.Execute(errorString);
+		LOG_ERROR(errorString);
+		return false;
 	}
 	std::vector<char> PreprocessedShader = { PreprocResult.cbegin(), PreprocResult.cend() };
 
@@ -81,7 +80,10 @@ void Rendering::ShaderModule::CompileShader(VkShaderModule& outModule, const std
 
 	if (Result.GetCompilationStatus() != shaderc_compilation_status_success)
 	{
-		LOG_ASSERT("Failed to compile shader " + fileName + " : " + Result.GetErrorMessage().c_str());
+		String errorString("Failed to compile shader " + fileName + " : " + Result.GetErrorMessage().c_str());
+		OnShaderCompillationGetError.Execute(errorString);
+		LOG_ERROR(errorString);
+		return false;
 	}
 	std::vector<uint32_t> bytecode { Result.cbegin(), Result.cend() };
 
@@ -90,7 +92,12 @@ void Rendering::ShaderModule::CompileShader(VkShaderModule& outModule, const std
 	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 	createInfo.codeSize = bytecode.size() * sizeof(uint32_t);
 	createInfo.pCode = reinterpret_cast<const uint32_t*>(bytecode.data());
-
-	VK_ENSURE(vkCreateShaderModule(G_LOGICAL_DEVICE, &createInfo, G_ALLOCATION_CALLBACK, &outModule), "Failed to create shader module");
+	VkResult res = vkCreateShaderModule(G_LOGICAL_DEVICE, &createInfo, G_ALLOCATION_CALLBACK, &outModule);
+	if (!res == VK_SUCCESS) {
+		String errorString("Failed to create shader module " + GetName() + ". Error code : " + (uint32_t)res);
+		OnShaderCompillationGetError.Execute(errorString);
+		LOG_ERROR(errorString);
+		return false;
+	}
+	return true;
 }
-

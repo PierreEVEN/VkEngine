@@ -27,8 +27,8 @@ namespace Rendering
 		uint32_t VertexTexture2DCount = 0;
 		uint32_t FragmentTexture2DCount = 0;
 		EMaterialCreationFlags materialCreationFlag = EMATERIAL_CREATION_FLAG_NONE;
-		class ShaderModule* vertexShaderModule = nullptr;
-		class ShaderModule* fragmentShaderModule = nullptr;
+		class VertexShaderModule* vertexShaderModule = nullptr;
+		class FragmentShaderModule* fragmentShaderModule = nullptr;
 
 
 		inline bool operator==(const SMaterialStaticProperties& other) const {
@@ -120,7 +120,7 @@ namespace Rendering {
 
 	private:
 
-		void UpdateDescriptorSets(ViewportInstance* drawViewport);
+		void UpdateDescriptorSets(ViewportInstance* drawViewport, size_t imageIndex);
 
 		const SMaterialDynamicProperties dynamicMaterialProperties;
 		const SMaterialStaticProperties staticMaterialProperties;

@@ -67,6 +67,7 @@ function includeShaderc()
 		links(LibDir.."/Libs/Shaderc/Debug/SPIRVd.lib")
 		links(LibDir.."/Libs/Shaderc/Debug/SPIRV-Tools.lib")
 		links(LibDir.."/Libs/Shaderc/Debug/SPIRV-Tools-opt.lib")
+	filter { }
 end
 
 function includeVulkan()
@@ -85,6 +86,7 @@ function includeGlfw()
 		links(LibDir.."/Libs/glfw/Release/glfw3.lib")
 	filter "configurations:Debug"
 		links(LibDir.."/Libs/glfw/Debug/glfw3.lib")
+	filter { }
 end
 
 function includeModule(path, moduleName)

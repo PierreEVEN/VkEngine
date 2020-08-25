@@ -61,10 +61,10 @@ namespace Rendering
 	inline ImFont*										G_IMGUI_DEFAULT_FONT = nullptr;
 
 	/** Materials */
-	inline class ShaderModule*							G_DEFAULT_VERTEX_MODULE = nullptr;
-	inline class ShaderModule*							G_DEFAULT_FRAGMENT_MODULE = nullptr;
-	inline class ShaderModule*							G_GLTF_VERTEX_MODULE = nullptr;
-	inline class ShaderModule*							G_GLTF_FRAGMENT_MODULE = nullptr;
+	inline class VertexShaderModule*					G_DEFAULT_VERTEX_MODULE = nullptr;
+	inline class FragmentShaderModule*					G_DEFAULT_FRAGMENT_MODULE = nullptr;
+	inline class VertexShaderModule*					G_GLTF_VERTEX_MODULE = nullptr;
+	inline class FragmentShaderModule*					G_GLTF_FRAGMENT_MODULE = nullptr;
 
 
 	template<typename T>

@@ -118,6 +118,13 @@ std::vector<RClassParser> LineReader::ExtractClasses(const std::string filePath,
 
 		if (StringLibrary::IsStartingWith(GetLine(i), "REFLECT("))
 		{
+			/** Template case */
+			if (StringLibrary::IsStartingWith(StringLibrary::CleanupLine(GetLine(i + 1)), "template<")) {
+				++i;
+			}
+
+
+
 			if (classIndentationLevel != 0) std::cerr << "cannot use UCLASS / USTRUCT macro inside classes" << std::endl;
 			bIsParsingClass = true;
 
@@ -188,4 +195,18 @@ const int LineReader::GetLineIndentationCost(const int& lineIndex) const
 		else if (chr == '}') count--;
 	}
 	return count;
+}
+
+std::vector<std::string> LineReader::GetReflectMacroArguments(const std::string& line)
+{
+	std::string left, center, right;
+	if (!StringLibrary::SplitLine(line, { '(' }, left, center)) {
+		std::cerr << "failed to parse REFLECT() macro arguments" << std::endl;
+	}
+
+	if (!StringLibrary::SplitLine(center, { ')' }, left, right, false)) {
+		std::cerr << "failed to parse REFLECT() macro arguments end" << std::endl;
+	}
+
+	return StringLibrary::GetStringFields(center, { ',' });
 }

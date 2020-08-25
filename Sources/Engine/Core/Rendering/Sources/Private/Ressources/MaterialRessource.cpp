@@ -85,6 +85,7 @@ std::vector<VkDescriptorSetLayoutBinding> Rendering::MaterialRessource::MakeLayo
 void Rendering::MaterialRessource::CreatePipeline(const SMaterialStaticProperties& materialProperties)
 {
 	if (shaderPipeline != VK_NULL_HANDLE) {
+		vkDestroyPipelineLayout(G_LOGICAL_DEVICE, pipelineLayout, G_ALLOCATION_CALLBACK);
 		vkDestroyPipeline(G_LOGICAL_DEVICE, shaderPipeline, G_ALLOCATION_CALLBACK);
 	}
 	bShouldRecreatePipeline = false;
@@ -256,7 +257,7 @@ void Rendering::MaterialRessourceItem::PreDraw(ViewportInstance* inViewport, con
 {
 	// @TODO not always update descriptor sets
 	parent->PreDraw();
-	UpdateDescriptorSets(inViewport);
+	UpdateDescriptorSets(inViewport, imageIndex);
 }
 
 void Rendering::MaterialRessourceItem::Draw(VkCommandBuffer commandBuffer, ViewportInstance* drawViewport, const size_t& imageIndex)
@@ -268,7 +269,7 @@ void Rendering::MaterialRessourceItem::Draw(VkCommandBuffer commandBuffer, Viewp
 	parent->Draw(commandBuffer, imageIndex);
 }
 
-void Rendering::MaterialRessourceItem::UpdateDescriptorSets(ViewportInstance* drawViewport)
+void Rendering::MaterialRessourceItem::UpdateDescriptorSets(ViewportInstance* drawViewport, size_t imageIndex)
 {
 	if (dynamicMaterialProperties.vertexTextures2D.size() != staticMaterialProperties.VertexTexture2DCount) {
 		LOG_ASSERT("Vertex texure number (" + ToString(dynamicMaterialProperties.vertexTextures2D.size()) + ") should be the same than material properties VertexTexture2DCount (" + ToString(staticMaterialProperties.VertexTexture2DCount) + ")");
@@ -278,7 +279,8 @@ void Rendering::MaterialRessourceItem::UpdateDescriptorSets(ViewportInstance* dr
 		LOG_ASSERT("Fragment texure number (" + ToString(dynamicMaterialProperties.fragmentTextures2D.size()) + ") should be the same than material properties FragmentTexture2DCount (" + ToString(staticMaterialProperties.FragmentTexture2DCount) + ")");
 	}
 
-	for (int iIndex = 0; iIndex < G_SWAP_CHAIN_IMAGE_COUNT; ++iIndex) {
+	//for (int iIndex = 0; iIndex < G_SWAP_CHAIN_IMAGE_COUNT; ++iIndex) {
+		size_t iIndex = imageIndex;
 		std::vector<VkWriteDescriptorSet> newDescSets;
 		uint32_t currentBinding = 0;
 
@@ -341,5 +343,5 @@ void Rendering::MaterialRessourceItem::UpdateDescriptorSets(ViewportInstance* dr
 			currentBinding++;
 		}
 		vkUpdateDescriptorSets(G_LOGICAL_DEVICE, static_cast<uint32_t>(newDescSets.size()), newDescSets.data(), 0, nullptr);
-	}
+	//}
 }

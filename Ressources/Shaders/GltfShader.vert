@@ -21,6 +21,8 @@ layout (location = 0) out vec3 outWorldPos;
 layout (location = 1) out vec3 outNormal;
 layout (location = 2) out vec3 camPos;
 layout (location = 3) out vec2 texCoords;
+layout (location = 4) out float outTime;
+
 out gl_PerVertex {
     vec4 gl_Position;
 };
@@ -31,7 +33,7 @@ void main() {
 	outNormal = mat3(primitive.model) * inNormal;
 	texCoords = inTexCoord;
 	camPos = ubo.cameraLocation;
-
+	outTime = ubo.time;
 	gl_Position = ubo.worldProjection * ubo.viewMatrix * primitive.model * vec4(inPosition.xyz, 1.0);
 
 } 

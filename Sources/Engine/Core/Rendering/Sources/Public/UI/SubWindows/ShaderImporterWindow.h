@@ -9,13 +9,15 @@ namespace Rendering {
 	public:
 
 
-		ShaderImportWindow();
+		ShaderImportWindow(const EShaderType& desiredShaderType);
 
 	protected:
 
 		virtual void DrawContent(const size_t& imageIndex) {}
 
 	private:
+
+		const EShaderType shaderType;
 
 		void OnPickedShader(const String& path);
 	};
@@ -43,7 +45,7 @@ namespace Rendering {
 		void CreateMaterial();
 
 
-		void OnPickedVShader(ShaderModule* module);
-		void OnPickedFShader(ShaderModule* module);
+		void OnPickedVShader(VertexShaderModule* module);
+		void OnPickedFShader(FragmentShaderModule* module);
 	};
 }

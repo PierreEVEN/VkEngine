@@ -170,7 +170,11 @@ void Rendering::ViewportInstance::DrawViewport()
 				if (ImGui::BeginMenu("Import")) {
 					if (ImGui::MenuItem("Static mesh")) new StaticMeshImportWindow();
 					if (ImGui::MenuItem("Texture2D")) new TextureImportWindow();
-					if (ImGui::MenuItem("Shader")) new ShaderImportWindow();
+					if (ImGui::BeginMenu("Shader")) {
+						if (ImGui::MenuItem("vertex shader")) new ShaderImportWindow(EShaderType::Vertex);
+						if (ImGui::MenuItem("fragment shader")) new ShaderImportWindow(EShaderType::Fragment);
+						ImGui::EndMenu();
+					}
 					ImGui::EndMenu();
 				}
 				if (ImGui::BeginMenu("Create")) {

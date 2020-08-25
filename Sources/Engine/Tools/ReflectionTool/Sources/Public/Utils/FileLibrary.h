@@ -34,5 +34,7 @@ private:
 	const int GetLineIndentationCost(const int& linIndex) const;
 
 
+	static std::vector<std::string> GetReflectMacroArguments(const std::string& line);
+
 	std::vector<std::string> data;
 };

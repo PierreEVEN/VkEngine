@@ -9,6 +9,7 @@ layout (location = 0) in vec3 inWorldPos;
 layout (location = 1) in vec3 inNormal;
 layout (location = 2) in vec3 camPos;
 layout (location = 3) in vec2 texCoords;
+layout (location = 4) in float inTime;
 
 layout(location = 0) out vec4 outColor;
 

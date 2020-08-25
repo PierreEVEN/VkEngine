@@ -20,7 +20,6 @@ void Rendering::MatrixUniformBuffer::UpdateUniformBuffers(ViewportInstance* pare
 	ubo.worldProjection = parentViewport->GetProjectionMatrix();
 	ubo.cameraLocation = parentViewport->GetCamera()->GetLocation();
 	ubo.time = (float)glfwGetTime();
-
 	void* data;
 	vkMapMemory(G_LOGICAL_DEVICE, uniformBuffersMemory[ImageIndex], 0, sizeof(ubo), 0, &data);
 	memcpy(data, &ubo, sizeof(ubo));

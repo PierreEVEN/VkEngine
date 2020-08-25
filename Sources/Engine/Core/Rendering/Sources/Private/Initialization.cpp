@@ -367,7 +367,6 @@ void Rendering::Initialization::CreateDefaultObjects()
 
 	/** Default texture */
 	Texture2D::CreateDefaultRessources();
-
 	G_DEFAULT_VERTEX_MODULE = TAssetFactory<ShaderModule>::ImportFromPath(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultVertexShaderPath", "Shaders/DefaultShader.vert"));
 	G_DEFAULT_FRAGMENT_MODULE = TAssetFactory<ShaderModule>::ImportFromPath(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultFragmentShaderPath", "Shaders/DefaultShader.frag"));
 

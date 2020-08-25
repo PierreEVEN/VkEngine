@@ -27,11 +27,18 @@ namespace Rendering {
 
 			OnRecompiledShaderModuleEvent OnRecompiledShaderModule;
 
+			static void FlushOutdatedShaderModules();
+
+			static void CreateDefaultRessources();
+
 		protected:
 
 			static void CompileShader(VkShaderModule& outModule, const std::vector<char> shaderData, const shaderc_shader_kind& shaderStage, const String& fileName, bool bOptimize = true);
 
 		private:
+
+			ShaderModule* defaultVertexShader = nullptr;
+			ShaderModule* defaultFragmentShader = nullptr;
 
 			std::vector<char> shaderCode;
 			shaderc_shader_kind moduleShaderStage;
@@ -39,7 +46,7 @@ namespace Rendering {
 			ShaderModule(const std::vector<char>& shaderTextData, const shaderc_shader_kind& shaderStage, const String& assetName);
 			static ShaderModule* ImportFromPath(const String& path);
 			inline static Texture2D* shaderIcon = nullptr;
-
+			inline static std::vector<VkShaderModule> outDatedShaderModules;
 
 	};
 

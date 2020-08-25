@@ -66,7 +66,10 @@ public:
 
 	/* Getters */
 	inline const size_t& Length() const { return length; }
-	inline const char* GetData() const { data[length] = '\0'; return data; }
+	inline const char* GetData() const { 
+		data[length] = '\0';
+		return data;
+	}
 
 	/* Operator bool */
 	inline operator bool() const {

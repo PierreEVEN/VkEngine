@@ -67,8 +67,8 @@ void Rendering::Console::DrawContent(const size_t& imageIndex)
 			ImGui::SetScrollHere();
 		}
 		ImGui::SetWindowFontScale(1.f);
-		ImGui::EndChild();
 	}
+	ImGui::EndChild();
 
 	if (ImGui::InputText("input", ConsoleInputBuffer, IM_ARRAYSIZE(ConsoleInputBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
 	{

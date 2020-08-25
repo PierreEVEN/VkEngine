@@ -39,18 +39,34 @@ function includeShaderc()
 	includedirs(LibDir.."shaderc/libshaderc/include");
 	includedirs(LibDir.."shaderc/libshaderc_spvc/include");
 	includedirs(LibDir.."shaderc/libshaderc_util/include");
-	links(LibDir.."/Libs/Shaderc/Release/GenericCodeGen.lib")
-	links(LibDir.."/Libs/Shaderc/Release/glslang.lib")
-	links(LibDir.."/Libs/Shaderc/Release/HLSL.lib")
-	links(LibDir.."/Libs/Shaderc/Release/MachineIndependent.lib")
-	links(LibDir.."/Libs/Shaderc/Release/OGLCompiler.lib")
-	links(LibDir.."/Libs/Shaderc/Release/OSDependent.lib")
-	links(LibDir.."/Libs/Shaderc/Release/shaderc_util.lib")
 	
-	links(LibDir.."/Libs/Shaderc/Release/shaderc.lib")
-	links(LibDir.."/Libs/Shaderc/Release/SPIRV.lib")
-	links(LibDir.."/Libs/Shaderc/Release/SPIRV-Tools.lib")
-	links(LibDir.."/Libs/Shaderc/Release/SPIRV-Tools-opt.lib")
+	
+	filter "configurations:Release"
+		links(LibDir.."/Libs/Shaderc/Release/GenericCodeGen.lib")
+		links(LibDir.."/Libs/Shaderc/Release/glslang.lib")
+		links(LibDir.."/Libs/Shaderc/Release/HLSL.lib")
+		links(LibDir.."/Libs/Shaderc/Release/MachineIndependent.lib")
+		links(LibDir.."/Libs/Shaderc/Release/OGLCompiler.lib")
+		links(LibDir.."/Libs/Shaderc/Release/OSDependent.lib")
+		links(LibDir.."/Libs/Shaderc/Release/shaderc_util.lib")
+		links(LibDir.."/Libs/Shaderc/Release/shaderc.lib")
+		links(LibDir.."/Libs/Shaderc/Release/SPIRV.lib")
+		links(LibDir.."/Libs/Shaderc/Release/SPIRV-Tools.lib")
+		links(LibDir.."/Libs/Shaderc/Release/SPIRV-Tools-opt.lib")
+		
+		
+	filter "configurations:Debug"
+		links(LibDir.."/Libs/Shaderc/Debug/GenericCodeGend.lib")
+		links(LibDir.."/Libs/Shaderc/Debug/glslangd.lib")
+		links(LibDir.."/Libs/Shaderc/Debug/HLSLd.lib")
+		links(LibDir.."/Libs/Shaderc/Debug/MachineIndependentd.lib")
+		links(LibDir.."/Libs/Shaderc/Debug/OGLCompilerd.lib")
+		links(LibDir.."/Libs/Shaderc/Debug/OSDependentd.lib")
+		links(LibDir.."/Libs/Shaderc/Debug/shaderc_util.lib")
+		links(LibDir.."/Libs/Shaderc/Debug/shaderc.lib")
+		links(LibDir.."/Libs/Shaderc/Debug/SPIRVd.lib")
+		links(LibDir.."/Libs/Shaderc/Debug/SPIRV-Tools.lib")
+		links(LibDir.."/Libs/Shaderc/Debug/SPIRV-Tools-opt.lib")
 end
 
 function includeVulkan()
@@ -65,7 +81,10 @@ end
 
 function includeGlfw()
 	includedirs(LibDir.."glfw/include")
-	links(LibDir.."/Libs/glfw/Release/glfw3.lib")
+	filter "configurations:Release"
+		links(LibDir.."/Libs/glfw/Release/glfw3.lib")
+	filter "configurations:Debug"
+		links(LibDir.."/Libs/glfw/Debug/glfw3.lib")
 end
 
 function includeModule(path, moduleName)

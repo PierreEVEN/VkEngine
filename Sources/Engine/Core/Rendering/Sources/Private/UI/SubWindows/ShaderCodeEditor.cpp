@@ -15,8 +15,11 @@ void Rendering::ShaderCodeEditor::DrawContent(const size_t& imageIndex)
 
 
 		String outText = shaderCode;
-		std::vector<char> outData(outText.Length());
-		memcpy(outData.data(), outText.GetData(), outText.Length());
+
+
+		std::vector<char> outData(outText.Length() + 1);
+		memcpy(outData.data(), outText.GetData(), outText.Length() + 1);
+		outData[outText.Length()] = '\0';
 		sourceShaderModule->UpdateShaderCode(outData);
 	}
 

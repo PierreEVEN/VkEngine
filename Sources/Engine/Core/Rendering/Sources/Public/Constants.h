@@ -46,7 +46,7 @@ namespace Rendering
 
 	/** Descriptor pools */
 	inline uint32_t										G_MAX_SET_PER_POOL = 64;
-	inline uint32_t										G_POOL_DESCRIPTOR_COUNT_PER_TYPE = 16;
+	inline uint32_t										G_POOL_DESCRIPTOR_COUNT_PER_TYPE = 128;
 
 	/** Extensions */
 	inline const std::vector<const char*>				G_REQUIRED_DEVICE_EXTENSIONS = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };

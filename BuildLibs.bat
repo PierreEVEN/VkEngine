@@ -52,17 +52,9 @@ echo compiling SHADERC for Release x64...
 "%VSPATH%" libshaderc/shaderc.vcxproj /t:build /p:Configuration="Release" /p:Platform="x64" /p:BuildInParallel=true /p:OutDir=%LIBPATH%\Shaderc\Release
 IF NOT %errorLevel% == 0 ECHO failed to compile SHADERC.
 
-
-REM BUILD SPIRV_CROSS
-echo Building SPIRV_CROSS
-mkdir %SPIRVCROSSPATH%\build > NUL 2>&1
-CD %SPIRVCROSSPATH%\build
-
-echo building SPIRV_CROSS x64...
-cmake -G "Visual Studio 16 2019" -A x64 %SPIRVCROSSPATH%
-IF NOT %errorLevel% == 0 ECHO failed to generate vs files for SPIRV_CROSS.
-
-pause
+echo compiling SHADERC for Debug x64...
+"%VSPATH%" libshaderc/shaderc.vcxproj /t:build /p:Configuration="Debug" /p:Platform="x64" /p:BuildInParallel=true /p:OutDir=%LIBPATH%\Shaderc\Debug
+IF NOT %errorLevel% == 0 ECHO failed to compile SHADERC.
 
 REM BUILD GLFW
 echo Building GLFW
@@ -77,6 +69,9 @@ echo compiling GLFW for Release x64...
 "%VSPATH%" src/glfw.vcxproj /t:build /p:Configuration="Release" /p:Platform="x64" /p:BuildInParallel=true /p:OutDir=%LIBPATH%\glfw\Release
 IF NOT %errorLevel% == 0 ECHO failed to compile GLFW.
 
+echo compiling GLFW for Debug x64...
+"%VSPATH%" src/glfw.vcxproj /t:build /p:Configuration="Debug" /p:Platform="x64" /p:BuildInParallel=true /p:OutDir=%LIBPATH%\glfw\Debug
+IF NOT %errorLevel% == 0 ECHO failed to compile GLFW.
 pause
 
 exit 0

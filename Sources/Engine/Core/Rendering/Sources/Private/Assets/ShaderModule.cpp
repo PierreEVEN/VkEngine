@@ -32,11 +32,22 @@ void Rendering::ShaderModule::UpdateShaderCode(const std::vector<char>& newShade
 {
 	shaderCode = newShaderCode;
 
-
-	vkDestroyShaderModule(G_LOGICAL_DEVICE, shaderModule, G_ALLOCATION_CALLBACK);
+	outDatedShaderModules.push_back(shaderModule);
 
 	CompileShader(shaderModule, newShaderCode, moduleShaderStage, GetName());
 	OnRecompiledShaderModule.Execute();
+
+}
+
+void Rendering::ShaderModule::FlushOutdatedShaderModules()
+{
+	for (auto& module : outDatedShaderModules)
+		vkDestroyShaderModule(G_LOGICAL_DEVICE, module, G_ALLOCATION_CALLBACK);
+	outDatedShaderModules.clear();
+}
+
+void Rendering::ShaderModule::CreateDefaultRessources()
+{
 
 }
 

@@ -13,7 +13,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL ValidationLayerDebugCallback(VkDebugUtilsMessageS
 		LOG_WARNING(String("VULKAN VALIDATION LAYER : ") + pCallbackData->pMessage);
 	else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
 	{
-		LOG_ASSERT(String("VULKAN VALIDATION LAYER : ") + pCallbackData->pMessage);
+ 		LOG_ASSERT(String("VULKAN VALIDATION LAYER : ") + pCallbackData->pMessage);
 	}
 	else
 	{

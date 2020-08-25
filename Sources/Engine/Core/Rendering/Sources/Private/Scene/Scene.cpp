@@ -84,6 +84,7 @@ void Rendering::ViewportInstance::DrawViewport()
 
 	/** Destroy unused ressources */
 	Ressource::FlushRessources();
+	ShaderModule::FlushOutdatedShaderModules();
 
 	/** Ensure we are not drawing on unsubmited frame */
 	vkWaitForFences(G_LOGICAL_DEVICE, 1, &frameObjects->GetInFlightFence(CurrentFrameId), VK_TRUE, UINT64_MAX);

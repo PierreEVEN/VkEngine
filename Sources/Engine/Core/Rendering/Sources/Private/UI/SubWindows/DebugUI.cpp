@@ -122,12 +122,18 @@ Rendering::DebugUI::DebugUI(ViewportInstance* parentScene)
 
 	currentDebugUI = this;
 
-	glfwSetCursorPosCallback(GetPrimaryWindow(), glfwCursorPosCallback);
-	glfwSetKeyCallback(GetPrimaryWindow(), glfwKeyCallback);
 
 }
+
+bool bBound = false;
+
 void Rendering::DebugUI::DrawContent(const size_t& imageIndex)
 {
+	if (!bBound) {
+		bBound = true;
+// 		glfwSetCursorPosCallback(GetPrimaryWindow(), glfwCursorPosCallback);
+// 		glfwSetKeyCallback(GetPrimaryWindow(), glfwKeyCallback);
+	}
 	processMoves();
 	float avgFps = 0;
 

@@ -8,8 +8,11 @@
 Rendering::MaterialRessource* G_LAST_USED_MATERIAL_RESSOURCE;
 Rendering::MaterialRessourceItem* G_LAST_USED_MATERIAL_RESSOURCE_ITEM;
 
-Rendering::MaterialRessource::MaterialRessource(const SMaterialStaticProperties& materialProperties) : Ressource()
+Rendering::MaterialRessource::MaterialRessource(const SMaterialStaticProperties& materialProperties) : Ressource(), materialStaticProperties(materialProperties)
 {
+	materialProperties.fragmentShaderModule->OnRecompiledShaderModule.Add(this, &MaterialRessource::RequestPipelineUpdate);
+	materialProperties.vertexShaderModule->OnRecompiledShaderModule.Add(this, &MaterialRessource::RequestPipelineUpdate);
+
 	CreateDescriptorSets(MakeLayoutBindings(materialProperties));
 	CreatePipeline(materialProperties);
 }
@@ -19,7 +22,14 @@ Rendering::MaterialRessource::~MaterialRessource()
 	DestroyShadersObjects();
 }
 
-void Rendering::MaterialRessource::Use(VkCommandBuffer commandBuffer, const size_t& imageIndex)
+void Rendering::MaterialRessource::PreDraw()
+{
+	if (bShouldRecreatePipeline) {
+		CreatePipeline(materialStaticProperties);
+	}
+}
+
+void Rendering::MaterialRessource::Draw(VkCommandBuffer commandBuffer, const size_t& imageIndex)
 {
 	if (G_LAST_USED_MATERIAL_RESSOURCE == this && lastDrawIamgeIndex == imageIndex) return;
 
@@ -74,6 +84,11 @@ std::vector<VkDescriptorSetLayoutBinding> Rendering::MaterialRessource::MakeLayo
 
 void Rendering::MaterialRessource::CreatePipeline(const SMaterialStaticProperties& materialProperties)
 {
+	if (shaderPipeline != VK_NULL_HANDLE) {
+		vkDestroyPipeline(G_LOGICAL_DEVICE, shaderPipeline, G_ALLOCATION_CALLBACK);
+	}
+	bShouldRecreatePipeline = false;
+
 	VK_CHECK(descriptorSetLayout, "Descriptor set layout should be initialized before graphic pipeline");
 	VK_CHECK(G_RENDER_PASS, "Render pass should be initialized before graphic pipeline");
 
@@ -206,7 +221,7 @@ void Rendering::MaterialRessource::CreatePipeline(const SMaterialStaticPropertie
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 	pipelineInfo.basePipelineIndex = -1; // Optional
 	pipelineInfo.pDepthStencilState = &depthStencil;
-	VK_ENSURE(vkCreateGraphicsPipelines(G_LOGICAL_DEVICE, VK_NULL_HANDLE, 1, &pipelineInfo, G_ALLOCATION_CALLBACK, &shaderPipeline), "Failed to create material graphic pipeline");
+	VK_ENSURE(vkCreateGraphicsPipelines(G_LOGICAL_DEVICE, VK_NULL_HANDLE, 1, &pipelineInfo, G_ALLOCATION_CALLBACK, &shaderPipeline), "Failed to create material graphic pipeline");	
 }
 
 void Rendering::MaterialRessource::CreateDescriptorSets(std::vector<VkDescriptorSetLayoutBinding> layoutBindings)
@@ -240,6 +255,7 @@ void Rendering::MaterialRessource::DestroyShadersObjects()
 void Rendering::MaterialRessourceItem::PreDraw(ViewportInstance* inViewport, const size_t& imageIndex)
 {
 	// @TODO not always update descriptor sets
+	parent->PreDraw();
 	UpdateDescriptorSets(inViewport);
 }
 
@@ -249,7 +265,7 @@ void Rendering::MaterialRessourceItem::Draw(VkCommandBuffer commandBuffer, Viewp
 	G_LAST_USED_MATERIAL_RESSOURCE_ITEM = this;
 	lastDrawIamgeIndex = imageIndex;
 
-	parent->Use(commandBuffer, imageIndex);
+	parent->Draw(commandBuffer, imageIndex);
 }
 
 void Rendering::MaterialRessourceItem::UpdateDescriptorSets(ViewportInstance* drawViewport)

@@ -55,7 +55,8 @@ namespace Rendering {
 
 	struct MaterialRessource : public Ressource
 	{
-		void Use(VkCommandBuffer commandBuffer, const size_t& imageIndex);
+		void PreDraw();
+		void Draw(VkCommandBuffer commandBuffer, const size_t& imageIndex);
 		inline VkDescriptorSet& GetDescriptorSet(const size_t& imageIndex) { return descriptorSets[imageIndex]; }
 		inline VkPipelineLayout& GetPipelineLayout() { return pipelineLayout; }
 
@@ -89,6 +90,10 @@ namespace Rendering {
 		size_t lastDrawIamgeIndex = -1;
 
 		inline static std::unordered_map<SMaterialStaticProperties, MaterialRessource*> materialRessources;
+
+		SMaterialStaticProperties materialStaticProperties;
+		bool bShouldRecreatePipeline = false;
+		inline void RequestPipelineUpdate() { bShouldRecreatePipeline = true; }
 	};
 
 

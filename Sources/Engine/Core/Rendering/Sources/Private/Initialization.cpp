@@ -371,8 +371,8 @@ void Rendering::Initialization::CreateDefaultObjects()
 	G_DEFAULT_VERTEX_MODULE = TAssetFactory<ShaderModule>::ImportFromPath(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultVertexShaderPath", "Shaders/DefaultShader.vert"));
 	G_DEFAULT_FRAGMENT_MODULE = TAssetFactory<ShaderModule>::ImportFromPath(G_RENDERING_INI.GetPropertyAsString("Rendering:Ressources", "DefaultFragmentShaderPath", "Shaders/DefaultShader.frag"));
 
-	G_GLTF_VERTEX_MODULE = TAssetFactory<ShaderModule>::ImportFromPath("Shaders/GltfShader.vert");
-	G_GLTF_FRAGMENT_MODULE = TAssetFactory<ShaderModule>::ImportFromPath("Shaders/GltfShader.frag");
+	G_GLTF_VERTEX_MODULE = TAssetFactory<ShaderModule>::MakeTransient(TAssetFactory<ShaderModule>::ImportFromPath("Shaders/GltfShader.vert"));
+	G_GLTF_FRAGMENT_MODULE = TAssetFactory<ShaderModule>::MakeTransient(TAssetFactory<ShaderModule>::ImportFromPath("Shaders/GltfShader.frag"));
 
 	Material::CreateDefaultRessources();
 

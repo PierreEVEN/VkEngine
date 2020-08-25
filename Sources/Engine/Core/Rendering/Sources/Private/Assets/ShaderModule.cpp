@@ -3,7 +3,7 @@
 
 
 Rendering::ShaderModule::ShaderModule(const std::vector<char>& shaderTextData, const shaderc_shader_kind& shaderStage, const String& assetName)
-	: Asset(assetName), shaderCode(shaderTextData)
+	: Asset(assetName), shaderCode(shaderTextData), moduleShaderStage(shaderStage)
 {
 	CompileShader(shaderModule, shaderTextData, shaderStage, assetName);
 }
@@ -27,6 +27,18 @@ Rendering::Texture2D* Rendering::ShaderModule::GetAssetIcon() const
 	return shaderIcon;
 }
 
+
+void Rendering::ShaderModule::UpdateShaderCode(const std::vector<char>& newShaderCode)
+{
+	shaderCode = newShaderCode;
+
+
+	vkDestroyShaderModule(G_LOGICAL_DEVICE, shaderModule, G_ALLOCATION_CALLBACK);
+
+	CompileShader(shaderModule, newShaderCode, moduleShaderStage, GetName());
+	OnRecompiledShaderModule.Execute();
+
+}
 
 void Rendering::ShaderModule::CompileShader(VkShaderModule& outModule, const std::vector<char> shaderData, const shaderc_shader_kind& shaderStage, const String& fileName, bool bOptimize)
 {

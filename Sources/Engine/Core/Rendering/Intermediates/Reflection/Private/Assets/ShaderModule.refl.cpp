@@ -1,4 +1,4 @@
-//VERSION : Monday, 24 August 2020 22:42:16
+//VERSION : Monday, 24 August 2020 23:11:27
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 #include "C:/Users/pierre/Documents/Engine/Sources/Engine/Core/Rendering/Sources/Public\Assets\ShaderModule.h"

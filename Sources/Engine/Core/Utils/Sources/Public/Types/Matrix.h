@@ -3,14 +3,6 @@
 #include "Types/Rotator.h"
 
 
-
-
-
-
-
-
-
-
 template<typename T>
 struct IMatrix3
 {
@@ -211,23 +203,6 @@ struct IMatrix4
 			}
 		}
 
-		// Now, get the rotations out, as described in the gem.
-
-		// FIXME - Add the ability to return either quaternions (which are
-		// easier to recompose with) or Euler angles (rx, ry, rz), which
-		// are easier for authors to deal with. The latter will only be useful
-		// when we fix https://bugs.webkit.org/show_bug.cgi?id=23799, so I
-		// will leave the Euler angle code here for now.
-
-		// ret.rotateY = asin(-Row[0][2]);
-		// if (cos(ret.rotateY) != 0) {
-		//     ret.rotateX = atan2(Row[1][2], Row[2][2]);
-		//     ret.rotateZ = atan2(Row[0][1], Row[0][0]);
-		// } else {
-		//     ret.rotateX = atan2(-Row[2][0], Row[1][1]);
-		//     ret.rotateZ = 0;
-		// }
-
 		int i, j, k = 0;
 		T root, trace = Row[0].x + Row[1].y + Row[2].z;
 		if (trace > static_cast<T>(0))
@@ -238,7 +213,7 @@ struct IMatrix4
 			Orientation.x = root * (Row[1].z - Row[2].y);
 			Orientation.y = root * (Row[2].x - Row[0].z);
 			Orientation.z = root * (Row[0].y - Row[1].x);
-		} // End if > 0
+		}
 		else
 		{
 			static int Next[3] = { 1, 2, 0 };
@@ -255,7 +230,7 @@ struct IMatrix4
 			Orientation[j] = root * (Row[i][j] + Row[j][i]);
 			Orientation[k] = root * (Row[i][k] + Row[k][i]);
 			Orientation.w = root * (Row[j][k] - Row[k][j]);
-		} // End if <= 0
+		}
 
 		return true;
 	}

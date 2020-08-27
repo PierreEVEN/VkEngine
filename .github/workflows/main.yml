@@ -24,9 +24,13 @@ jobs:
         with:
           submodules: recursive
           
-          
+      # Setup msbuild
+      - name: setup-msbuild
+        uses: microsoft/setup-msbuild@v1
+        
       # Generate and build sln
       - name: build-sln
+        shell: cmd
         run: |
-          echo | call GenerateProjectFiles.sh
+          @echo | call GenerateProjectFiles.sh
           msbuild -m Engine.sln /t:build /p:Configuration="Debug" /p:Platform="x64" /p:BuildInParallel=true

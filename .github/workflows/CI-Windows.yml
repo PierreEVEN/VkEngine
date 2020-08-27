@@ -57,32 +57,32 @@ jobs:
           @echo | call GenerateProjectFiles.bat
    
       # Build engine Release
-      - name: build-sln
+      - name: build-sln-Release
         shell: cmd
         run: |
           @echo | msbuild -m Engine.sln /t:build /p:Configuration="Release" /p:Platform="x64" /p:BuildInParallel=true
           
       # Prepare package Release
-      - name: prepare-package
+      - name: prepare-package-Release
         shell: cmd
         run: |
           xcopy "Ressources\*" "Release\" /E /H
           copy "Sources\Engine\Core\Engine\Binaries\Engine.exe" "Release\"
           
       # Build engine Debug
-      - name: build-sln
+      - name: build-sln-Debug
         shell: cmd
         run: |
           @echo | msbuild -m Engine.sln /t:build /p:Configuration="Debug" /p:Platform="x64" /p:BuildInParallel=true
           
       # Prepare package Debug
-      - name: prepare-package
+      - name: prepare-package-Debug
         shell: cmd
         run: |
           xcopy "Ressources\*" "Debug\" /E /H
           copy "Sources\Engine\Core\Engine\Binaries\Engine.exe" "Debug\"
      
-      # Zip
+      # Zip package
       - name: Zip package
         shell: cmd
         run: |

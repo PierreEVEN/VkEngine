@@ -37,8 +37,6 @@ namespace Rendering {
 
 		static void FlushOutdatedShaderModules();
 
-		static void CreateDefaultRessources();
-
 		inline virtual const EShaderType GetShaderKind() const = 0;
 
 		OnShaderCompillationGetErrorsEvent OnShaderCompillationGetError;

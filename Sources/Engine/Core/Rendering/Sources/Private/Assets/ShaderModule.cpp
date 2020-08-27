@@ -1,5 +1,6 @@
 #include "Assets/ShaderModule.h"
 #include "Assets/Texture2D.h"
+#include <spirv_cross/spirv_glsl.hpp>
 
 
 Rendering::ShaderModule::ShaderModule(const std::vector<char>& shaderTextData, const String& assetName, const EShaderType& shaderType)
@@ -40,10 +41,58 @@ void Rendering::ShaderModule::FlushOutdatedShaderModules()
 	outDatedShaderModules.clear();
 }
 
-void Rendering::ShaderModule::CreateDefaultRessources()
+
+
+void GetReflectionData(const std::vector<uint32_t>& InSpv)
 {
 
+	spirv_cross::Compiler Compiler(InSpv);
+
+// 	spirv_cross::ShaderResources Resources = Compiler.get_shader_resources();
+// 
+// 
+// 	LOG("uniform_buffers : " + ToString(Resources.uniform_buffers.size()));
+// 	LOG("stage_inputs : " + ToString(Resources.stage_inputs.size()));
+// 	LOG("stage_outputs : " + ToString(Resources.stage_outputs.size()));
+// 	LOG("subpass_inputs : " + ToString(Resources.subpass_inputs.size()));
+// 	LOG("storage_images : " + ToString(Resources.storage_images.size()));
+// 	LOG("sampled_images : " + ToString(Resources.sampled_images.size()));
+// 	LOG("atomic_counters : " + ToString(Resources.atomic_counters.size()));
+// 	LOG("acceleration_structures : " + ToString(Resources.acceleration_structures.size()));
+
+
+
+
+// 	for (auto& UniformBuffer : Resources.uniform_buffers)
+// 	{
+// 		const auto& Type = Compiler.get_type(UniformBuffer.base_type_id);
+// 
+// 		unsigned Set = Compiler.get_decoration(UniformBuffer.id, spv::DecorationDescriptorSet);
+// 		unsigned Binding = Compiler.get_decoration(UniformBuffer.id, spv::DecorationBinding);
+// 		std::string Name = Compiler.get_name(UniformBuffer.id);
+// 		if (Name.empty())
+// 			Name = Compiler.get_name(UniformBuffer.base_type_id);
+// 
+// 		uint64_t Size = Compiler.get_declared_struct_size(Type);
+
+// 		std::vector<SShaderParameterMember> Members; /*=
+// 			ParseStruct(Compiler.get(), Type);*/
+// 
+// 		Output.ParameterMap.AddParameter(Name.c_str(),
+// 			{
+// 				Name.c_str(),
+// 				EShaderParameterType::UniformBuffer,
+// 				Set,
+// 				Binding,
+// 				Size,
+// 				1,
+// 				Members
+// 			});
+/*	}*/
+
 }
+
+
 
 bool Rendering::ShaderModule::CompileShader(VkShaderModule& outModule, const EShaderType& shaderType, const std::vector<char> shaderData, const String& fileName, bool bOptimize)
 {
@@ -87,6 +136,8 @@ bool Rendering::ShaderModule::CompileShader(VkShaderModule& outModule, const ESh
 	}
 	std::vector<uint32_t> bytecode { Result.cbegin(), Result.cend() };
 
+
+	GetReflectionData(bytecode);
 
 	VkShaderModuleCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;

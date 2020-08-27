@@ -45,16 +45,24 @@ mkdir %SHADERCPATH%\build > NUL 2>&1
 CD %SHADERCPATH%\build
 
 echo building SHADERC x64...
-cmake -DSHADERC_ENABLE_SHARED_CRT=true %SHADERCPATH%
+cmake -DSHADERC_ENABLE_SHARED_CRT=true -DSHADERC_ENABLE_SPVC=ON %SHADERCPATH%
 IF NOT %errorLevel% == 0 ECHO failed to generate vs files for SHADERC.
 
 echo compiling SHADERC for Release x64...
 "%VSPATH%" libshaderc/shaderc.vcxproj /t:build /p:Configuration="Release" /p:Platform="x64" /p:BuildInParallel=true /p:OutDir=%LIBPATH%\Shaderc\Release
 IF NOT %errorLevel% == 0 ECHO failed to compile SHADERC.
 
+echo compiling SPVC for Release x64...
+"%VSPATH%" spvc/spvc_exe.vcxproj /t:build /p:Configuration="Release" /p:Platform="x64" /p:BuildInParallel=true /p:OutDir=%LIBPATH%\Shaderc\Release
+IF NOT %errorLevel% == 0 ECHO failed to compile SPVC.
+
 echo compiling SHADERC for Debug x64...
 "%VSPATH%" libshaderc/shaderc.vcxproj /t:build /p:Configuration="Debug" /p:Platform="x64" /p:BuildInParallel=true /p:OutDir=%LIBPATH%\Shaderc\Debug
 IF NOT %errorLevel% == 0 ECHO failed to compile SHADERC.
+
+echo compiling SPVC for Debug x64...
+"%VSPATH%" spvc/spvc_exe.vcxproj /t:build /p:Configuration="Debug" /p:Platform="x64" /p:BuildInParallel=true /p:OutDir=%LIBPATH%\Shaderc\Debug
+IF NOT %errorLevel% == 0 ECHO failed to compile SPVC.
 
 REM BUILD GLFW
 echo Building GLFW

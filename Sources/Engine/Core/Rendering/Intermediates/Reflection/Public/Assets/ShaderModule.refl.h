@@ -1,4 +1,4 @@
-//VERSION : Thursday, 27 August 2020 13:51:01
+//VERSION : Thursday, 27 August 2020 15:20:54
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 
@@ -37,7 +37,7 @@ namespace Rendering
 {
 	class VertexShaderModule; // Forward declaration
 
-	#define _REFLECTION_BODY_RUID_4_LINE_66 REFL_DECLARE_CLASS(VertexShaderModule)
+	#define _REFLECTION_BODY_RUID_4_LINE_64 REFL_DECLARE_CLASS(VertexShaderModule)
 
 	REFL_DECLARE_TYPENAME(VertexShaderModule); // Declare typename
 
@@ -53,7 +53,7 @@ namespace Rendering
 {
 	class FragmentShaderModule; // Forward declaration
 
-	#define _REFLECTION_BODY_RUID_4_LINE_80 REFL_DECLARE_CLASS(FragmentShaderModule)
+	#define _REFLECTION_BODY_RUID_4_LINE_78 REFL_DECLARE_CLASS(FragmentShaderModule)
 
 	REFL_DECLARE_TYPENAME(FragmentShaderModule); // Declare typename
 

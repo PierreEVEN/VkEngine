@@ -28,5 +28,5 @@ jobs:
       # Generate and build sln
       - name: build-sln
         run: |
-          @echo | call GenerateProjectFiles.sh
+          echo | call GenerateProjectFiles.sh
           msbuild -m Engine.sln /t:build /p:Configuration="Debug" /p:Platform="x64" /p:BuildInParallel=true

@@ -56,9 +56,46 @@ jobs:
         run: |
           @echo | call GenerateProjectFiles.bat
    
-      # Build sln
+      # Build engine Release
+      - name: build-sln
+        shell: cmd
+        run: |
+          @echo | msbuild -m Engine.sln /t:build /p:Configuration="Release" /p:Platform="x64" /p:BuildInParallel=true
+          
+      # Prepare package Release
+      - name: prepare-package
+        shell: cmd
+        run: |
+          xcopy "Ressources\*" "Release\" /E /H
+          copy "Sources\Engine\Core\Engine\Binaries\Engine.exe" "Release\"
+          
+      # Build engine Debug
       - name: build-sln
         shell: cmd
         run: |
           @echo | msbuild -m Engine.sln /t:build /p:Configuration="Debug" /p:Platform="x64" /p:BuildInParallel=true
-                # Generate and build sln
+          
+      # Prepare package Debug
+      - name: prepare-package
+        shell: cmd
+        run: |
+          xcopy "Ressources\*" "Debug\" /E /H
+          copy "Sources\Engine\Core\Engine\Binaries\Engine.exe" "Debug\"
+     
+      # Zip
+      - name: Zip package
+        shell: cmd
+        run: |
+          powershell Compress-Archive -Path Release\* -DestinationPath Engine-Release.zip
+          powershell Compress-Archive -Path Debug\* -DestinationPath Engine-Debug.zip
+    
+      # Release
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "Windows"
+          prerelease: true
+          title: "Windows build"
+          files: |
+            Engine-Debug.zip
+            Engine-Release.zip

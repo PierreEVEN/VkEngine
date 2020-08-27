@@ -28,9 +28,15 @@ jobs:
       - name: setup-msbuild
         uses: microsoft/setup-msbuild@v1
         
-      # Generate and build sln
-      - name: build-sln
+      # Generate sln
+      - name: generate-sln
         shell: cmd
         run: |
           @echo | call GenerateProjectFiles.sh
-          msbuild -m Engine.sln /t:build /p:Configuration="Debug" /p:Platform="x64" /p:BuildInParallel=true
+   
+      # Build sln
+      - name: build-sln
+        shell: cmd
+        run: |
+          @echo | msbuild -m Engine.sln /t:build /p:Configuration="Debug" /p:Platform="x64" /p:BuildInParallel=true
+                # Generate and build sln

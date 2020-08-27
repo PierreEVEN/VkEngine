@@ -39,7 +39,7 @@ function includeShaderc()
 	includedirs(LibDir.."shaderc/libshaderc/include");
 	includedirs(LibDir.."shaderc/libshaderc_spvc/include");
 	includedirs(LibDir.."shaderc/libshaderc_util/include");
-	
+	includedirs(LibDir.."shaderc/third_party");
 	
 	filter "configurations:Release"
 		links(LibDir.."/Libs/Shaderc/Release/GenericCodeGen.lib")

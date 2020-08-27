@@ -1,6 +1,6 @@
 #include "Assets/ShaderModule.h"
 #include "Assets/Texture2D.h"
-#include <spirv_cross/spirv_glsl.hpp>
+#include <spirv-cross/spirv_glsl.hpp>
 
 
 Rendering::ShaderModule::ShaderModule(const std::vector<char>& shaderTextData, const String& assetName, const EShaderType& shaderType)

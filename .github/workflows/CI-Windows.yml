@@ -66,8 +66,8 @@ jobs:
       - name: prepare-package-Release
         shell: cmd
         run: |
-          xcopy "Ressources\*" "Release\" /E /H
-          copy "Sources\Engine\Core\Engine\Binaries\Engine.exe" "Release\"
+          xcopy "Ressources\*" "Release\Engine\" /E /H
+          copy "Sources\Engine\Core\Engine\Binaries\Engine.exe" "Release\Engine\"
           
       # Build engine Debug
       - name: build-sln-Debug
@@ -79,8 +79,8 @@ jobs:
       - name: prepare-package-Debug
         shell: cmd
         run: |
-          xcopy "Ressources\*" "Debug\" /E /H
-          copy "Sources\Engine\Core\Engine\Binaries\Engine.exe" "Debug\"
+          xcopy "Ressources\*" "Debug\Engine\" /E /H
+          copy "Sources\Engine\Core\Engine\Binaries\Engine.exe" "Debug\Engine\"
      
       # Generate artifact Debug
       - uses: actions/upload-artifact@v2

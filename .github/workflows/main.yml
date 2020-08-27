@@ -27,6 +27,19 @@ jobs:
       # Setup msbuild
       - name: setup-msbuild
         uses: microsoft/setup-msbuild@v1
+      
+      # Downlaod vulkan sdk
+      - name: download vulkan sdk
+        shell: cmd
+        run: |
+          @echo | curl -L --silent --show-error --output VulkanSDK.exe https://vulkan.lunarg.com/sdk/download/1.1.114.0/windows/VulkanSDK-1.1.114.0-Installer.exe?Human=true
+          
+      # Install vulkan sdk
+      - name: download vulkan sdk
+        shell: cmd
+        run: |          
+            VulkanSDK.exe /S
+            rm -f VulkanSDK.exe
         
       # Generate sln
       - name: generate-sln

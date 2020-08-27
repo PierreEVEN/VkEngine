@@ -82,20 +82,50 @@ jobs:
           xcopy "Ressources\*" "Debug\" /E /H
           copy "Sources\Engine\Core\Engine\Binaries\Engine.exe" "Debug\"
      
-      # Zip package
-      - name: Zip package
-        shell: cmd
-        run: |
-          powershell Compress-Archive -Path Release\* -DestinationPath Engine-Release.zip
-          powershell Compress-Archive -Path Debug\* -DestinationPath Engine-Debug.zip
-    
-      # Release
-      - uses: "marvinpinto/action-automatic-releases@latest"
+      # Generate artifact Debug
+      - uses: actions/upload-artifact@v2
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "Windows"
-          prerelease: true
-          title: "Windows build"
-          files: |
+          name: Engine Debug
+          path: Debug/
+    
+      # Generate artifact Release
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Engine Release
+          path: Release/
+    
+  # Release
+  build-nightly-win:
+    if: ${{ github.event_name == 'schedule' }}
+    runs-on: windows-2019
+    needs: [build]
+    
+    steps:
+    
+    # Download artifact
+    - uses: actions/download-artifact@v2
+      with:
+        name: Engine Debug
+        path: Debug/
+      
+    - uses: actions/download-artifact@v2
+      with:
+        name: Engine Release
+        path: Release/
+      
+    # Zip
+    - run: |
+        powershell Compress-Archive -Path Release\* -DestinationPath Engine-Release.zip
+        powershell Compress-Archive -Path Debug\* -DestinationPath Engine-Debug.zip
+      shell: cmd
+    
+    # Release
+    - uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "Engine windows"
+        prerelease: true
+        title: "Engine"
+        files: | 
             Engine-Debug.zip
             Engine-Release.zip

@@ -40,9 +40,15 @@ jobs:
       # Install vulkan sdk
       - name: install vulkan sdk
         shell: cmd
-        run: |          
+        run: |
             VulkanSDK.exe /S
             rm -f VulkanSDK.exe
+            
+      # Build libs
+      - name: build libs
+        shell: cmd
+        run: |
+             @echo | call BuildLibs.bat
             
       # Generate sln
       - name: generate-sln

@@ -354,5 +354,6 @@ Ressources/Assets/
 Sources/Engine/**/Binaries/*
 Sources/Engine/**/Build/*
 Sources/Engine/**/Intermediates/*
+Ressources/imgui.ini
 *.sln
 

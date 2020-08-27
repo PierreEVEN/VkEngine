@@ -1,4 +1,4 @@
-//VERSION : Monday, 24 August 2020 11:21:57
+//VERSION : Thursday, 27 August 2020 13:43:13
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 #include "C:/Users/pierre/Documents/Engine/Sources/Engine/Core/Rendering/Sources/Public\Assets\Texture2D.h"

@@ -353,6 +353,6 @@ Ressources/Saved/
 Ressources/Assets/
 Sources/Engine/**/Binaries/*
 Sources/Engine/**/Build/*
-Sources/Engine/**/Indtermediates/*
+Sources/Engine/**/Intermediates/*
 *.sln
 

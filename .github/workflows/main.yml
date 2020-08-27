@@ -32,7 +32,7 @@ jobs:
       - name: generate-sln
         shell: cmd
         run: |
-          @echo | call GenerateProjectFiles.sh
+          @echo | call GenerateProjectFiles.bat
    
       # Build sln
       - name: build-sln

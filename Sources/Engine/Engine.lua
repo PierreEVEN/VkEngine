@@ -83,6 +83,7 @@ function includeShaderc()
 end
 
 function includeVulkan()
+	print("Vulkan path : "..os.getenv("vulkan_sdk"))
 	if type(os.getenv("vulkan_sdk")) ~= "" then
 		includedirs(os.getenv("vulkan_sdk").."/Include")
 		libdirs { os.getenv("vulkan_sdk").."/Lib/" }

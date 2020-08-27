@@ -35,6 +35,7 @@ void Rendering::ShaderCodeEditor::DrawContent(const size_t& imageIndex)
 			lastModificationTime = std::chrono::steady_clock::now();
 		}
 	}
+	ImGui::EndChild();
 
 	if (ImGui::BeginChild("compilationResult", ImGui::GetContentRegionAvail(), true, ImGuiWindowFlags_MenuBar)) {
 		if (ImGui::BeginMenuBar()) {

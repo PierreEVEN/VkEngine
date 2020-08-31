@@ -1,14 +1,18 @@
 #include "IO/Log.h"
 #include "Rendering.h"
 #include "EngineConfig.h"
-#include "Assets/AssetFactory.h"
 #include "JobSystem/JobSystem.h"
+#include "Object/Object.h"
+
 
 std::mutex testMutex;
 std::condition_variable testCond;
 
+
+
 int main(int argc, char* argv[])
 {
+
 	JobSystem::Initialize();
 
 

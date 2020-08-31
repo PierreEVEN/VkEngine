@@ -3,25 +3,30 @@
 #include <stdint.h>
 #include "String.h"
 #include "Hashing.h"
+#include "Types\Vector.refl.h" // automatically generated reflection header
 
-
-
+REFLECT(template = { {float, SVector}, {double, SVectorDouble}, {int32_t, SIntVector}, {int64_t, SLongVector} })
 template<typename T>
 struct IVector3
 {
-	IVector3() : x(0), y(0), z(0) {}
+	REFLECT_BODY()
+		IVector3() : x(0), y(0), z(0) {}
 	IVector3(const T& value) : x(value), y(value), z(value) {}
 	IVector3(const T& inX, const T& inY, const T& inZ) : x(inX), y(inY), z(inZ) {}
 
-	inline const bool operator==(const IVector3<T>& other) const	{
+	inline const bool operator==(const IVector3<T>& other) const {
 		return x == other.x && y == other.y && z == other.z;
 	}
-	inline const bool operator!=(const IVector3<T>& other) const	{
+	inline const bool operator!=(const IVector3<T>& other) const {
 		return x != other.x || y != other.y || z != other.z;
 	}
 
 	/* [] operator */
 	inline T& operator[](const size_t& axis) {
+		return coords[axis];
+	}
+
+	inline const T& operator[](const size_t& axis) const {
 		return coords[axis];
 	}
 
@@ -108,7 +113,7 @@ struct IVector3
 			return z;
 	}
 
-	inline IVector3<T>& Normalize()	{
+	inline IVector3<T>& Normalize() {
 		T length = Length();
 		x /= length;
 		y /= length;
@@ -147,7 +152,7 @@ struct IVector3
 
 	union
 	{
-		struct	{
+		struct {
 			T x, y, z;
 		};
 
@@ -155,9 +160,11 @@ struct IVector3
 	};
 };
 
+REFLECT(template = { {float, SVector2D}, {double, SVectorDouble2D}, {int32_t, SIntVector2D}, {int64_t, SLongVector2D} })
 template<typename T>
 struct IVector2
 {
+	REFLECT_BODY()
 	IVector2() : x(0), y(0) {}
 	IVector2(const T& value) : x(value), y(value) {}
 	IVector2(const T& inX, const T& inY) : x(inX), y(inY) {}
@@ -175,6 +182,10 @@ struct IVector2
 
 	/* [] operator */
 	inline T& operator[](const size_t& axis) {
+		return coords[axis];
+	}
+
+	inline const T& operator[](const size_t& axis) const {
 		return coords[axis];
 	}
 
@@ -276,10 +287,11 @@ struct IVector2
 	};
 };
 
-
+REFLECT(template = { {float, SVector4}, {double, SVector4Double}, {int32_t, SIntVector4}, {int64_t, SLongVector4} })
 template<typename T>
 struct IVector4
 {
+	REFLECT_BODY()
 	inline IVector4() : x(0), y(0), z(0), w(0) {}
 	inline IVector4(const T& scalar) : x(scalar), y(scalar), z(scalar), w(scalar) {}
 	inline IVector4(const T& inx, const T& iny, const T& inz, const T& inw) : x(inx), y(iny), z(inz), w(inw) {}
@@ -329,7 +341,7 @@ struct IVector4
 	/* [] operator */
 	inline T& operator[](const size_t& axis) {
 		return coords[axis];
-	}	
+	}
 	inline const T& operator[](const size_t& axis) const {
 		return coords[axis];
 	}
@@ -350,30 +362,16 @@ struct IVector4
 	};
 };
 
-typedef IVector4<float> SVector4;
-typedef IVector4<double> SVector4Double;
-typedef IVector4<int32_t> SIntVector4;
-typedef IVector4<int64_t> SLongVector4;
 
 MAKE_HASHABLE(SVector4, t.x, t.y, t.z);
 MAKE_HASHABLE(SVector4Double, t.x, t.y, t.z);
 MAKE_HASHABLE(SIntVector4, t.x, t.y, t.z);
 MAKE_HASHABLE(SLongVector4, t.x, t.y, t.z);
 
-typedef IVector3<float> SVector;
-typedef IVector3<double> SVectorDouble;
-typedef IVector3<int32_t> SIntVector;
-typedef IVector3<int64_t> SLongVector;
-
 MAKE_HASHABLE(SVector, t.x, t.y, t.z);
 MAKE_HASHABLE(SVectorDouble, t.x, t.y, t.z);
 MAKE_HASHABLE(SIntVector, t.x, t.y, t.z);
 MAKE_HASHABLE(SLongVector, t.x, t.y, t.z);
-
-typedef IVector2<float> SVector2D;
-typedef IVector2<double> SVectorDouble2D;
-typedef IVector2<int32_t> SIntVector2D;
-typedef IVector2<int64_t> SLongVector2D;
 
 MAKE_HASHABLE(SVector2D, t.x, t.y);
 MAKE_HASHABLE(SVectorDouble2D, t.x, t.y);

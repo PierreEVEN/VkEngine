@@ -9,7 +9,6 @@
 
 struct LineReader;
 struct RClassParser;
-struct RFileParser;
 
 struct RFileParser
 {
@@ -26,6 +25,8 @@ public:
 private:
 
 	static bool IsFileUpToDate(const std::string& sourcePath, const std::string& reflPath, std::string& timeString);
+
+
 
 	std::string filePath;
 	std::vector<RClassParser> fileClasses;

@@ -51,7 +51,9 @@ public:
 	{
 		RStruct* newStruct = static_cast<RStruct*>(RType::RegisterType<RStruct>(strName));
 
-		newStruct->SetCtor<Args...>(std::function<void* (Args...)>(&T::MakeStruct<Args...>));
+
+		//@TODO repair ctor system
+		//newStruct->SetCtor<Args...>(std::function<void* (Args...)>(&T::MakeStruct<Args...>));
 
 		RegisterStruct_Internal(newStruct);
 		return newStruct;

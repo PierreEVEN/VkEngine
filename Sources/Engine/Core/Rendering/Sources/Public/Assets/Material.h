@@ -15,6 +15,7 @@ namespace Rendering {
 		public:
 
 			friend TAssetFactory<Material>;
+			friend class MaterialEditor;
 
 			/** Draw material on desired viewport */
 			void PreDraw(ViewportInstance* writeViewport, const size_t& imageIndex);

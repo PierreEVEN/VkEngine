@@ -6,6 +6,8 @@
 #include "Object\Object.refl.h" // automatically generated reflection header
 
 
+
+
 REFLECT()
 class OObject : public Serializable
 {
@@ -23,4 +25,26 @@ public:
 
 	RPROPERTY()
 		int var3 = 4;
+};
+
+REFLECT()
+class TestClassA {
+	REFLECT_BODY()
+
+public:
+
+	RPROPERTY()
+		int var1 = 2;
+};
+
+
+
+REFLECT()
+class TestClassB : public TestClassA {
+	REFLECT_BODY()
+
+public:
+
+	RPROPERTY()
+		int var2 = 2;
 };

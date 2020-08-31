@@ -65,7 +65,7 @@ struct IColor
 
 struct SColor : public IColor<uint8_t, DEFAULT_COLOR_RED_VALUE, DEFAULT_COLOR_GREEN_VALUE, DEFAULT_COLOR_BLUE_VALUE, DEFAULT_COLOR_ALPHA_VALUE>
 {
-	using IColor::IColor;
+		using IColor::IColor;
 
 	static const uint32_t redMask = 0x000000FF; // Red mask
 	static const uint32_t greenMask = 0x0000FF00; // Green mask
@@ -88,7 +88,7 @@ struct SColor : public IColor<uint8_t, DEFAULT_COLOR_RED_VALUE, DEFAULT_COLOR_GR
 
 struct SLinearColor : public IColor<float, DEFAULT_LINEAR_COLOR_RED_VALUE, DEFAULT_LINEAR_COLOR_GREEN_VALUE, DEFAULT_LINEAR_COLOR_BLUE_VALUE, DEFAULT_LINEAR_COLOR_ALPHA_VALUE>
 {
-	using IColor::IColor;
+		using IColor::IColor;
 
 	static const SLinearColor WHITE; // White
 	static const SLinearColor GRAY; // Gray

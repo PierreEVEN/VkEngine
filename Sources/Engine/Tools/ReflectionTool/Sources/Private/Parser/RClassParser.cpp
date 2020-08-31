@@ -6,30 +6,13 @@
 #include "Parser/RClassParser.h"
 #include "Parser/RInheritanceTable.h"
 
-RClassParser::RClassParser(const LineReader& inData, uint32_t startLine, const std::string& path, const uint64_t& uniqueID, const std::string& inClassNamespace, const std::string& classNameOverride)
-	: data(inData), RBodyLine(startLine), classpath(path), fileUniqueID(uniqueID), classNamespace(inClassNamespace)
+RClassParser::RClassParser(const LineReader& inData, uint32_t startLine, const std::string& path, const uint64_t& uniqueID, const std::string& inClassNamespace, const std::string& inClassName, const EClassType& inClassType, const RClassTemplateData& inTemplateData)
+	: data(inData), RBodyLine(startLine), filePath(path), fileUniqueID(uniqueID), classNamespace(inClassNamespace), className(inClassName), classType(inClassType), templateData(inTemplateData)
 {
-	if (StringLibrary::GetStringField(data.GetLine(1), {' ', '\t'}, 0) == "class")
+	if (classType == EClassType::ECT_CLASS || classType == EClassType::ECT_STRUCT)
 	{
-		bisStruct = false;
-		bIsClass = true;
-	}
-	else if (StringLibrary::GetStringField(data.GetLine(1), { ' ', '\t' }, 0) == "struct")
-	{
-		bisStruct = true;
-		bIsClass = false;
-	}
-	else
-	{
-		bIsClass = false;
-		bisStruct = false;
-	}
-	if (bisStruct || bIsClass)
-	{
-		if (!StringLibrary::GetStringField(data.GetLine(1), { ' ', '\t' }, 1, className)) { std::cerr << "failed to get class name : " << data.GetLine(1) << std::endl; }
-		
 		std::string left, pars, right;
-		if (StringLibrary::SplitLine(data.GetLine(1), { ':' }, left, pars))
+		if (StringLibrary::SplitLine(data.GetLine(0), { ':' }, left, pars))
 		{
 			if (StringLibrary::SplitLine(pars, { '{' }, left, right)) pars = left;
 			for (const std::string& field : StringLibrary::GetStringFields(pars, { ',' }))
@@ -41,27 +24,8 @@ RClassParser::RClassParser(const LineReader& inData, uint32_t startLine, const s
 					parents.push_back(StringLibrary::CleanupLine(cont.size() == 2 ? cont[1] : cont[0]));
 				}
 			}
-			if (classNameOverride != "") {
-				InheritanceTable::RegisterClass(classNameOverride, parents);
-			}
-			else {
-				InheritanceTable::RegisterClass(className, parents);
-			}
+			InheritanceTable::RegisterClass(className, parents);
 		}
-	}
-	else
-	{
-		std::string left, right;
-		StringLibrary::SplitLine(data.GetLine(0), { '(' }, left, right, true);
-		std::string newRight = right;
-		StringLibrary::SplitLine(newRight, { ')' }, left, right, false);
-		if (classNameOverride != "") {
-			className = StringLibrary::CleanupLine(classNameOverride);
-		}
-		else {
-			className = StringLibrary::CleanupLine(left);
-		}
-
 	}
 
 	ExtractContent();
@@ -76,75 +40,115 @@ void RClassParser::WriteHeader(OSWriter& writer)
 		writer.WriteLine("namespace " + classNamespace);
 		writer.WriteLine("{");
 	}
-	if (bIsClass || bisStruct) writer.WriteLine('\t' + std::string(bisStruct ? "struct " : "class ") + className + "; // Forward declaration");
-	if (bIsClass || bisStruct)
-	{
-		writer.WriteLine("\n\t#define _REFLECTION_BODY_RUID_" + std::to_string(fileUniqueID) + "_LINE_" + std::to_string(RBodyLine) + std::string(" ") + (bIsClass ? "REFL_DECLARE_CLASS(" + className + ")" : "REFL_DECLARE_STRUCT(" + className + ") // Declare REFLECT_BODY() macro"));
+
+	/** Template declaration */
+	std::string templateArgsString = "";
+	for (int i = 0; i < templateData.templateParameters.size(); ++i) templateArgsString += "typename " + templateData.templateParameters[i] + (i == templateData.templateParameters.size() - 1 ? "" : ", ");
+	if (templateData.bIsTemplateClass)  writer.WriteLine('\t' + std::string("template<") + templateArgsString + "> // template declaration");
+	if (classType == EClassType::ECT_CLASS || classType == EClassType::ECT_STRUCT) writer.WriteLine('\t' + std::string(classType == EClassType::ECT_STRUCT ? "struct " : "class ") + className + "; // Forward declaration\n");
+
+	/** template specialization */
+	for (const auto& tempSpec : templateData.specializations) {
+		writer.WriteLine("\t" + std::string("typedef ") + className + "<" + tempSpec.tempType + "> " + tempSpec.tempName + "; // template specialization");
 	}
-	writer.WriteLine("\n\tREFL_DECLARE_TYPENAME(" + className + "); // Declare typename");
-	writer.WriteLine("\n\ttemplate<> struct RIsReflected<" + className + "> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not");
+
+
+	if (classType == EClassType::ECT_CLASS || classType == EClassType::ECT_STRUCT)
+	{
+		writer.WriteLine("\n\t#define _REFLECTION_BODY_RUID_" + std::to_string(fileUniqueID) + "_LINE_" + std::to_string(RBodyLine) + std::string(" ") + (classType == EClassType::ECT_CLASS ? "REFL_DECLARE_CLASS(" + className + ")" : "REFL_DECLARE_STRUCT(" + className + ")") + " // Declare REFLECT_BODY() macro\n");
+	}
+
+	if (templateData.bIsTemplateClass) {
+		for (const auto& tempCl : templateData.specializations) {
+			writer.WriteLine("\tREFL_DECLARE_TYPENAME(" + tempCl.tempName + "); // Declare typename");
+		}
+	}
+	else {
+		writer.WriteLine("\tREFL_DECLARE_TYPENAME(" + className + "); // Declare typename");
+	}
+	if (templateData.bIsTemplateClass) {
+		writer.WriteLine("");
+		for (const auto& tempCl : templateData.specializations) {
+			writer.WriteLine("\ttemplate<> struct RIsReflected<" + tempCl.tempName + "> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not");
+		}
+	}
+	else {
+		writer.WriteLine("\n\ttemplate<> struct RIsReflected<" + className + "> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not");
+	}
 
 	if (classNamespace != "") writer.WriteLine("}");
 }
 
 void RClassParser::WriteSource(OSWriter& writer)
 {
+	std::vector<std::string> reflectedClasses;
+	if (templateData.bIsTemplateClass) {
+		for (const auto& cl : templateData.specializations) {
+			reflectedClasses.push_back(cl.tempName);
+		}
+	}
+	else {
+		reflectedClasses = { className };
+	}
+
 	writer.WriteLine("\n\n\n\n/* ##############################  Reflection for " + className + "  ############################## */\n");
 	if (classNamespace != "")
 	{
 		writer.WriteLine("namespace " + classNamespace);
 		writer.WriteLine("{");
 	}
-	if (bisStruct || bIsClass)
-	{
-		if (bisStruct)
+	for (const auto& cl : reflectedClasses) {
+		if (classType == EClassType::ECT_CLASS || classType == EClassType::ECT_STRUCT)
 		{
-			writer.WriteLine("\tstatic RStruct* _static_Item_Class_" + className + " = nullptr; //Static struct reference");
-			writer.WriteLine("\tRStruct* " + className + "::GetStaticStruct() { return _static_Item_Class_" + className + "; } //Static struct getter\n");
-			writer.WriteLine("\tRStruct* " + className + "::GetStruct() const { return _static_Item_Class_" + className + "; } //struct getter\n");
-		}
-		if (bIsClass)
-		{
-			writer.WriteLine("\tstatic RClass* _static_Item_Class_" + className + " = nullptr; //Static class reference");
-			writer.WriteLine("\tRClass* " + className + "::GetStaticClass() { return _static_Item_Class_" + className + "; } //Static class getter\n");
-			writer.WriteLine("\tRClass* " + className + "::GetClass() const { return _static_Item_Class_" + className + "; } //class getter\n");
-		}
-		writer.WriteLine("\tvoid _Refl_Register_Item_" + className + "() { // Register function");
-		if (bisStruct) writer.WriteLine("\t		_static_Item_Class_" + className + " = RStruct::RegisterStruct<" + className + (ctor && ctor->args.size() > 0 ? "," + StringLibrary::ConcatString(ctor->args, ", ") : "") + ">(\"" + className + "\"); //Register Struct");
-		if (bIsClass) writer.WriteLine("\t		_static_Item_Class_" + className + " = RClass::RegisterClass<" + className + (ctor && ctor->args.size() > 0 ? "," + StringLibrary::ConcatString(ctor->args, ", ") : "") + ">(\"" + className + "\"); //Register Class");
-		for (const std::string& parent : parents)
-		{
-			writer.WriteLine("\t		if (RIsReflected<" + parent + ">::Reflect) // Is parent reflected");
-			writer.WriteLine("\t			_static_Item_Class_" + className + "->AddParent(\"" + parent + "\"); // register parent");
-		}
+			if (classType == EClassType::ECT_STRUCT)
+			{
+				writer.WriteLine("\tstatic RStruct* _static_Item_Class_" + cl + " = nullptr; //Static struct reference");
+				writer.WriteLine("\tRStruct* " + cl + "::GetStaticStruct() { return _static_Item_Class_" + cl + "; } //Static struct getter\n");
+				writer.WriteLine("\tRStruct* " + cl + "::GetStruct() const { return _static_Item_Class_" + cl + "; } //struct getter\n");
+			}
+			if (classType == EClassType::ECT_CLASS)
+			{
+				writer.WriteLine("\tstatic RClass* _static_Item_Class_" + cl + " = nullptr; //Static class reference");
+				writer.WriteLine("\tRClass* " + cl + "::GetStaticClass() { return _static_Item_Class_" + cl + "; } //Static class getter\n");
+				writer.WriteLine("\tRClass* " + cl + "::GetClass() const { return _static_Item_Class_" + cl + "; } //class getter\n");
+			}
+			writer.WriteLine("\tvoid _Refl_Register_Item_" + cl + "() { // Register function");
+			if (classType == EClassType::ECT_STRUCT) writer.WriteLine("\t		_static_Item_Class_" + cl + " = RStruct::RegisterStruct<" + cl + (ctor && ctor->args.size() > 0 ? "," + StringLibrary::ConcatString(ctor->args, ", ") : "") + ">(\"" + cl + "\"); //Register Struct");
+			if (classType == EClassType::ECT_CLASS) writer.WriteLine("\t		_static_Item_Class_" + cl + " = RClass::RegisterClass<" + cl + (ctor && ctor->args.size() > 0 ? "," + StringLibrary::ConcatString(ctor->args, ", ") : "") + ">(\"" + cl + "\"); //Register Class");
+			for (const std::string& parent : parents)
+			{
+				writer.WriteLine("\t		if (RIsReflected<" + parent + ">::Reflect) // Is parent reflected");
+				writer.WriteLine("\t			_static_Item_Class_" + cl + "->AddParent(\"" + parent + "\"); // register parent");
+			}
 
-		if (properties.size() > 0) writer.WriteLine("\t		size_t VarOffset; // Var offset");
-		for (const RPropertyParser& prop : properties)
-		{
-			writer.WriteLine("\t		VarOffset = (char*)&((" + className + "*)nullptr->* & " + className + "::" + prop.propertyName + ") - (char*)nullptr; // Retrieve var offset");
-			writer.WriteLine("\t		_static_Item_Class_" + className + "->RegisterProperty(new RProperty(RType::GetType(\"" + prop.propertyType + "\"), VarOffset, sizeof(" + prop.propertyType + "), \"" + prop.propertyName + "\")); // Register property");
+			if (properties.size() > 0) writer.WriteLine("\t		size_t VarOffset; // Var offset");
+			for (const RPropertyParser& prop : properties)
+			{
+				writer.WriteLine("\t		VarOffset = (char*)&((" + cl + "*)nullptr->* & " + cl + "::" + prop.propertyName + ") - (char*)nullptr; // Retrieve var offset");
+				writer.WriteLine("\t		_static_Item_Class_" + cl + "->RegisterProperty(new RProperty(RType::GetType(\"" + prop.propertyType + "\"), VarOffset, sizeof(" + prop.propertyType + "), \"" + prop.propertyName + "\")); // Register property");
+			}
+			for (const RFunctionParser& func : functions)
+			{
+				std::string paramString = StringLibrary::ConcatString(func.params, { ", " });
+				writer.WriteLine("\t		_static_Item_Class_" + cl + "->RegisterFunction(RFunction<" + func.returnType + (paramString != "" ? ", " + paramString : "") + (func.bIsStatic ? "" : "," + cl) + ">(\"" + func.functionName + "\", std::function<" + func.returnType + " (" + (func.bIsStatic ? paramString : cl + "&" + (paramString == "" ? "" : ", " + paramString)) + ")>(&" + cl + "::" + func.functionName + (paramString != "" ? "<" + paramString + ">" : "") + "))); // Register function");
+			}
+			writer.WriteLine("\t}\n");
+			writer.WriteLine("\tstruct _Refl_Static_Item_Builder_" + cl + "{ // Item builder - Build reflection data");
+			writer.WriteLine("\t	_Refl_Static_Item_Builder_" + cl + "() { // Builder constructor");
+			writer.WriteLine("\t		_Refl_Register_Item_" + cl + "(); // Call to builder function");
+			writer.WriteLine("\t	}");
+			writer.WriteLine("\t};\n");
+			writer.WriteLine("\tstatic _Refl_Static_Item_Builder_" + cl + " _Refl_Static_Item_Builder_Var_" + cl + "; //Build item when compiled");
 		}
-		for (const RFunctionParser& func : functions)
+		else
 		{
-			std::string paramString = StringLibrary::ConcatString(func.params, { ", " });
-			writer.WriteLine("\t		_static_Item_Class_" + className + "->RegisterFunction(RFunction<" + func.returnType + (paramString != "" ? ", " + paramString : "") + (func.bIsStatic ? "" : "," + className) + ">(\"" + func.functionName + "\", std::function<" + func.returnType + " (" + (func.bIsStatic ? paramString : className + "&" + (paramString == "" ? "" : ", " + paramString)) + ")>(&" + className + "::" + func.functionName + (paramString != "" ? "<" + paramString  + ">" : "") + "))); // Register function");
+			writer.WriteLine("\tstruct _Refl_static_type_builder_" + StringLibrary::ReplaceCharWith(cl, ':', '_') + " { // Type builder - Build reflection data");
+			writer.WriteLine("\t\t_Refl_static_type_builder_" + StringLibrary::ReplaceCharWith(cl, ':', '_') + "() { // Builder constructor");
+			writer.WriteLine("\t\t\tREFL_REGISTER_TYPE(" + cl + "); // Call to builder function");
+			writer.WriteLine("\t\t}");
+			writer.WriteLine("\t};");
+			writer.WriteLine("\tstatic _Refl_static_type_builder_" + StringLibrary::ReplaceCharWith(cl, ':', '_') + " _Refl_static_type_builder_var_" + StringLibrary::ReplaceCharWith(cl, ':', '_') + "; //Build item when compiled");
 		}
-		writer.WriteLine("\t}\n");
-		writer.WriteLine("\tstruct _Refl_Static_Item_Builder_" + className + "{ // Item builder - Build reflection data");
-		writer.WriteLine("\t	_Refl_Static_Item_Builder_" + className + "() { // Builder constructor");
-		writer.WriteLine("\t		_Refl_Register_Item_" + className + "(); // Call to builder function");
-		writer.WriteLine("\t	}");
-		writer.WriteLine("\t};\n");
-		writer.WriteLine("\tstatic _Refl_Static_Item_Builder_" + className + " _Refl_Static_Item_Builder_Var_" + className + "; //Build item when compiled");
-	}
-	else
-	{
-		writer.WriteLine("\tstruct _Refl_static_type_builder_" + StringLibrary::ReplaceCharWith(className, ':', '_') + " { // Type builder - Build reflection data");
-		writer.WriteLine("\t\t_Refl_static_type_builder_" + StringLibrary::ReplaceCharWith(className, ':', '_') + "() { // Builder constructor");
-		writer.WriteLine("\t\t\tREFL_REGISTER_TYPE(" + className + "); // Call to builder function");
-		writer.WriteLine("\t\t}");
-		writer.WriteLine("\t};");
-		writer.WriteLine("\tstatic _Refl_static_type_builder_" + StringLibrary::ReplaceCharWith(className, ':', '_') + " _Refl_static_type_builder_var_" + StringLibrary::ReplaceCharWith(className, ':', '_') + "; //Build item when compiled");
 	}
 	if (classNamespace != "") writer.WriteLine("}");
 
@@ -152,7 +156,7 @@ void RClassParser::WriteSource(OSWriter& writer)
 
 void RClassParser::ExtractContent()
 {
-	bool bFoundBody = !(bIsClass || bisStruct);
+	bool bFoundBody = !(classType == EClassType::ECT_CLASS || classType == EClassType::ECT_STRUCT);
 	for (int i = 0; i < data.Lines(); ++i)
 	{
 		if (StringLibrary::IsStartingWith(data.GetLine(i), "RCONSTRUCTOR("))
@@ -173,10 +177,6 @@ void RClassParser::ExtractContent()
 		if (StringLibrary::IsStartingWith(data.GetLine(i), "RFUNCTION("))
 		{
 			functions.push_back(RFunctionParser(data.GetLine(i + 1)));
-		}
-		if (StringLibrary::IsStartingWith(data.GetLine(i), "REFLECT_BODY("))
-		{
-			RBodyLine += i;
 		}
 	}
 }

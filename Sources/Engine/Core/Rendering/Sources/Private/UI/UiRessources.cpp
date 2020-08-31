@@ -18,4 +18,6 @@ void Rendering::UIRessources::LoadUIRessources()
 	maximizeIcon = TAssetFactory<Texture2D>::ImportFromPath("Ressources/Textures/Icons/icon-maximize.png");
 	minimizeIcon = TAssetFactory<Texture2D>::ImportFromPath("Ressources/Textures/Icons/icon-minimize.png");
 	defaultAssetIcon = TAssetFactory<Texture2D>::ImportFromPath("Ressources/Textures/Icons/Assets/icon-defaultAssetIcon.png");
+	applyIcon = TAssetFactory<Texture2D>::ImportFromPath("Ressources/Textures/Icons/icon-apply.png");
+	autoBuildIcon = TAssetFactory<Texture2D>::ImportFromPath("Ressources/Textures/Icons/icon-autobuild.png");
 }

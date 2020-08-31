@@ -1,4 +1,4 @@
-//VERSION : Friday, 17 July 2020 09:02:37
+//VERSION : Monday, 31 August 2020 14:08:45
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 
@@ -19,11 +19,40 @@
 
 	class OObject; // Forward declaration
 
-	#define _REFLECTION_BODY_RUID_1_LINE_12 REFL_DECLARE_CLASS(OObject)
+
+	#define _REFLECTION_BODY_RUID_1_LINE_14 REFL_DECLARE_CLASS(OObject) // Declare REFLECT_BODY() macro
 
 	REFL_DECLARE_TYPENAME(OObject); // Declare typename
 
 	template<> struct RIsReflected<OObject> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
+
+
+
+
+/* ##############################  Reflection for TestClassA  ############################## */
+
+	class TestClassA; // Forward declaration
+
+
+	#define _REFLECTION_BODY_RUID_1_LINE_32 REFL_DECLARE_CLASS(TestClassA) // Declare REFLECT_BODY() macro
+
+	REFL_DECLARE_TYPENAME(TestClassA); // Declare typename
+
+	template<> struct RIsReflected<TestClassA> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
+
+
+
+
+/* ##############################  Reflection for TestClassB  ############################## */
+
+	class TestClassB; // Forward declaration
+
+
+	#define _REFLECTION_BODY_RUID_1_LINE_44 REFL_DECLARE_CLASS(TestClassB) // Declare REFLECT_BODY() macro
+
+	REFL_DECLARE_TYPENAME(TestClassB); // Declare typename
+
+	template<> struct RIsReflected<TestClassB> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
 
 
 #endif

@@ -1,12 +1,14 @@
 #pragma once
 #include "Vector.h"
 #include "Types/Rotator.h"
+#include "Types\Matrix.refl.h" // automatically generated reflection header
 
-
+REFLECT(template = { {float, Mat3f}, {double, Mat3d} })
 template<typename T>
 struct IMatrix3
 {
-	inline IMatrix3() : IMatrix3(1) {}
+	REFLECT_BODY()
+		inline IMatrix3() : IMatrix3(1) {}
 	inline IMatrix3(const T& scalar) :
 		x1(scalar), x2(0), x3(0),
 		y1(0), y2(scalar), y3(0),
@@ -23,10 +25,11 @@ struct IMatrix3
 				y1, y2, y3,
 				z1, z2, z3;
 		};
-		struct { IVector3<T> 
-			a,
-			b,
-			c;
+		struct {
+			IVector3<T>
+				a,
+				b,
+				c;
 		};
 		IVector3<T> rows[3];
 		T coords[9];
@@ -34,11 +37,15 @@ struct IMatrix3
 };
 
 
+REFLECT(template = { {float, Mat4f}, {double, Mat4d} })
 template<typename T>
 struct IMatrix4
 {
+	REFLECT_BODY()
 	inline IMatrix4() : IMatrix4(1) {}
 	inline IMatrix4(IVector4<T> ina, IVector4<T> inb, IVector4<T> inc, IVector4<T> ind) : a(ina), b(inb), c(inc), d(ind) {}
+	inline IMatrix4(const IMatrix4<T>& other) { memcpy(coords, other.coords, sizeof(coords)); }
+	inline IMatrix4(const IMatrix4<T>&& other) { memcpy(coords, other.coords, sizeof(coords)); }
 	inline IMatrix4(const T& scalar) :
 		x1(scalar), x2(0), x3(0), x4(0),
 		y1(0), y2(scalar), y3(0), y4(0),
@@ -234,7 +241,7 @@ struct IMatrix4
 
 		return true;
 	}
-	
+
 	IMatrix4<T> Inverse()
 	{
 		T Coef00 = rows[2][2] * rows[3][3] - rows[3][2] * rows[2][3];
@@ -341,6 +348,10 @@ struct IMatrix4
 		return IVector3<T>(d.x, d.y, d.z);
 	}
 
+	inline IMatrix4<T>& operator=(const IMatrix4<T>& other) { memcpy(coords, other.coords, sizeof(coords)); return *this; }
+
+	inline const IVector4<T>& operator[](const size_t& elem) const { return rows[elem]; }
+
 	inline IVector4<T>& operator[](const size_t& elem) { return rows[elem]; }
 
 	inline const IMatrix4<T> operator *(const IMatrix4<T>& other) {
@@ -390,11 +401,12 @@ struct IMatrix4
 				z1, z2, z3, z4,
 				w1, w2, w3, w4;
 		};
-		struct { IVector4<T> 
-			a,
-			b,
-			c,
-			d;
+		struct {
+			IVector4<T>
+				a,
+				b,
+				c,
+				d;
 		};
 
 		IVector4<T> rows[4];
@@ -402,48 +414,43 @@ struct IMatrix4
 	};
 
 
-	private:
+private:
 
-		template<typename genType>
-		static constexpr genType epsilon()
-		{
-			return std::numeric_limits<genType>::epsilon();
-		}
+	template<typename genType>
+	static constexpr genType epsilon()
+	{
+		return std::numeric_limits<genType>::epsilon();
+	}
 
-		static bool epsilonEqual
-		(
-			float const& x,
-			float const& y,
-			float const& epsilon
-		)
-		{
-			return abs(x - y) < epsilon;
-		}
+	static bool epsilonEqual
+	(
+		float const& x,
+		float const& y,
+		float const& epsilon
+	)
+	{
+		return abs(x - y) < epsilon;
+	}
 
 
-		static bool epsilonEqual(
-			double const& x,
-			double const& y,
-			double const& epsilon
-		) {
-			return abs(x - y) < epsilon;
-		}
+	static bool epsilonEqual(
+		double const& x,
+		double const& y,
+		double const& epsilon
+	) {
+		return abs(x - y) < epsilon;
+	}
 
-		static bool epsilonNotEqual(float const& x, float const& y, float const& epsilon)
-		{
-			return abs(x - y) >= epsilon;
-		}
+	static bool epsilonNotEqual(float const& x, float const& y, float const& epsilon)
+	{
+		return abs(x - y) >= epsilon;
+	}
 
-		static bool epsilonNotEqual(double const& x, double const& y, double const& epsilon)
-		{
-			return abs(x - y) >= epsilon;
-		}
+	static bool epsilonNotEqual(double const& x, double const& y, double const& epsilon)
+	{
+		return abs(x - y) >= epsilon;
+	}
 };
-
-typedef IMatrix3<float> Mat3f;
-typedef IMatrix3<double> Mat3d;
-typedef IMatrix4<float> Mat4f;
-typedef IMatrix4<double> Mat4d;
 
 
 

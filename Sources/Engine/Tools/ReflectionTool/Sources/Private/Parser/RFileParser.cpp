@@ -7,6 +7,7 @@
 #include "Utils/StringLibrary.h"
 #include <sstream>
 #include "Parser/RFileParser.h"
+#include <assert.h>
 
 uint64_t currentFileID = 0;
 int BuildErrorLevel = 0;

@@ -42,9 +42,10 @@ namespace Rendering
 		std::optional<uint32_t> presentFamily;
 		inline bool IsComplete() { return graphicsFamily.has_value() && presentFamily.has_value(); }
 	};
-	
+
 	struct Vertex
 	{
+
 #ifdef VERTEX_ENABLE_LOCATION
 		SVector pos;
 #endif
@@ -95,7 +96,7 @@ namespace Rendering
 		static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();
 	};
 
-	struct SMeshSectionData	{
+	struct SMeshSectionData {
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
 		Mat4d sectionTransform;

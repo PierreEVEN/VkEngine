@@ -19,5 +19,7 @@ namespace Rendering::UIRessources {
 	inline Texture2D* maximizeIcon = nullptr;
 	inline Texture2D* minimizeIcon = nullptr;
 	inline Texture2D* defaultAssetIcon = nullptr;
+	inline Texture2D* applyIcon = nullptr;
+	inline Texture2D* autoBuildIcon = nullptr;
 
 }

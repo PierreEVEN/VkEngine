@@ -1,4 +1,4 @@
-//VERSION : Friday, 17 July 2020 09:02:37
+//VERSION : Monday, 31 August 2020 14:08:45
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 #include "C:/Users/pierre/Documents/Engine/Sources/Engine/Core/Engine/Sources/Public\Object\Object.h"
@@ -37,3 +37,55 @@
 	};
 
 	static _Refl_Static_Item_Builder_OObject _Refl_Static_Item_Builder_Var_OObject; //Build item when compiled
+
+
+
+
+/* ##############################  Reflection for TestClassA  ############################## */
+
+	static RClass* _static_Item_Class_TestClassA = nullptr; //Static class reference
+	RClass* TestClassA::GetStaticClass() { return _static_Item_Class_TestClassA; } //Static class getter
+
+	RClass* TestClassA::GetClass() const { return _static_Item_Class_TestClassA; } //class getter
+
+	void _Refl_Register_Item_TestClassA() { // Register function
+			_static_Item_Class_TestClassA = RClass::RegisterClass<TestClassA>("TestClassA"); //Register Class
+			size_t VarOffset; // Var offset
+			VarOffset = (char*)&((TestClassA*)nullptr->* & TestClassA::var1) - (char*)nullptr; // Retrieve var offset
+			_static_Item_Class_TestClassA->RegisterProperty(new RProperty(RType::GetType("int"), VarOffset, sizeof(int), "var1")); // Register property
+	}
+
+	struct _Refl_Static_Item_Builder_TestClassA{ // Item builder - Build reflection data
+		_Refl_Static_Item_Builder_TestClassA() { // Builder constructor
+			_Refl_Register_Item_TestClassA(); // Call to builder function
+		}
+	};
+
+	static _Refl_Static_Item_Builder_TestClassA _Refl_Static_Item_Builder_Var_TestClassA; //Build item when compiled
+
+
+
+
+/* ##############################  Reflection for TestClassB  ############################## */
+
+	static RClass* _static_Item_Class_TestClassB = nullptr; //Static class reference
+	RClass* TestClassB::GetStaticClass() { return _static_Item_Class_TestClassB; } //Static class getter
+
+	RClass* TestClassB::GetClass() const { return _static_Item_Class_TestClassB; } //class getter
+
+	void _Refl_Register_Item_TestClassB() { // Register function
+			_static_Item_Class_TestClassB = RClass::RegisterClass<TestClassB>("TestClassB"); //Register Class
+			if (RIsReflected<TestClassA>::Reflect) // Is parent reflected
+				_static_Item_Class_TestClassB->AddParent("TestClassA"); // register parent
+			size_t VarOffset; // Var offset
+			VarOffset = (char*)&((TestClassB*)nullptr->* & TestClassB::var2) - (char*)nullptr; // Retrieve var offset
+			_static_Item_Class_TestClassB->RegisterProperty(new RProperty(RType::GetType("int"), VarOffset, sizeof(int), "var2")); // Register property
+	}
+
+	struct _Refl_Static_Item_Builder_TestClassB{ // Item builder - Build reflection data
+		_Refl_Static_Item_Builder_TestClassB() { // Builder constructor
+			_Refl_Register_Item_TestClassB(); // Call to builder function
+		}
+	};
+
+	static _Refl_Static_Item_Builder_TestClassB _Refl_Static_Item_Builder_Var_TestClassB; //Build item when compiled

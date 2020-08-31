@@ -2,8 +2,9 @@
 
 #include "Reflection.h"
 #include <type_traits>
-#include "Types\NativeTypes.refl.h"
 
+
+// @TODO SUPPORT OF NATIVE TYPES IS DEPRECATED
 REFLECT(bool)
 REFLECT(float)
 REFLECT(double)

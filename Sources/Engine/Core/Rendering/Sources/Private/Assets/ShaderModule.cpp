@@ -48,17 +48,17 @@ void GetReflectionData(const std::vector<uint32_t>& InSpv)
 
 	spirv_cross::Compiler Compiler(InSpv);
 
-// 	spirv_cross::ShaderResources Resources = Compiler.get_shader_resources();
-// 
-// 
-// 	LOG("uniform_buffers : " + ToString(Resources.uniform_buffers.size()));
-// 	LOG("stage_inputs : " + ToString(Resources.stage_inputs.size()));
-// 	LOG("stage_outputs : " + ToString(Resources.stage_outputs.size()));
-// 	LOG("subpass_inputs : " + ToString(Resources.subpass_inputs.size()));
-// 	LOG("storage_images : " + ToString(Resources.storage_images.size()));
-// 	LOG("sampled_images : " + ToString(Resources.sampled_images.size()));
-// 	LOG("atomic_counters : " + ToString(Resources.atomic_counters.size()));
-// 	LOG("acceleration_structures : " + ToString(Resources.acceleration_structures.size()));
+	spirv_cross::ShaderResources Resources = Compiler.get_shader_resources();
+
+
+	LOG("uniform_buffers : " + ToString(Resources.uniform_buffers.size()));
+	LOG("stage_inputs : " + ToString(Resources.stage_inputs.size()));
+	LOG("stage_outputs : " + ToString(Resources.stage_outputs.size()));
+	LOG("subpass_inputs : " + ToString(Resources.subpass_inputs.size()));
+	LOG("storage_images : " + ToString(Resources.storage_images.size()));
+	LOG("sampled_images : " + ToString(Resources.sampled_images.size()));
+	LOG("atomic_counters : " + ToString(Resources.atomic_counters.size()));
+	LOG("acceleration_structures : " + ToString(Resources.acceleration_structures.size()));
 
 
 
@@ -136,7 +136,7 @@ bool Rendering::ShaderModule::CompileShader(VkShaderModule& outModule, const ESh
 	}
 	std::vector<uint32_t> bytecode { Result.cbegin(), Result.cend() };
 
-
+	LOG(GetName());
 	GetReflectionData(bytecode);
 
 	VkShaderModuleCreateInfo createInfo{};

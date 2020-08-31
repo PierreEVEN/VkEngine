@@ -27,7 +27,7 @@
 #include "Assets/StaticMesh.h"
 #include "UI/SubWindows/TextureImporterWindow.h"
 #include "UI/SubWindows/ShaderImporterWindow.h"
-#include "UI/SubWindows/ShaderCodeEditor.h"
+#include "UI/SubWindows/MaterialEditor.h"
 
 Rendering::ViewportInstance::ViewportInstance(const SIntVector2D& inDesiredViewportSize)
 	: desiredViewportSize(inDesiredViewportSize)
@@ -44,9 +44,8 @@ Rendering::ViewportInstance::ViewportInstance(const SIntVector2D& inDesiredViewp
 	G_ON_WINDOW_RESIZED.Add(this, &ViewportInstance::RequestViewportResize);
 
  	new DebugUI(this);
- 	new ContentBrowser();
-	new ShaderCodeEditor(G_GLTF_FRAGMENT_MODULE);
-	new ShaderCodeEditor(G_GLTF_VERTEX_MODULE);
+	new ContentBrowser();
+	new MaterialEditor(Material::GetDefaultMaterial());
 }
 
 Rendering::ViewportInstance::~ViewportInstance()

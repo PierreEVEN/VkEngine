@@ -25,8 +25,6 @@ public: \
 	friend void _Refl_Register_Item_##structName##(); \
 	static class RStruct* GetStaticStruct(); \
 	virtual RStruct* GetStruct() const; \
-    template<typename... Args> \
-	inline static structName* MakeStruct(Args&&... InArgs) { return new structName(std::forward<Args>(InArgs)...); }
 
 #define REFL_DECLARE_CLASS(className) \
 public: \
@@ -34,8 +32,6 @@ public: \
 	friend void _Refl_Register_Class(); \
 	static class RClass* GetStaticClass(); \
 	virtual RClass* GetClass() const; \
-    template<typename... Args> \
-	inline static className* MakeClass(Args&&... InArgs) { return new className(std::forward<Args>(InArgs)...); } \
 private:
 
 

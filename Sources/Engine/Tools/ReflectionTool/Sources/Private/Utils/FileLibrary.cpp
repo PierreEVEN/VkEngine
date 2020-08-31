@@ -91,89 +91,230 @@ bool const FileLibrary::ParseArgument(int argc, char* argv[], const std::string&
 	return false;
 }
 
+/** Does input line contain namespace informations, and if true, extract namespace name */
+bool IsNamespace(const std::string& lineData, std::string& resultNamespace)
+{
+	if (!StringLibrary::IsStartingWith(StringLibrary::CleanupLine(lineData), "namespace")) return false;
+	std::string left, center, right;
+	if (!StringLibrary::SplitLine(StringLibrary::CleanupLine(lineData), { ' ', '\t' }, left, center, true)) return false;
+	if (!StringLibrary::SplitLine(StringLibrary::CleanupLine(center), { ' ', '\t' }, resultNamespace, right, true)) return false;	
+	return true;
+}
+
+/** Does input line contain REFLECT macro, and if true, extract reflection parameters */
+bool IsReflectionMacro(const std::string& lineData, std::vector<std::string>& resultOptions)
+{
+	if (!StringLibrary::IsStartingWith(StringLibrary::CleanupLine(lineData), "REFLECT(")) return false;
+
+	std::string left, center, right, args;
+	if (!StringLibrary::SplitLine(StringLibrary::CleanupLine(lineData), { '(' }, left, center, true)) return false;
+	if (!StringLibrary::SplitLine(StringLibrary::CleanupLine(center), { ')' }, args, right, true)) return false;
+
+	int64_t indentLevel = 0;
+	resultOptions.clear();
+	std::string currentOptions = "";
+	for (const auto& chr : args) {
+		if (chr == '{') indentLevel++;
+		else if (chr == '}') indentLevel--;
+
+		if (indentLevel == 0 && chr == ',') {
+			resultOptions.push_back(currentOptions);
+			currentOptions = "";
+		}
+		else {
+			currentOptions += chr;
+		}
+	}
+	if (currentOptions != "") resultOptions.push_back(currentOptions);
+
+
+	return true;
+}
+
+/** Does input line contain template informations */
+bool IsTemplate(const std::string& lineData, RClassTemplateData& templateData)
+{
+	if (!StringLibrary::IsStartingWith(StringLibrary::CleanupLine(lineData), "template")) return false;
+
+	std::string left, center, right, typenames;
+	if (!StringLibrary::SplitLine(StringLibrary::CleanupLine(lineData), { '<' }, left, center, true)) return false;
+	if (!StringLibrary::SplitLine(StringLibrary::CleanupLine(center), { '>' }, typenames, right, true)) return false;
+
+	if (!templateData.bIsTemplateClass) {
+		return false;
+	}
+	templateData.templateParameters.clear();
+
+	for (const auto& names : StringLibrary::GetStringFields(typenames, { ',' })) {
+		if (!StringLibrary::SplitLine(StringLibrary::CleanupLine(names), { ' ' }, left, right)) std::cerr << "wrong template names" << std::endl;
+		templateData.templateParameters.push_back(right);
+	}
+
+	return true;
+}
+
+/** Does input line contain class or struct data, and if true, return class name */
+bool IsClass(const std::string& lineData, std::string& className, EClassType& currentClassType)
+{
+	EClassType newClassType;
+	if (StringLibrary::IsStartingWith(StringLibrary::CleanupLine(lineData), "struct")) newClassType = EClassType::ECT_STRUCT;
+	else if (StringLibrary::IsStartingWith(StringLibrary::CleanupLine(lineData), "class")) newClassType = EClassType::ECT_CLASS;
+	else return false;
+
+	std::string left, center, right;
+	if (!StringLibrary::SplitLine(StringLibrary::CleanupLine(lineData), { ' ', '\t' }, left, center, true)) return false;
+	if (!StringLibrary::SplitLine(StringLibrary::CleanupLine(center), { ' ', '\t' }, className, right, true)) className = center;
+
+	currentClassType = newClassType;
+	return true;
+}
+
+/** Does input line contains class body macro */
+bool IsClassBody(const std::string& lineData)
+{
+	if (!StringLibrary::IsStartingWith(StringLibrary::CleanupLine(lineData), "REFLECT_BODY(")) return false;
+	return true;
+}
+
+/** Extract "template" arg values */
+bool IsTemplateArgument(const std::string& argument, RClassTemplateData& templateData) {
+	if (!StringLibrary::IsStartingWith(StringLibrary::CleanupLine(argument), "template")) return false;
+
+	std::string left, val;
+	if (!StringLibrary::SplitLine(StringLibrary::CleanupLine(argument), { '=' }, left, val)) return false;
+
+	templateData.bIsTemplateClass = true;
+	templateData.specializations.clear();
+	std::string currentArg = "";
+	std::vector<std::string> foundValues;
+	int64_t indentLevel = 0;
+	for (const auto& chr : val) {
+		if (chr == '{') indentLevel++;
+		else if (chr == '}') indentLevel--;
+		else if (chr == ',' && indentLevel == 1) {
+			foundValues.push_back(currentArg);
+			currentArg = "";
+		}
+		else currentArg += chr;
+	}
+	if (currentArg != "") foundValues.push_back(currentArg);
+
+	for (const auto& value : foundValues) {
+		std::string l, r;
+		if (StringLibrary::SplitLine(StringLibrary::CleanupLine(value), { ',' }, l, r)) {
+			templateData.specializations.push_back(RClassTemplateSpecialization(StringLibrary::CleanupLine(l), StringLibrary::CleanupLine(r)));
+		}
+	}
+
+	return true;
+}
+
+/** Check indentation level, return true if indentation hit 0 */
+bool UpdateIndentationLevel(const std::string& lineData, int64_t& currentLevel) {
+	size_t newLevel = currentLevel;
+
+	for (const auto& chr : lineData) {
+		if (chr == '{') newLevel++;
+		else if (chr == '}') newLevel--;
+	}
+
+	if (currentLevel != 0 && newLevel == 0) {
+		currentLevel = 0;
+		return true;
+	}
+	currentLevel = newLevel;
+	return false;
+}
+
 std::vector<RClassParser> LineReader::ExtractClasses(const std::string filePath, const uint64_t& uniqueID) const
 {
+	LineReader currentClassContent;
 	std::vector<RClassParser> structures;
 
-	int classIndentationLevel = 0;
-	int namespaceIndentationLevel = 0;
-	bool bIsParsingClass = false;
-	bool bClassStartedIndentationTest = false;
-	bool bNamespaceStartedIndentationTest = false;
+	/** Current namespace */
 	std::string currentNamespace = "";
-	LineReader classLines;
-	int classLineIndex = 0;
+
+	/** Current class */
+	std::string currentClassName = "";
+	EClassType currentClassType;
+
+	/** Last hit REFLECT() macro arguments */
+	std::vector<std::string> currentReflectionOptions = {};
+
+	/** True when REFLECT() macro is found. Used to wait for the next class or struct name */
+	bool bWaitingForClassName = false;
+
+	/** True when class or struct macro is found. Used to wait for the next class indentation block */
+	bool bIsInsideClass = false;
+
+	/** IndentationLevels */
+	int64_t classIndentationLevel = 0;
+	int64_t namespaceIndentationLevel = 0;
+
+	/** Current class REFLECT_BOD() macro line */
+	uint32_t classBodyLine = -1;
+
+	/** Class template datas */
+	RClassTemplateData currentClassTemplateDatas;
+
 
 	for (int i = 0; i < data.size(); ++i)
 	{
 
-		if (StringLibrary::IsStartingWith(StringLibrary::CleanupLine(GetLine(i)), "namespace"))
+		/** Namespace handle (doens't support child namespaces) */
+		if (IsNamespace(GetLine(i), currentNamespace))
 		{
-			bNamespaceStartedIndentationTest = true;
-			std::string left, center, right;
-			StringLibrary::SplitLine(StringLibrary::CleanupLine(GetLine(i)), { ' ', '\t' }, left, center, true);
-			StringLibrary::SplitLine(StringLibrary::CleanupLine(center), { ' ', '\t' }, currentNamespace, right, true);		
-
-		}
-
-		if (StringLibrary::IsStartingWith(GetLine(i), "REFLECT("))
-		{
-			/** Template case */
-			if (StringLibrary::IsStartingWith(StringLibrary::CleanupLine(GetLine(i + 1)), "template<")) {
-				++i;
-			}
-
-
-
-			if (classIndentationLevel != 0) std::cerr << "cannot use UCLASS / USTRUCT macro inside classes" << std::endl;
-			bIsParsingClass = true;
-
-			if (StringLibrary::GetStringField(GetLine(i + 1), { ' ', '\t' }, 0) != "struct" && StringLibrary::GetStringField(GetLine(i + 1), { ' ', '\t' }, 0) != "class")
-			{
-				bClassStartedIndentationTest = true;
-			}
-			classLineIndex = i + 1;
-		}
-
-		if (bNamespaceStartedIndentationTest) {
-			for (const char& chr : GetLine(i))
-			{
-				if (chr == '{')
-					namespaceIndentationLevel++;
-				else if (chr == '}') 
-					namespaceIndentationLevel--;
-			}
-		}
-
-		if (bIsParsingClass)
-		{
-			for (const char& chr : GetLine(i))
-			{
-				if (chr == '{')
-				{
-					bClassStartedIndentationTest = true;
-					classIndentationLevel++;
-				}
-				else if (chr == '}') classIndentationLevel--;
-			}
-
-			classLines.AddLine(GetLine(i));
-
-			if (classIndentationLevel <= 0 && bClassStartedIndentationTest)
-			{
-				bClassStartedIndentationTest = false;
-				bIsParsingClass = false;
-				classIndentationLevel = 0;
-				structures.push_back(RClassParser(classLines, classLineIndex, filePath, uniqueID, currentNamespace));
-				classLines.Clear();
-			}
-		}
-
-		if (namespaceIndentationLevel <= 0 && bNamespaceStartedIndentationTest)
-		{
-			bNamespaceStartedIndentationTest = false;
 			namespaceIndentationLevel = 0;
+		}
+
+		/** Check if we leaved current namespace */
+		if (UpdateIndentationLevel(GetLine(i), namespaceIndentationLevel)) {
 			currentNamespace = "";
+		}
+
+		/** Test if we found a reflect macro */
+		if (IsReflectionMacro(GetLine(i), currentReflectionOptions))
+		{
+			for (const auto& arg : currentReflectionOptions) {
+				if (IsTemplateArgument(arg, currentClassTemplateDatas)) continue;
+			}
+
+			bWaitingForClassName = true;
+			continue;
+		}
+
+		/** Nothing to do yet */
+		if (IsTemplate(GetLine(i), currentClassTemplateDatas))
+		{
+			continue;
+		}
+
+		/** Does we encountered class body */
+		if (bWaitingForClassName && IsClass(GetLine(i), currentClassName, currentClassType))
+		{
+			bWaitingForClassName = false;
+			bIsInsideClass = true;
+		}
+
+		/** Extract class content */
+		if (bIsInsideClass) {
+			if (IsClassBody(GetLine(i))) classBodyLine = i + 1;
+			currentClassContent.AddLine(GetLine(i));
+
+			if (UpdateIndentationLevel(GetLine(i), classIndentationLevel)) {
+				bIsInsideClass = false;
+				if (classBodyLine == -1) std::cerr << "Failed to parse class " << currentClassName << " : no reflection body found!" << std::endl;
+
+				structures.push_back(RClassParser(currentClassContent, classBodyLine, filePath, uniqueID, currentNamespace, currentClassName, currentClassType, currentClassTemplateDatas));
+
+				/** Data cleanup */
+				currentClassContent.Clear();
+				currentClassTemplateDatas.bIsTemplateClass = false;
+				currentClassTemplateDatas.templateParameters.clear();
+				currentClassTemplateDatas.specializations.clear();
+				classBodyLine = -1;
+				currentClassName = "";
+			}
 		}
 	}
 

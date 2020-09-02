@@ -6,8 +6,6 @@
 #include "Object\Object.refl.h" // automatically generated reflection header
 
 
-
-
 REFLECT()
 class OObject : public Serializable
 {

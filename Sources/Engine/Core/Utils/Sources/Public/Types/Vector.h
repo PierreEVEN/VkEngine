@@ -7,7 +7,7 @@
 
 REFLECT(template = { {float, SVector}, {double, SVectorDouble}, {int32_t, SIntVector}, {int64_t, SLongVector} })
 template<typename T>
-struct IVector3
+struct IVector3 final
 {
 	REFLECT_BODY()
 		IVector3() : x(0), y(0), z(0) {}
@@ -162,7 +162,7 @@ struct IVector3
 
 REFLECT(template = { {float, SVector2D}, {double, SVectorDouble2D}, {int32_t, SIntVector2D}, {int64_t, SLongVector2D} })
 template<typename T>
-struct IVector2
+struct IVector2 final
 {
 	REFLECT_BODY()
 	IVector2() : x(0), y(0) {}
@@ -289,7 +289,7 @@ struct IVector2
 
 REFLECT(template = { {float, SVector4}, {double, SVector4Double}, {int32_t, SIntVector4}, {int64_t, SLongVector4} })
 template<typename T>
-struct IVector4
+struct IVector4 final
 {
 	REFLECT_BODY()
 	inline IVector4() : x(0), y(0), z(0), w(0) {}

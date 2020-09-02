@@ -2,11 +2,14 @@
 #include "Vector.h"
 #include "Maths/BaseOperations.h"
 #include <valarray>
+#include "Types\Rotator.refl.h" // automatically generated reflection header
 
+REFLECT(template = { {float, SQuatf}, {double, SQuatd} })
 template<typename T>
-struct IQuaternion
+struct IQuaternion final
 {
-	inline IQuaternion() : x(0), y(0), z(0), w(0) {}
+	REFLECT_BODY()
+		inline IQuaternion() : x(0), y(0), z(0), w(0) {}
 	inline IQuaternion(const T& inX, const T& inY, const T& inZ, const T& inW) : x(inX), y(inY), z(inZ), w(inW) {}
 	inline IQuaternion(const T& inRoll, const T& inPitch, const T& inYaw) { SetFromEuleurAngles(-inRoll + 180, -inPitch, inYaw); }
 	IQuaternion(SVector inForwardVector, T inAngle) { SetFromForwardVectorAndAngle(inForwardVector.x, inForwardVector.y, inForwardVector.z, inAngle); }
@@ -33,7 +36,7 @@ struct IQuaternion
 	}
 
 	inline const SVector GetRightVector() const {
-		return SVector (
+		return SVector(
 			2 * (x * y - w * z),
 			1 - 2 * (x * x + z * z),
 			2 * (y * z + w * x)
@@ -41,7 +44,7 @@ struct IQuaternion
 	}
 
 	inline const SVector GetUpVector() const {
-		return SVector (
+		return SVector(
 			2 * (x * z + w * y),
 			2 * (y * z - w * x),
 			1 - 2 * (x * x + y * y)
@@ -67,7 +70,7 @@ struct IQuaternion
 		T cosy_cosp = 1 - 2 * (y * y + z * z);
 		return std::atan2(siny_cosp, cosy_cosp) / G_FPI * 180;
 	}
-	
+
 	union
 	{
 		struct { T x, y, z, w; };
@@ -103,10 +106,12 @@ private:
 	}
 };
 
+REFLECT(template = { {float, SRotatorf}, {double, SRotatord} })
 template<typename T>
-struct IRotator
+struct IRotator final
 {
-	inline IRotator() : x(0), y(0), z(0) {}
+	REFLECT_BODY()
+		inline IRotator() : x(0), y(0), z(0) {}
 	inline IRotator(const T& inRoll, const T& inPitch, const T& inYaw) : roll(inRoll), pitch(inPitch), yaw(inYaw) {}
 	inline IRotator(const IQuaternion<T>& inQuat) : roll(inQuat.Roll()), pitch(inQuat.Pitch()), yaw(inQuat.Yaw()) {}
 
@@ -125,8 +130,3 @@ struct IRotator
 		T coords[3];
 	};
 };
-
-typedef IQuaternion<float> SQuatf;
-typedef IQuaternion<double> SQuatd;
-typedef IRotator<float> SRotatorf;
-typedef IRotator<double> SRotatord;

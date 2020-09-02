@@ -20,6 +20,20 @@ struct RTypeName<type> \
 	constexpr static const char* Name = #type;\
 };
 
+#define REFL_DECLARE_STRUCT_NON_VIRTUAL(structName) \
+public: \
+	friend void _Refl_Register_Item_##structName##(); \
+	static class RStruct* GetStaticStruct(); \
+	RStruct* GetStruct() const; \
+
+#define REFL_DECLARE_CLASS_NON_VIRTUAL(structName) \
+public: \
+	friend void _Refl_Register_Item_##className##(); \
+	friend void _Refl_Register_Class(); \
+	static class RClass* GetStaticClass(); \
+	RClass* GetClass() const; \
+private:
+
 #define REFL_DECLARE_STRUCT(structName) \
 public: \
 	friend void _Refl_Register_Item_##structName##(); \

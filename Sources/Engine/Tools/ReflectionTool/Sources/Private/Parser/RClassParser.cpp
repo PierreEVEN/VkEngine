@@ -6,8 +6,8 @@
 #include "Parser/RClassParser.h"
 #include "Parser/RInheritanceTable.h"
 
-RClassParser::RClassParser(const LineReader& inData, uint32_t startLine, const std::string& path, const uint64_t& uniqueID, const std::string& inClassNamespace, const std::string& inClassName, const EClassType& inClassType, const RClassTemplateData& inTemplateData)
-	: data(inData), RBodyLine(startLine), filePath(path), fileUniqueID(uniqueID), classNamespace(inClassNamespace), className(inClassName), classType(inClassType), templateData(inTemplateData)
+RClassParser::RClassParser(const LineReader& inData, uint32_t startLine, const std::string& path, const uint64_t& uniqueID, const std::string& inClassNamespace, const std::string& inClassName, const EClassType& inClassType, const RClassTemplateData& inTemplateData, bool bInIsFinal)
+	: data(inData), RBodyLine(startLine), filePath(path), fileUniqueID(uniqueID), classNamespace(inClassNamespace), className(inClassName), classType(inClassType), templateData(inTemplateData), bIsFinal(bInIsFinal)
 {
 	if (classType == EClassType::ECT_CLASS || classType == EClassType::ECT_STRUCT)
 	{
@@ -55,7 +55,12 @@ void RClassParser::WriteHeader(OSWriter& writer)
 
 	if (classType == EClassType::ECT_CLASS || classType == EClassType::ECT_STRUCT)
 	{
-		writer.WriteLine("\n\t#define _REFLECTION_BODY_RUID_" + std::to_string(fileUniqueID) + "_LINE_" + std::to_string(RBodyLine) + std::string(" ") + (classType == EClassType::ECT_CLASS ? "REFL_DECLARE_CLASS(" + className + ")" : "REFL_DECLARE_STRUCT(" + className + ")") + " // Declare REFLECT_BODY() macro\n");
+		if (bIsFinal) {
+			writer.WriteLine("\n\t#define _REFLECTION_BODY_RUID_" + std::to_string(fileUniqueID) + "_LINE_" + std::to_string(RBodyLine) + std::string(" ") + (classType == EClassType::ECT_CLASS ? "REFL_DECLARE_CLASS_NON_VIRTUAL(" + className + ")" : "REFL_DECLARE_STRUCT_NON_VIRTUAL(" + className + ")") + " // Declare REFLECT_BODY() macro\n");
+		}
+		else {
+			writer.WriteLine("\n\t#define _REFLECTION_BODY_RUID_" + std::to_string(fileUniqueID) + "_LINE_" + std::to_string(RBodyLine) + std::string(" ") + (classType == EClassType::ECT_CLASS ? "REFL_DECLARE_CLASS(" + className + ")" : "REFL_DECLARE_STRUCT(" + className + ")") + " // Declare REFLECT_BODY() macro\n");
+		}
 	}
 
 	if (templateData.bIsTemplateClass) {

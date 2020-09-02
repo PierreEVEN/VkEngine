@@ -36,7 +36,7 @@ struct RClassTemplateData {
 struct RClassParser
 {
 public:
-	RClassParser(const LineReader& inData, uint32_t startLine, const std::string& path, const uint64_t& uniqueID, const std::string& inClassNamespace, const std::string& inClassName, const EClassType& inClassType, const RClassTemplateData& inTemplateData);
+	RClassParser(const LineReader& inData, uint32_t startLine, const std::string& path, const uint64_t& uniqueID, const std::string& inClassNamespace, const std::string& inClassName, const EClassType& inClassType, const RClassTemplateData& inTemplateData, bool bInIsFinal);
 
 	void WriteHeader(OSWriter& writer);
 	void WriteSource(OSWriter& writer);
@@ -54,6 +54,7 @@ private:
 	std::string filePath;
 	RClassTemplateData templateData;
 	std::vector<std::string> parents;
+	bool bIsFinal;
 
 	std::vector<RPropertyParser> properties;
 	std::vector<RFunctionParser> functions;

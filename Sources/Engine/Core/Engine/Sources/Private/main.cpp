@@ -8,11 +8,8 @@
 std::mutex testMutex;
 std::condition_variable testCond;
 
-
-
 int main(int argc, char* argv[])
 {
-
 	JobSystem::Initialize();
 
 

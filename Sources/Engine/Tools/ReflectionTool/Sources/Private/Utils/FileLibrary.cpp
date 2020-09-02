@@ -154,7 +154,7 @@ bool IsTemplate(const std::string& lineData, RClassTemplateData& templateData)
 }
 
 /** Does input line contain class or struct data, and if true, return class name */
-bool IsClass(const std::string& lineData, std::string& className, EClassType& currentClassType)
+bool IsClass(const std::string& lineData, std::string& className, EClassType& currentClassType, bool& bInIsFinal)
 {
 	EClassType newClassType;
 	if (StringLibrary::IsStartingWith(StringLibrary::CleanupLine(lineData), "struct")) newClassType = EClassType::ECT_STRUCT;
@@ -164,6 +164,8 @@ bool IsClass(const std::string& lineData, std::string& className, EClassType& cu
 	std::string left, center, right;
 	if (!StringLibrary::SplitLine(StringLibrary::CleanupLine(lineData), { ' ', '\t' }, left, center, true)) return false;
 	if (!StringLibrary::SplitLine(StringLibrary::CleanupLine(center), { ' ', '\t' }, className, right, true)) className = center;
+
+	bInIsFinal = StringLibrary::IsStartingWith(StringLibrary::CleanupLine(right), "final");
 
 	currentClassType = newClassType;
 	return true;
@@ -247,6 +249,9 @@ std::vector<RClassParser> LineReader::ExtractClasses(const std::string filePath,
 	/** True when class or struct macro is found. Used to wait for the next class indentation block */
 	bool bIsInsideClass = false;
 
+	/** Was last class final */
+	bool bWasLastClassFinal = false;
+
 	/** IndentationLevels */
 	int64_t classIndentationLevel = 0;
 	int64_t namespaceIndentationLevel = 0;
@@ -290,7 +295,7 @@ std::vector<RClassParser> LineReader::ExtractClasses(const std::string filePath,
 		}
 
 		/** Does we encountered class body */
-		if (bWaitingForClassName && IsClass(GetLine(i), currentClassName, currentClassType))
+		if (bWaitingForClassName && IsClass(GetLine(i), currentClassName, currentClassType, bWasLastClassFinal))
 		{
 			bWaitingForClassName = false;
 			bIsInsideClass = true;
@@ -305,9 +310,10 @@ std::vector<RClassParser> LineReader::ExtractClasses(const std::string filePath,
 				bIsInsideClass = false;
 				if (classBodyLine == -1) std::cerr << "Failed to parse class " << currentClassName << " : no reflection body found!" << std::endl;
 
-				structures.push_back(RClassParser(currentClassContent, classBodyLine, filePath, uniqueID, currentNamespace, currentClassName, currentClassType, currentClassTemplateDatas));
+				structures.push_back(RClassParser(currentClassContent, classBodyLine, filePath, uniqueID, currentNamespace, currentClassName, currentClassType, currentClassTemplateDatas, bWasLastClassFinal));
 
 				/** Data cleanup */
+				bWasLastClassFinal = false;
 				currentClassContent.Clear();
 				currentClassTemplateDatas.bIsTemplateClass = false;
 				currentClassTemplateDatas.templateParameters.clear();

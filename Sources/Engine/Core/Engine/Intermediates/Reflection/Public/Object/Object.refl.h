@@ -1,4 +1,4 @@
-//VERSION : Monday, 31 August 2020 14:08:45
+//VERSION : Wednesday, 02 September 2020 11:31:05
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 
@@ -20,7 +20,7 @@
 	class OObject; // Forward declaration
 
 
-	#define _REFLECTION_BODY_RUID_1_LINE_14 REFL_DECLARE_CLASS(OObject) // Declare REFLECT_BODY() macro
+	#define _REFLECTION_BODY_RUID_1_LINE_12 REFL_DECLARE_CLASS(OObject) // Declare REFLECT_BODY() macro
 
 	REFL_DECLARE_TYPENAME(OObject); // Declare typename
 
@@ -34,7 +34,7 @@
 	class TestClassA; // Forward declaration
 
 
-	#define _REFLECTION_BODY_RUID_1_LINE_32 REFL_DECLARE_CLASS(TestClassA) // Declare REFLECT_BODY() macro
+	#define _REFLECTION_BODY_RUID_1_LINE_30 REFL_DECLARE_CLASS(TestClassA) // Declare REFLECT_BODY() macro
 
 	REFL_DECLARE_TYPENAME(TestClassA); // Declare typename
 
@@ -48,7 +48,7 @@
 	class TestClassB; // Forward declaration
 
 
-	#define _REFLECTION_BODY_RUID_1_LINE_44 REFL_DECLARE_CLASS(TestClassB) // Declare REFLECT_BODY() macro
+	#define _REFLECTION_BODY_RUID_1_LINE_42 REFL_DECLARE_CLASS(TestClassB) // Declare REFLECT_BODY() macro
 
 	REFL_DECLARE_TYPENAME(TestClassB); // Declare typename
 

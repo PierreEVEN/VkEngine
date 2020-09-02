@@ -5,7 +5,7 @@
 
 REFLECT(template = { {float, Mat3f}, {double, Mat3d} })
 template<typename T>
-struct IMatrix3
+struct IMatrix3 final
 {
 	REFLECT_BODY()
 		inline IMatrix3() : IMatrix3(1) {}
@@ -39,7 +39,7 @@ struct IMatrix3
 
 REFLECT(template = { {float, Mat4f}, {double, Mat4d} })
 template<typename T>
-struct IMatrix4
+struct IMatrix4 final
 {
 	REFLECT_BODY()
 	inline IMatrix4() : IMatrix4(1) {}

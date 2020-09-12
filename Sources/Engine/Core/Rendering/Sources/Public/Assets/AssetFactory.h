@@ -31,9 +31,4 @@ namespace Rendering {
 		MAKE_FACTORY_METHOD_CHECK(CanImportFromPath, ImportFromPath, 1, String);
 		MAKE_FACTORY_METHOD_CHECK(CanBeTransient, MakeTransient, 1, T*);
 	}
-
-
-
-
-
 }

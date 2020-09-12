@@ -1,4 +1,4 @@
-//VERSION : Sunday, 23 August 2020 23:34:45
+//VERSION : Sunday, 06 September 2020 12:20:20
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 
@@ -17,16 +17,17 @@
 
 /* ##############################  Reflection for StaticMesh  ############################## */
 
-namespace Rendering
-{
-	class StaticMesh; // Forward declaration
+	namespace Rendering
+	{
+		class StaticMesh; // Forward declaration
 
-	#define _REFLECTION_BODY_RUID_5_LINE_14 REFL_DECLARE_CLASS(StaticMesh)
 
-	REFL_DECLARE_TYPENAME(StaticMesh); // Declare typename
+		#define _REFLECTION_BODY_RUID_5_LINE_15 REFL_DECLARE_CLASS(StaticMesh) // Declare REFLECT_BODY() macro
 
-	template<> struct RIsReflected<StaticMesh> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
-}
+		REFL_DECLARE_TYPENAME(StaticMesh); // Declare typename
+
+		template<> struct RIsReflected<StaticMesh> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
+	}
 
 
 #endif

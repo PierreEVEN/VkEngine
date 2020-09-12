@@ -3,7 +3,7 @@
 #include "Utils/StringLibrary.h"
 #include "Parser/RPropertyParser.h"
 
-RPropertyParser::RPropertyParser(const std::string& data)
+RPropertyParser::RPropertyParser(const std::string& data, bool& bIsTemplateMember)
 {
 	std::string left, right;
 	StringLibrary::SplitLine(data, { '=', ';' }, left, right);
@@ -11,4 +11,12 @@ RPropertyParser::RPropertyParser(const std::string& data)
 	StringLibrary::SplitLine(cleanLeft, { ' ', '\t' }, left, right, false);
 	propertyType = StringLibrary::CleanupLine(left);
 	propertyName = StringLibrary::CleanupLine(right);
+
+	bIsTemplateMember = false;
+	for (const auto& chr : propertyType) {
+		if (chr == '<') {
+			bIsTemplateMember = true;
+			break;
+		}
+	}
 }

@@ -9,6 +9,7 @@ namespace Rendering {
 	struct MeshRessource;
 	class ViewportInstance;
 
+
 	REFLECT()
 		class StaticMesh : public Asset {
 		REFLECT_BODY()
@@ -27,12 +28,11 @@ namespace Rendering {
 
 
 		private:
-
 			static void CreateMeshRessource(SMeshSectionData* inSectionDatas);
 
 			inline static Texture2D* staticMeshIcon = nullptr;
 
-
+			RPROPERTY()
 			std::vector<SMeshSectionData> sectionDatas;
 
 

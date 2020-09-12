@@ -10,6 +10,7 @@
 
 
 
+
 /* ##############################  Reflection for ShaderModule  ############################## */
 
 namespace Rendering
@@ -37,6 +38,7 @@ namespace Rendering
 
 
 
+
 /* ##############################  Reflection for VertexShaderModule  ############################## */
 
 namespace Rendering
@@ -60,6 +62,7 @@ namespace Rendering
 
 	static _Refl_Static_Item_Builder_VertexShaderModule _Refl_Static_Item_Builder_Var_VertexShaderModule; //Build item when compiled
 }
+
 
 
 

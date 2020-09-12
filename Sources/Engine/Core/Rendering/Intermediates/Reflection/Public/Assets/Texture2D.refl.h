@@ -1,4 +1,4 @@
-//VERSION : Thursday, 27 August 2020 13:43:13
+//VERSION : Sunday, 06 September 2020 09:50:55
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 
@@ -17,16 +17,17 @@
 
 /* ##############################  Reflection for Texture2D  ############################## */
 
-namespace Rendering
-{
-	class Texture2D; // Forward declaration
+	namespace Rendering
+	{
+		class Texture2D; // Forward declaration
 
-	#define _REFLECTION_BODY_RUID_6_LINE_12 REFL_DECLARE_CLASS(Texture2D)
 
-	REFL_DECLARE_TYPENAME(Texture2D); // Declare typename
+		#define _REFLECTION_BODY_RUID_6_LINE_12 REFL_DECLARE_CLASS(Texture2D) // Declare REFLECT_BODY() macro
 
-	template<> struct RIsReflected<Texture2D> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
-}
+		REFL_DECLARE_TYPENAME(Texture2D); // Declare typename
+
+		template<> struct RIsReflected<Texture2D> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
+	}
 
 
 #endif

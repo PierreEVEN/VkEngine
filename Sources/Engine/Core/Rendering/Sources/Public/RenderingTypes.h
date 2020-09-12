@@ -11,6 +11,7 @@
 #include <UI/imgui_impl_vulkan.h>
 
 #include "EngineMinimal.h"
+#include "RenderingTypes.refl.h" // automatically generated reflection header
 
 #define VERTEX_ENABLE_LOCATION
 #define VERTEX_ENABLE_TEX_COORD
@@ -22,6 +23,9 @@
 
 namespace Rendering
 {
+	class Material;
+	struct MeshRessource;
+
 	struct MatrixUniformBufferObject {
 		alignas(16) Mat4f worldProjection;
 		alignas(16) Mat4f viewMatrix;
@@ -43,22 +47,29 @@ namespace Rendering
 		inline bool IsComplete() { return graphicsFamily.has_value() && presentFamily.has_value(); }
 	};
 
-	struct Vertex
+	REFLECT()
+	struct Vertex final
 	{
+		REFLECT_BODY()
 
 #ifdef VERTEX_ENABLE_LOCATION
+			RPROPERTY()
 		SVector pos;
 #endif
 #ifdef VERTEX_ENABLE_TEX_COORD
+		RPROPERTY()
 		SLinearColor color;
 #endif
 #ifdef VERTEX_ENABLE_COLOR
+		RPROPERTY()
 		SVector2D texCoord;
 #endif
 #ifdef VERTEX_ENABLE_NORMAL
+		RPROPERTY()
 		SVector normal;
 #endif
 #ifdef VERTEX_ENABLE_TANGENT
+		RPROPERTY()
 		SVector tangent;
 #endif
 #ifdef VERTEX_ENABLE_BITANGENT
@@ -96,14 +107,24 @@ namespace Rendering
 		static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();
 	};
 
-	struct SMeshSectionData {
-		std::vector<Vertex> vertices;
-		std::vector<uint32_t> indices;
-		Mat4d sectionTransform;
-		class Material* materialLink = nullptr;
-		struct MeshRessource* MeshLink = nullptr;
-	};
 
+	REFLECT()
+		struct SMeshSectionData final
+	{
+		REFLECT_BODY()
+
+			RPROPERTY()
+			std::vector<Vertex> vertices;
+
+		RPROPERTY()
+			std::vector<uint32_t> indices;
+
+		RPROPERTY()
+			Mat4d sectionTransform;
+
+		Material* materialLink = nullptr;
+		MeshRessource* MeshLink = nullptr;
+	};
 }
 
 MAKE_HASHABLE(Rendering::Vertex, t.pos, t.color, t.texCoord, t.normal);

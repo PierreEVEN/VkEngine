@@ -4,9 +4,10 @@
 #include <inttypes.h>
 #include <cstdlib>
 #include <string>
+#include "Types\String.refl.h" // automatically generated reflection header
 
 #ifndef STRING_MINIMAL_LENGTH
-	#define STRING_MINIMAL_LENGTH 16
+#define STRING_MINIMAL_LENGTH 16
 #endif
 
 class String;
@@ -30,8 +31,10 @@ String ToString(float value);
 int32_t Atoi(const String& value);
 double Atof(const String& value);
 
+REFLECT()
 class String
 {
+	REFLECT_BODY()
 public:
 	static const char ENDL;
 
@@ -54,7 +57,7 @@ public:
 	}
 
 	inline String(const char& value) { SetLength(1); data[length - 1] = value; }
-	inline String(String&& other) {	CopyTo(other, this); }
+	inline String(String&& other) { CopyTo(other, this); }
 	inline String(const String& other) { CopyTo(other, this); }
 	inline String(const IStringable& other) { CopyTo(other.ToString(), this); }
 	inline String(int32_t other) : String(ToString(other)) {}
@@ -66,7 +69,7 @@ public:
 
 	/* Getters */
 	inline const size_t& Length() const { return length; }
-	inline const char* GetData() const { 
+	inline const char* GetData() const {
 		data[length] = '\0';
 		return data;
 	}
@@ -161,7 +164,7 @@ public:
 			res.data[i] = left[i];
 		for (size_t i = left.length; i < res.length; ++i)
 			res.data[i] = right[i - left.length];
-		return res;	
+		return res;
 	}
 
 	inline String& Append(const String& other) {
@@ -181,11 +184,11 @@ public:
 	}
 
 	template<typename T>
-	inline static const String ConcatenateArray(T& tarray, String separator = ", ")
+	inline static const String ConcatenateArray(T& iterable, String separator = ", ")
 	{
 		String result = "";
-		size_t elemCount = tarray.size();
-		for (auto& elem : tarray)
+		size_t elemCount = iterable.cend() - iterable.cbegin();
+		for (auto& elem : iterable)
 		{
 			result += ToString(elem);
 			elemCount--;

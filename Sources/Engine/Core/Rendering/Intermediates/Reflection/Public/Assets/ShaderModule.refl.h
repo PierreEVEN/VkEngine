@@ -17,48 +17,51 @@
 
 /* ##############################  Reflection for ShaderModule  ############################## */
 
-namespace Rendering
-{
-	class ShaderModule; // Forward declaration
+	namespace Rendering
+	{
+		class ShaderModule; // Forward declaration
 
-	#define _REFLECTION_BODY_RUID_4_LINE_22 REFL_DECLARE_CLASS(ShaderModule)
 
-	REFL_DECLARE_TYPENAME(ShaderModule); // Declare typename
+		#define _REFLECTION_BODY_RUID_4_LINE_22 REFL_DECLARE_CLASS(ShaderModule) // Declare REFLECT_BODY() macro
 
-	template<> struct RIsReflected<ShaderModule> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
-}
+		REFL_DECLARE_TYPENAME(ShaderModule); // Declare typename
+
+		template<> struct RIsReflected<ShaderModule> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
+	}
 
 
 
 
 /* ##############################  Reflection for VertexShaderModule  ############################## */
 
-namespace Rendering
-{
-	class VertexShaderModule; // Forward declaration
+	namespace Rendering
+	{
+		class VertexShaderModule; // Forward declaration
 
-	#define _REFLECTION_BODY_RUID_4_LINE_64 REFL_DECLARE_CLASS(VertexShaderModule)
 
-	REFL_DECLARE_TYPENAME(VertexShaderModule); // Declare typename
+		#define _REFLECTION_BODY_RUID_4_LINE_64 REFL_DECLARE_CLASS(VertexShaderModule) // Declare REFLECT_BODY() macro
 
-	template<> struct RIsReflected<VertexShaderModule> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
-}
+		REFL_DECLARE_TYPENAME(VertexShaderModule); // Declare typename
+
+		template<> struct RIsReflected<VertexShaderModule> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
+	}
 
 
 
 
 /* ##############################  Reflection for FragmentShaderModule  ############################## */
 
-namespace Rendering
-{
-	class FragmentShaderModule; // Forward declaration
+	namespace Rendering
+	{
+		class FragmentShaderModule; // Forward declaration
 
-	#define _REFLECTION_BODY_RUID_4_LINE_78 REFL_DECLARE_CLASS(FragmentShaderModule)
 
-	REFL_DECLARE_TYPENAME(FragmentShaderModule); // Declare typename
+		#define _REFLECTION_BODY_RUID_4_LINE_78 REFL_DECLARE_CLASS(FragmentShaderModule) // Declare REFLECT_BODY() macro
 
-	template<> struct RIsReflected<FragmentShaderModule> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
-}
+		REFL_DECLARE_TYPENAME(FragmentShaderModule); // Declare typename
+
+		template<> struct RIsReflected<FragmentShaderModule> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
+	}
 
 
 #endif

@@ -7,9 +7,20 @@ class RProperty
 public:
 
 
-	RProperty(const RType* propType, const size_t& propOffset, const size_t& propSize, const char* propName)
-		: propertyType(propType), propertyOffset(propOffset), propertySize(propSize), propertyName(propName)
-	{}
+	RProperty(const char* propType, const size_t& propOffset, const size_t& propSize, const char* propName)
+		: propertyOffset(propOffset), propertySize(propSize), propertyName(propName)
+	{
+		if (RType* foundType = RType::GetType(propType)) {
+			propertyType = foundType;
+		}
+		else {
+			const RType** typeRef = &propertyType;
+			new TRegisterTypeFunc(propType, [typeRef, propType] {
+				*typeRef = RType::GetType(propType);
+				});
+		}
+	
+	}
 
 	template<typename T = void>
 	inline T* Value(void* objPtr)
@@ -28,20 +39,10 @@ public:
 
 	inline const char* GetName() const { return propertyName; }
 
-	inline size_t GetSize(void* objectPtr) const {
-		if (propertyType)
-		{
-			return propertyType->GetSize();
-		}
-		return propertySize;
-	}
-
-	inline const size_t& GetSize() const { return propertySize; }
-
 	inline const size_t& GetOffset() const { return propertyOffset; }
 private:
 	const char* propertyName;
-	const RType* propertyType;
+	const RType* propertyType = nullptr;
 	const size_t propertyOffset;
 	const size_t propertySize;
 };

@@ -1,13 +1,12 @@
 #pragma once
 
-#include <memory>
-#include "Serializer.h"
-#include "Types\String.h"
+#include "EngineMinimal.h"
+#include "Types\Array.h"
 #include "Object\Object.refl.h" // automatically generated reflection header
 
 
 REFLECT()
-class OObject : public Serializable
+class OObject
 {
 	REFLECT_BODY()
 
@@ -16,13 +15,16 @@ public:
 	OObject() {}
 
 	RPROPERTY()
-		int var1 = 2;
+		float var1 = 2;
 
 	RPROPERTY()
-		int var2 = 3;
+		int32_t var2 = 3;
 
 	RPROPERTY()
-		int var3 = 4;
+		float var3 = 4;
+
+	RPROPERTY()
+		TVector<float> var4 = { 5.f, 8.2f, 539.f,4.7f, 2.8f };
 };
 
 REFLECT()
@@ -32,7 +34,7 @@ class TestClassA {
 public:
 
 	RPROPERTY()
-		int var1 = 2;
+		int32_t var1 = 2;
 };
 
 
@@ -44,5 +46,5 @@ class TestClassB : public TestClassA {
 public:
 
 	RPROPERTY()
-		int var2 = 2;
+		int32_t var2 = 2;
 };

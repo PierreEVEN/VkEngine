@@ -85,7 +85,7 @@ public:
 
 	inline void RegisterProperty(RProperty* inProperty)
 	{
-		properties.push_back(inProperty);
+		properties[inProperty->GetName()] = (inProperty);
 	}
 
 	inline void AddParent(const char* parent) {
@@ -123,23 +123,18 @@ public:
 
 	inline static std::vector<RStruct*>& GetStructs() { return structures; }
 
-	inline std::vector<RProperty*> GetProperties() const {
-		std::vector<RProperty*> totalProps = properties;
-		for (const RStruct* parent : parents)
-		{
-			for (const auto& property : parent->GetProperties())
-			{
-				totalProps.push_back(property);
-			}
+	inline std::map<std::string, RProperty*> GetPropertiesRecursive() const {
+		std::map<std::string, RProperty*> totalProps = properties;
+		for (const RStruct* parent : parents) {
+			totalProps.merge(parent->GetPropertiesRecursive());
 		}
 		return totalProps;
 	}
 
 	inline RProperty* GetProperty(const std::string& propName) {
-		for (const auto& property : properties)
-		{
-			if (property->GetName() == propName)
-				return property;
+		auto& ite = properties.find(propName);
+		if (ite != properties.end()) {
+			return ite->second;
 		}
 		return nullptr;
 	}
@@ -162,7 +157,7 @@ public:
 	std::vector<RStruct*> parents;
 private:
 	std::shared_ptr<IFunctionPointer> ctor;
-	std::vector<RProperty*> properties;
+	std::map<std::string, RProperty*> properties;
 	std::vector<std::unique_ptr<IFunctionPointer>> functions;
 	inline static std::vector<RStruct*> structures;
 

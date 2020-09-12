@@ -4,11 +4,11 @@
 #include "Hashing.h"
 
 /** Types */
+#include "Types/NativeTypes.h"
 #include "Types/Vector.h"
 #include "Types/Rotator.h"
 #include "Types/Transform.h"
 #include "Types/Color.h"
-#include "Types/NativeTypes.h"
 #include "Types/Matrix.h"
 #include "Types/String.h"
 
@@ -28,7 +28,6 @@
 /** std */
 #include <set>
 #include <array>
-#include <vector>
 #include <valarray>
 #include <optional>
 #include <type_traits>

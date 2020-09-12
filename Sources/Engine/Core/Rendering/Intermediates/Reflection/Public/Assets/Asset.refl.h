@@ -17,16 +17,17 @@
 
 /* ##############################  Reflection for Asset  ############################## */
 
-namespace Rendering
-{
-	class Asset; // Forward declaration
+	namespace Rendering
+	{
+		class Asset; // Forward declaration
 
-	#define _REFLECTION_BODY_RUID_0_LINE_17 REFL_DECLARE_CLASS(Asset)
 
-	REFL_DECLARE_TYPENAME(Asset); // Declare typename
+		#define _REFLECTION_BODY_RUID_0_LINE_17 REFL_DECLARE_CLASS(Asset) // Declare REFLECT_BODY() macro
 
-	template<> struct RIsReflected<Asset> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
-}
+		REFL_DECLARE_TYPENAME(Asset); // Declare typename
+
+		template<> struct RIsReflected<Asset> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
+	}
 
 
 #endif

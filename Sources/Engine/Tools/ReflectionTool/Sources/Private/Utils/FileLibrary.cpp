@@ -211,6 +211,46 @@ bool IsTemplateArgument(const std::string& argument, RClassTemplateData& templat
 	return true;
 }
 
+/** Extract "template" arg values */
+bool IsTypeArgument(const std::string& argument, std::string& outTypeName, EClassType& classType) {
+	if (!StringLibrary::IsStartingWith(StringLibrary::CleanupLine(argument), "type")) return false;
+
+	std::string left, val;
+	if (!StringLibrary::SplitLine(StringLibrary::CleanupLine(argument), { '=' }, left, val)) return false;
+
+	outTypeName = StringLibrary::CleanupLine(val);
+
+	classType = EClassType::ECT_TYPE;
+	for (const auto& chr : outTypeName) {
+		if (chr == '<') {
+			classType = EClassType::ECT_TEMPLATE_TYPE;
+			break;
+		}
+	}
+
+	return true;
+}
+
+/** Extract "template" arg values */
+bool IsOptionArgument(const std::string& argument, RClassOptions& outOptions) {
+	if (!StringLibrary::IsStartingWith(StringLibrary::CleanupLine(argument), "options")) return false;
+
+	std::string left, val;
+	if (!StringLibrary::SplitLine(StringLibrary::CleanupLine(argument), { '=' }, left, val)) return false;
+
+	val = StringLibrary::ReplaceCharWith(val, '{', ' ');
+	val = StringLibrary::ReplaceCharWith(val, '}', ' ');
+
+	outOptions.Reset();
+
+	for (const auto& field : StringLibrary::GetStringFields(val, { ' ' })) {
+		std::string cfield = StringLibrary::CleanupLine(field);
+		if (cfield == "CreateSerializer") outOptions.bCreateSerializer = true;
+	}
+
+	return true;
+}
+
 /** Check indentation level, return true if indentation hit 0 */
 bool UpdateIndentationLevel(const std::string& lineData, int64_t& currentLevel) {
 	size_t newLevel = currentLevel;
@@ -262,10 +302,11 @@ std::vector<RClassParser> LineReader::ExtractClasses(const std::string filePath,
 	/** Class template datas */
 	RClassTemplateData currentClassTemplateDatas;
 
+	/** Reflection options */
+	RClassOptions currentClassOptions;
 
 	for (int i = 0; i < data.size(); ++i)
 	{
-
 		/** Namespace handle (doens't support child namespaces) */
 		if (IsNamespace(GetLine(i), currentNamespace))
 		{
@@ -280,11 +321,20 @@ std::vector<RClassParser> LineReader::ExtractClasses(const std::string filePath,
 		/** Test if we found a reflect macro */
 		if (IsReflectionMacro(GetLine(i), currentReflectionOptions))
 		{
+			bWaitingForClassName = true;
+
 			for (const auto& arg : currentReflectionOptions) {
 				if (IsTemplateArgument(arg, currentClassTemplateDatas)) continue;
+				if (IsOptionArgument(arg, currentClassOptions)) continue;
+				if (IsTypeArgument(arg, currentClassName, currentClassType)) {
+					structures.push_back(RClassParser(currentClassContent, -1, filePath, uniqueID, currentNamespace, currentClassName, currentClassType, currentClassTemplateDatas, false, currentClassOptions));
+					currentClassName = "";
+					bWaitingForClassName = false;
+					currentClassOptions.Reset();
+					continue;
+				}
 			}
 
-			bWaitingForClassName = true;
 			continue;
 		}
 
@@ -310,7 +360,7 @@ std::vector<RClassParser> LineReader::ExtractClasses(const std::string filePath,
 				bIsInsideClass = false;
 				if (classBodyLine == -1) std::cerr << "Failed to parse class " << currentClassName << " : no reflection body found!" << std::endl;
 
-				structures.push_back(RClassParser(currentClassContent, classBodyLine, filePath, uniqueID, currentNamespace, currentClassName, currentClassType, currentClassTemplateDatas, bWasLastClassFinal));
+				structures.push_back(RClassParser(currentClassContent, classBodyLine, filePath, uniqueID, currentNamespace, currentClassName, currentClassType, currentClassTemplateDatas, bWasLastClassFinal, currentClassOptions));
 
 				/** Data cleanup */
 				bWasLastClassFinal = false;
@@ -319,6 +369,7 @@ std::vector<RClassParser> LineReader::ExtractClasses(const std::string filePath,
 				currentClassTemplateDatas.templateParameters.clear();
 				currentClassTemplateDatas.specializations.clear();
 				classBodyLine = -1;
+				currentClassOptions.Reset();
 				currentClassName = "";
 			}
 		}

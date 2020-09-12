@@ -17,16 +17,17 @@
 
 /* ##############################  Reflection for Material  ############################## */
 
-namespace Rendering
-{
-	class Material; // Forward declaration
+	namespace Rendering
+	{
+		class Material; // Forward declaration
 
-	#define _REFLECTION_BODY_RUID_3_LINE_14 REFL_DECLARE_CLASS(Material)
 
-	REFL_DECLARE_TYPENAME(Material); // Declare typename
+		#define _REFLECTION_BODY_RUID_3_LINE_14 REFL_DECLARE_CLASS(Material) // Declare REFLECT_BODY() macro
 
-	template<> struct RIsReflected<Material> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
-}
+		REFL_DECLARE_TYPENAME(Material); // Declare typename
+
+		template<> struct RIsReflected<Material> { static constexpr bool Reflect = true; }; // Used to detect if class is reflected or not
+	}
 
 
 #endif

@@ -9,6 +9,7 @@
 
 namespace Rendering {
 	class Texture2D;
+	class Material;
 }
 
 namespace Rendering::Importers

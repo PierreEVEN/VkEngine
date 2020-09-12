@@ -32,6 +32,9 @@ namespace Rendering {
 			Texture2D(const String& filePath, bool bLoadAsync = true);
 			Texture2D(unsigned char* textureData, SIntVector2D imageResolution, uint8_t channelsCount, const String& fileName, bool bLoadAsync = true);
 
+			RPROPERTY()
+			std::vector<uint8_t> textureData;
+
 			static Texture2D* ImportFromPath(const String& path);
 			inline static void CreateRessource(TextureRessource** inRessource, unsigned char* textureData, SIntVector2D imageResolution, uint8_t channelsCount);
 			inline static void LoadFromPath(TextureRessource** inRessource, const String& path);

@@ -3,7 +3,7 @@
 
 struct RPropertyParser
 {
-	RPropertyParser(const std::string& data);
+	RPropertyParser(const std::string& data, bool& bIsTemplateMember);
 
 	std::string propertyType;
 	std::string propertyName;

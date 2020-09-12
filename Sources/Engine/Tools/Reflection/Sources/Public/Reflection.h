@@ -4,3 +4,4 @@
 #include "Reflection/RProperty.h"
 #include "Reflection/RFunction.h"
 #include "Reflection/ReflectionMacro.h"
+#include "Reflection/RSerialization.h"

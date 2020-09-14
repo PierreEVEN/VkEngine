@@ -13,26 +13,29 @@
 
 /* ##############################  Template bodies std__vector_uint8_t  ############################## */
 
-	struct _Refl_static_type_builder_std__vector_uint8_t { // Type builder - Build reflection data
-		_Refl_static_type_builder_std__vector_uint8_t() { // Builder constructor
-			REFL_REGISTER_TYPE(std::vector<uint8_t>); // Call to builder function
-		}
-	} _Refl_static_type_builder_var_std__vector_uint8_t; //Build item when compiled
+namespace Rendering
+{
+		struct _Refl_static_type_builder_std__vector_uint8_t { // Type builder - Build reflection data
+			_Refl_static_type_builder_std__vector_uint8_t() { // Builder constructor
+				REFL_REGISTER_TYPE(std::vector<uint8_t>); // Call to builder function
+			}
+		} _Refl_static_type_builder_var_std__vector_uint8_t; //Build item when compiled
 
 
-	/** Create serializer for std::vector<uint8_t> */
-	struct std__vector_uint8_t : public Serialization::ISerializer {
-		using Serialization::ISerializer::ISerializer; // Implement constructor
+		/** Create serializer for std::vector<uint8_t> */
+		struct std__vector_uint8_t : public Serialization::ISerializer {
+			using Serialization::ISerializer::ISerializer; // Implement constructor
 
-		bool SerializeProperty(RProperty* inProperty, void* objectPointer, Serialization::SerializedProperty& outValue) {
-			return Serialization::TSerializer<std::vector<uint8_t>>::Serialize(inProperty->Value<std::vector<uint8_t>>(objectPointer), outValue); // Call to serializer
-		}
+			bool SerializeProperty(RProperty* inProperty, void* objectPointer, Serialization::SerializedProperty& outValue) {
+				return Serialization::TSerializer<std::vector<uint8_t>>::Serialize(inProperty->Value<std::vector<uint8_t>>(objectPointer), outValue); // Call to serializer
+			}
 
-		bool DeserializeProperty(RProperty* inProperty, void* objectPointer, const Serialization::SerializedProperty& inValue) {
-			return Serialization::TSerializer<std::vector<uint8_t>>::Deserialize(inValue, inProperty->Value<std::vector<uint8_t>>(objectPointer)); // Call to deserializer
-		}
+			bool DeserializeProperty(RProperty* inProperty, void* objectPointer, const Serialization::SerializedProperty& inValue) {
+				return Serialization::TSerializer<std::vector<uint8_t>>::Deserialize(inValue, inProperty->Value<std::vector<uint8_t>>(objectPointer)); // Call to deserializer
+			}
 
-	} inline _std__vector_uint8_t_Value("std::vector<uint8_t>"); // structure registration
+		} inline _std__vector_uint8_t_Value("std::vector<uint8_t>"); // structure registration
+}
 
 
 /* ##############################  Reflection for Texture2D  ############################## */

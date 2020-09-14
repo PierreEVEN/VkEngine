@@ -1,4 +1,4 @@
-//VERSION : Thursday, 27 August 2020 13:43:13
+//VERSION : Monday, 14 September 2020 09:01:22
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 
@@ -22,7 +22,7 @@
 		class Asset; // Forward declaration
 
 
-		#define _REFLECTION_BODY_RUID_0_LINE_17 REFL_DECLARE_CLASS(Asset) // Declare REFLECT_BODY() macro
+		#define _REFLECTION_BODY_RUID_0_LINE_18 REFL_DECLARE_CLASS(Asset) // Declare REFLECT_BODY() macro
 
 		REFL_DECLARE_TYPENAME(Asset); // Declare typename
 

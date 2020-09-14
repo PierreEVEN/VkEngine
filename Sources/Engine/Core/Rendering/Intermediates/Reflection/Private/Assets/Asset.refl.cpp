@@ -1,4 +1,4 @@
-//VERSION : Thursday, 27 August 2020 13:43:13
+//VERSION : Monday, 14 September 2020 09:01:22
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 #include "C:/Users/pierre/Documents/Engine/Sources/Engine/Core/Rendering/Sources/Public\Assets\Asset.h"
@@ -22,6 +22,8 @@ namespace Rendering
 
 	void _Refl_Register_Item_Asset() { // Register function
 			_static_Item_Class_Asset = RClass::RegisterClass<Asset>("Asset"); //Register Class
+			if (RIsReflected<AssetBase>::Reflect) // Is parent reflected
+				_static_Item_Class_Asset->AddParent("AssetBase"); // register parent
 	}
 
 	struct _Refl_Static_Item_Builder_Asset{ // Item builder - Build reflection data

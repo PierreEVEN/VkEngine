@@ -11,10 +11,10 @@
 
 
 
+/* ##############################  Template bodies std__vector_SMeshSectionData  ############################## */
+
 namespace Rendering
 {
-	/* ##############################  Template bodies std__vector_SMeshSectionData  ############################## */
-
 		struct _Refl_static_type_builder_std__vector_SMeshSectionData { // Type builder - Build reflection data
 			_Refl_static_type_builder_std__vector_SMeshSectionData() { // Builder constructor
 				REFL_REGISTER_TYPE(std::vector<SMeshSectionData>); // Call to builder function
@@ -35,9 +35,9 @@ namespace Rendering
 			}
 
 		} inline _std__vector_SMeshSectionData_Value("std::vector<SMeshSectionData>"); // structure registration
-
-
 }
+
+
 /* ##############################  Reflection for StaticMesh  ############################## */
 
 namespace Rendering

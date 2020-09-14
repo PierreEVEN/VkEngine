@@ -2,6 +2,7 @@
 
 #include "Constants.h"
 #include "UI\UiRessources.h"
+#include "IO\AssetBase.h"
 #include "Assets\Asset.refl.h" // automatically generated reflection header
 
 namespace Rendering {
@@ -13,7 +14,7 @@ namespace Rendering {
 
 
 	REFLECT()
-		class Asset {
+		class Asset : public AssetBase {
 		REFLECT_BODY()
 
 

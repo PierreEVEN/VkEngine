@@ -15,11 +15,19 @@ namespace Rendering
 
 		inline ImTextureID GetTextureID(const size_t& imageIndex) { return ImTextureID(uiDisplaySet[imageIndex]); }
 
+
 	protected:
+
+		virtual void CreateOrUpdateRessource();
+		virtual void DestroyRessources();
 
 		virtual ~TextureRessource();
 
 	private:
+
+		unsigned char* textureData;
+		SIntVector2D imageResolution; 
+		uint8_t channelsCount;
 
 
 		static void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, VkCommandBuffer commandBuffer);
@@ -30,12 +38,11 @@ namespace Rendering
 
 		void CreateTextureImage(unsigned char* textureData, SIntVector2D imageResolution, uint8_t channelsCount);
 		void CreateTextureSampler();
-		void DestroyImage();
 
-		VkImage textureImage;
-		VkDeviceMemory textureImageMemory;
-		VkImageView textureImageView;
-		VkSampler textureSampler;
+		VkImage textureImage = VK_NULL_HANDLE;
+		VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
+		VkImageView textureImageView = VK_NULL_HANDLE;
+		VkSampler textureSampler = VK_NULL_HANDLE;
 		uint32_t textureMipsLevels;
 
 		VkDescriptorSetLayout uiDisplayLayout = VK_NULL_HANDLE;

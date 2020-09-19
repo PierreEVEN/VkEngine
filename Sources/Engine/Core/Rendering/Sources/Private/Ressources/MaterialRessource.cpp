@@ -13,13 +13,29 @@ Rendering::MaterialRessource::MaterialRessource(const SMaterialStaticProperties&
 	materialProperties.fragmentShaderModule->OnRecompiledShaderModule.Add(this, &MaterialRessource::RequestPipelineUpdate);
 	materialProperties.vertexShaderModule->OnRecompiledShaderModule.Add(this, &MaterialRessource::RequestPipelineUpdate);
 
-	CreateDescriptorSets(MakeLayoutBindings(materialProperties));
-	CreatePipeline(materialProperties);
+	CreateOrUpdateRessource();
+}
+
+void Rendering::MaterialRessource::CreateOrUpdateRessource()
+{
+	DestroyRessources();
+	CreateDescriptorSets(MakeLayoutBindings(materialStaticProperties));
+	CreatePipeline(materialStaticProperties);
+}
+
+void Rendering::MaterialRessource::DestroyRessources()
+{
+	if (shaderPipeline != VK_NULL_HANDLE) vkDestroyPipeline(G_LOGICAL_DEVICE, shaderPipeline, G_ALLOCATION_CALLBACK);
+	if (pipelineLayout != VK_NULL_HANDLE) vkDestroyPipelineLayout(G_LOGICAL_DEVICE, pipelineLayout, G_ALLOCATION_CALLBACK);
+	if (descriptorSetLayout	 != VK_NULL_HANDLE) vkDestroyDescriptorSetLayout(G_LOGICAL_DEVICE, descriptorSetLayout, G_ALLOCATION_CALLBACK);
+	shaderPipeline = VK_NULL_HANDLE;
+	pipelineLayout = VK_NULL_HANDLE;
+	descriptorSetLayout = VK_NULL_HANDLE;
 }
 
 Rendering::MaterialRessource::~MaterialRessource()
 {
-	DestroyShadersObjects();
+	DestroyRessources();
 }
 
 void Rendering::MaterialRessource::PreDraw()
@@ -39,6 +55,7 @@ void Rendering::MaterialRessource::Draw(VkCommandBuffer commandBuffer, const siz
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[imageIndex], 0, nullptr);
 	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shaderPipeline);
 }
+
 
 std::vector<VkDescriptorSetLayoutBinding> Rendering::MaterialRessource::MakeLayoutBindings(const SMaterialStaticProperties& materialProperties)
 {
@@ -84,10 +101,10 @@ std::vector<VkDescriptorSetLayoutBinding> Rendering::MaterialRessource::MakeLayo
 
 void Rendering::MaterialRessource::CreatePipeline(const SMaterialStaticProperties& materialProperties)
 {
-	if (shaderPipeline != VK_NULL_HANDLE) {
-		vkDestroyPipelineLayout(G_LOGICAL_DEVICE, pipelineLayout, G_ALLOCATION_CALLBACK);
-		vkDestroyPipeline(G_LOGICAL_DEVICE, shaderPipeline, G_ALLOCATION_CALLBACK);
-	}
+	
+	if (pipelineLayout != VK_NULL_HANDLE) vkDestroyPipelineLayout(G_LOGICAL_DEVICE, pipelineLayout, G_ALLOCATION_CALLBACK);
+	if (shaderPipeline != VK_NULL_HANDLE) vkDestroyPipeline(G_LOGICAL_DEVICE, shaderPipeline, G_ALLOCATION_CALLBACK);
+	
 	bShouldRecreatePipeline = false;
 
 	VK_CHECK(descriptorSetLayout, "Descriptor set layout should be initialized before graphic pipeline");
@@ -158,7 +175,7 @@ void Rendering::MaterialRessource::CreatePipeline(const SMaterialStaticPropertie
 
 	VkPipelineMultisampleStateCreateInfo multisampling{};
 	multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-	multisampling.rasterizationSamples = G_ENABLE_MULTISAMPLING.GetValue() ? G_MSAA_SAMPLE_COUNT : VK_SAMPLE_COUNT_1_BIT;
+	multisampling.rasterizationSamples = (VkSampleCountFlagBits)G_MSAA_SAMPLE_COUNT.GetValue();
 	multisampling.minSampleShading = 1.0f; // Optional
 	multisampling.pSampleMask = nullptr; // Optional
 	multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
@@ -244,13 +261,6 @@ void Rendering::MaterialRessource::CreateDescriptorSets(std::vector<VkDescriptor
 	allocInfo.descriptorPool = VK_NULL_HANDLE;
 	ReserveDescriptorPoolMemory(allocInfo);
 	VK_ENSURE(vkAllocateDescriptorSets(G_LOGICAL_DEVICE, &allocInfo, descriptorSets.data()), "Failed to allocate descriptor sets");
-}
-
-void Rendering::MaterialRessource::DestroyShadersObjects()
-{
-	vkDestroyPipeline(G_LOGICAL_DEVICE, shaderPipeline, G_ALLOCATION_CALLBACK);
-	vkDestroyPipelineLayout(G_LOGICAL_DEVICE, pipelineLayout, G_ALLOCATION_CALLBACK);
-	vkDestroyDescriptorSetLayout(G_LOGICAL_DEVICE, descriptorSetLayout, G_ALLOCATION_CALLBACK);
 }
 
 void Rendering::MaterialRessourceItem::PreDraw(ViewportInstance* inViewport, const size_t& imageIndex)

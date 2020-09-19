@@ -75,7 +75,7 @@ void Rendering::PreInitializeImGui()
 	init_info.Queue = G_GRAPHIC_QUEUE;
 	init_info.PipelineCache = VK_NULL_HANDLE;
 	init_info.DescriptorPool = G_IMGUI_DESCRIPTOR_POOL;
-	init_info.MSAASamples = G_ENABLE_MULTISAMPLING.GetValue() ? G_MSAA_SAMPLE_COUNT : VK_SAMPLE_COUNT_1_BIT;
+	init_info.MSAASamples = (VkSampleCountFlagBits)G_MSAA_SAMPLE_COUNT.GetValue();
 	init_info.Allocator = nullptr;
 	init_info.MinImageCount = static_cast<uint32_t>(G_SWAP_CHAIN_IMAGE_COUNT);
 	init_info.ImageCount = static_cast<uint32_t>(G_SWAP_CHAIN_IMAGE_COUNT);

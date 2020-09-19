@@ -43,22 +43,22 @@ void Rendering::MeshRessource::CreateBuffers()
 }
 
 Rendering::MeshRessource::MeshRessource(std::vector<Vertex> inVertices, std::vector<uint32_t> inIndices)
-	: Ressource()
+	: Ressource(), vertices(inVertices), indices(inIndices)
 {
-	vertices = inVertices;
-	indices = inIndices;
-	if (inVertices.size() <= 0) {
-		LOG_WARNING("Don't create mesh ressource without any vertices");
-	}
-	else
-	{
-		CreateBuffers();
-	}
+	CreateOrUpdateRessource();
+}
+
+void Rendering::MeshRessource::DestroyRessources()
+{
+	if (VertexBuffer != VK_NULL_HANDLE) vmaDestroyBuffer(G_VMA_ALLOCATOR, VertexBuffer, VertexBufferAllocation);
+	if (IndexBuffer != VK_NULL_HANDLE) vmaDestroyBuffer(G_VMA_ALLOCATOR, IndexBuffer, IndexBufferAllocation);
+	VertexBuffer = VK_NULL_HANDLE;
+	IndexBuffer = VK_NULL_HANDLE;
 }
 
 Rendering::MeshRessource::~MeshRessource()
 {
-	FreeBuffers();
+	DestroyRessources();
 }
 
 void Rendering::MeshRessource::Draw(VkCommandBuffer commandBuffer)
@@ -79,9 +79,14 @@ void Rendering::MeshRessource::Draw(VkCommandBuffer commandBuffer)
 	}
 }
 
-void Rendering::MeshRessource::FreeBuffers() {
-	vmaDestroyBuffer(G_VMA_ALLOCATOR, VertexBuffer, VertexBufferAllocation);
-	if (IndexBuffer != VK_NULL_HANDLE) {
-		vmaDestroyBuffer(G_VMA_ALLOCATOR, IndexBuffer, IndexBufferAllocation);
+void Rendering::MeshRessource::CreateOrUpdateRessource()
+{
+	DestroyRessources();
+	if (vertices.size() <= 0) {
+		LOG_WARNING("Don't create mesh ressource without any vertices");
+	}
+	else
+	{
+		CreateBuffers();
 	}
 }

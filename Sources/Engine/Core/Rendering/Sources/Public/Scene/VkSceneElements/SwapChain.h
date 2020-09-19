@@ -16,9 +16,9 @@ namespace Rendering
 
 		void ResizeSwapchain(const SIntVector2D& inSwapChainExtend, bool forceRecreate = false, bool clampVal = false);
 
+		void CreateOrRecreateSwapchain();
 	private:
 
-		void CreateOrRecreateSwapchain();
 		void DestroySwapChain();
 
 		VkViewport viewport;

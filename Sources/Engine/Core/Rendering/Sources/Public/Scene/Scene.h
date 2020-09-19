@@ -43,6 +43,14 @@ namespace Rendering
 
 		std::vector<SceneComponent*> components;
 
+		/** Recreate renderPass */
+		void RecreateRenderPass();
+		inline void RequestRecreateFramebuffer(const int32_t& value) { bShouldRecreateRenderPass = true; }
+	public:
+		bool bShouldRecreateRenderPass = false;
+	private:
+
+
 		/** Resize framebuffer */
 		void RequestViewportResize(GLFWwindow* window, int sizeX, int sizeY) { desiredViewportSize = SIntVector2D(sizeX, sizeY); bHasViewportBeenResized = true; }
 		void ResizeViewport();

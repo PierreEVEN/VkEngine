@@ -245,21 +245,33 @@ void Rendering::Initialization::InitializeSwapchainProperties()
 	G_SWAP_CHAIN_IMAGE_COUNT = G_SWAPCHAIN_SUPPORT_DETAILS.capabilities.minImageCount + 1;
 	if (G_ENABLE_MULTISAMPLING.GetValue())
 	{
-		G_MSAA_SAMPLE_COUNT = GetMaxUsableSampleCount();
-		if (G_MSAA_SAMPLE_COUNT == VK_SAMPLE_COUNT_1_BIT)
+		G_MAX_MSAA_SAMPLE_COUNT = GetMaxUsableSampleCount();
+		if (G_MAX_MSAA_SAMPLE_COUNT == VK_SAMPLE_COUNT_1_BIT)
 		{
 			G_ENABLE_MULTISAMPLING.SetValue(false);
 			LOG_WARNING("Cannot enable multisampling on this device");
 		}
+		else {
+			if (G_MAX_MSAA_SAMPLE_COUNT < G_MSAA_SAMPLE_COUNT.GetValue()) {
+				G_MSAA_SAMPLE_COUNT.SetValue(G_MAX_MSAA_SAMPLE_COUNT);
+			}
+		}
+	}
+	if (!G_ENABLE_MULTISAMPLING.GetValue() && G_MSAA_SAMPLE_COUNT.GetValue() != 1) {
+		G_MSAA_SAMPLE_COUNT.SetValue(1);
 	}
 }
 
 void Rendering::Initialization::CreateRenderPass()
 {
+	if (G_RENDER_PASS != VK_NULL_HANDLE) {
+		DestroyRenderPass();
+	}
+
 	LOG("Create render pass");
 	VkAttachmentDescription colorAttachment{};
 	colorAttachment.format = G_SWAPCHAIN_SURFACE_FORMAT.format;
-	colorAttachment.samples = G_ENABLE_MULTISAMPLING.GetValue() ? G_MSAA_SAMPLE_COUNT : VK_SAMPLE_COUNT_1_BIT;
+	colorAttachment.samples = (VkSampleCountFlagBits)G_MSAA_SAMPLE_COUNT.GetValue();
 	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -269,7 +281,7 @@ void Rendering::Initialization::CreateRenderPass()
 
 	VkAttachmentDescription depthAttachment{};
 	depthAttachment.format = FindDepthFormat();
-	depthAttachment.samples = G_ENABLE_MULTISAMPLING.GetValue() ? G_MSAA_SAMPLE_COUNT : VK_SAMPLE_COUNT_1_BIT;
+	depthAttachment.samples = (VkSampleCountFlagBits)G_MSAA_SAMPLE_COUNT.GetValue();
 	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -357,6 +369,7 @@ void Rendering::Initialization::DestroyRenderPass()
 
 	/*Destroy render pass*/
 	vkDestroyRenderPass(G_LOGICAL_DEVICE, G_RENDER_PASS, G_ALLOCATION_CALLBACK);
+	G_RENDER_PASS = VK_NULL_HANDLE;
 }
 
 

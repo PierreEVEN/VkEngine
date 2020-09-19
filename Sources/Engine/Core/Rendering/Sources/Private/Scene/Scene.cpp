@@ -28,6 +28,7 @@
 #include "UI/SubWindows/TextureImporterWindow.h"
 #include "UI/SubWindows/ShaderImporterWindow.h"
 #include "UI/SubWindows/MaterialEditor.h"
+#include "Initialization.h"
 
 Rendering::ViewportInstance::ViewportInstance(const SIntVector2D& inDesiredViewportSize)
 	: desiredViewportSize(inDesiredViewportSize)
@@ -42,6 +43,8 @@ Rendering::ViewportInstance::ViewportInstance(const SIntVector2D& inDesiredViewp
 	viewportCamera = new Camera();
 
 	G_ON_WINDOW_RESIZED.Add(this, &ViewportInstance::RequestViewportResize);
+
+	G_MSAA_SAMPLE_COUNT.OnPropertyChanged.Add(this, &ViewportInstance::RequestRecreateFramebuffer);
 
  	new DebugUI(this);
 	new ContentBrowser();
@@ -80,6 +83,12 @@ void Rendering::ViewportInstance::DrawViewport()
 	}
 	LastFrameTime = std::chrono::steady_clock::now();
 
+	/** Recreate render pass (ie: msaa sample count update) */
+	if (bShouldRecreateRenderPass) {
+		LOG("recreate render pass");
+		RecreateRenderPass();
+		LOG("recreated render pass");
+	}
 
 	/** Destroy unused ressources */
 	Ressource::FlushRessources();
@@ -275,6 +284,15 @@ void Rendering::ViewportInstance::DrawViewport()
 	CurrentFrameId = (CurrentFrameId + 1) % G_MAX_FRAME_IN_FLIGHT;
 }
 
+void Rendering::ViewportInstance::RecreateRenderPass()
+{
+	vkDeviceWaitIdle(G_LOGICAL_DEVICE);
+	bShouldRecreateRenderPass = false;
+	//Initialization::CreateRenderPass();
+	viewportSwapChain->CreateOrRecreateSwapchain();
+	Ressource::UpdateAllRessources();
+}
+
 void Rendering::ViewportInstance::ResizeViewport()
 {
 	int width = 0, height = 0;
@@ -283,13 +301,9 @@ void Rendering::ViewportInstance::ResizeViewport()
 		glfwGetFramebufferSize(GetPrimaryWindow(), &width, &height);
 		glfwWaitEvents();
 	}
-
 	vkDeviceWaitIdle(G_LOGICAL_DEVICE);
-
-
 
 	bHasViewportBeenResized = false;
 	if (viewportSwapChain) viewportSwapChain->ResizeSwapchain(desiredViewportSize, false);
 	if (frameBuffers) frameBuffers->Resize(viewportSwapChain);
 }
-

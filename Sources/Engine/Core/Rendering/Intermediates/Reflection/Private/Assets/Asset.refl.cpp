@@ -1,4 +1,4 @@
-//VERSION : Monday, 14 September 2020 09:01:22
+//VERSION : Monday, 14 September 2020 15:23:04
 
 /**** GENERATED FILE BY REFLECTION TOOL, DO NOT MODIFY ****/
 #include "C:/Users/pierre/Documents/Engine/Sources/Engine/Core/Rendering/Sources/Public\Assets\Asset.h"

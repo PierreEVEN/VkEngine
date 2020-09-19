@@ -39,7 +39,8 @@ namespace Rendering
 
 	/** MultiSampling */
 	inline TConVar<bool>								G_ENABLE_MULTISAMPLING(G_RENDERING_INI, "Rendering", "MultiSampling", true);
-	inline VkSampleCountFlagBits						G_MSAA_SAMPLE_COUNT = VK_SAMPLE_COUNT_1_BIT;
+	inline TConVar<int32_t>								G_MSAA_SAMPLE_COUNT(G_RENDERING_INI, "Rendering", "MsaaSamplesCount", 4);
+	inline VkSampleCountFlagBits						G_MAX_MSAA_SAMPLE_COUNT = VK_SAMPLE_COUNT_1_BIT;
 
 	/** Framerate */
 	inline TConVar<int32_t>								G_MAX_FRAMERATE(G_RENDERING_INI, "Rendering", "GlobalMaxFramerate", 60, 0, 300);

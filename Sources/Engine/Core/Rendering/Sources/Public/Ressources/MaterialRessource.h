@@ -70,7 +70,11 @@ namespace Rendering {
 			return new MaterialRessource(materialProperties);// materialRessources[materialProperties];
 		}
 
+
 	protected:
+
+		virtual void CreateOrUpdateRessource();
+		virtual void DestroyRessources();
 
 		virtual ~MaterialRessource();
 
@@ -81,7 +85,6 @@ namespace Rendering {
 		static std::vector<VkDescriptorSetLayoutBinding> MakeLayoutBindings(const SMaterialStaticProperties& materialProperties);
 		void CreatePipeline(const SMaterialStaticProperties& materialProperties);
 		void CreateDescriptorSets(std::vector<VkDescriptorSetLayoutBinding> layoutBindings);
-		void DestroyShadersObjects();
 
 		VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
 		std::vector<VkDescriptorSet> descriptorSets;
@@ -114,7 +117,11 @@ namespace Rendering {
 		inline VkDescriptorSet& GetDescriptorSet(const size_t& imageIndex) { return parent->GetDescriptorSet(imageIndex); }
 		inline VkPipelineLayout& GetPipelineLayout() { return parent->GetPipelineLayout(); }
 
+
 	protected:
+
+		virtual void CreateOrUpdateRessource() {}
+		virtual void DestroyRessources() {}
 
 		virtual ~MaterialRessourceItem() {}
 

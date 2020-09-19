@@ -69,3 +69,13 @@ void Rendering::Ressource::FreeRessources()
 	ressources.clear();
 	ressourceAccessorMutex.unlock();
 }
+
+void Rendering::Ressource::UpdateAllRessources()
+{
+	LOG("Update all ressources");
+	vkDeviceWaitIdle(G_LOGICAL_DEVICE);
+	for (auto& ressource : ressources) {
+		ressource->CreateOrUpdateRessource();
+	}
+	LOG("Updated all ressources");
+}

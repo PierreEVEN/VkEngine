@@ -10,7 +10,11 @@ namespace Rendering
 
 		void Draw(VkCommandBuffer commandBuffer);
 
+
 	protected:
+
+		virtual void CreateOrUpdateRessource();
+		virtual void DestroyRessources();
 
 		virtual ~MeshRessource();
 
@@ -28,6 +32,5 @@ namespace Rendering
 	private:
 
 		void CreateBuffers();
-		void FreeBuffers();
 	};
 }

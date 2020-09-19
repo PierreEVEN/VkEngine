@@ -3,17 +3,40 @@
 #include "Utils.h"
 #include "DescriptorPool.h"
 
-Rendering::TextureRessource::TextureRessource(unsigned char* textureData, SIntVector2D imageResolution, uint8_t channelsCount)
-	: Ressource()
+Rendering::TextureRessource::TextureRessource(unsigned char* inTextureData, SIntVector2D inImageResolution, uint8_t inChannelsCount)
+	: Ressource(), textureData(inTextureData), imageResolution(inImageResolution), channelsCount(inChannelsCount)
 {
+	CreateOrUpdateRessource();
+}
+
+void Rendering::TextureRessource::CreateOrUpdateRessource()
+{
+	DestroyRessources();
 	CreateTextureImage(textureData, imageResolution, channelsCount);
 	CreateTextureSampler();
 	InitializeUIObjects();
 }
 
+void Rendering::TextureRessource::DestroyRessources()
+{
+	if (textureSampler != VK_NULL_HANDLE) vkDestroySampler(G_LOGICAL_DEVICE, textureSampler, G_ALLOCATION_CALLBACK);
+	if (textureImageView != VK_NULL_HANDLE) vkDestroyImageView(G_LOGICAL_DEVICE, textureImageView, G_ALLOCATION_CALLBACK);
+
+	if (textureImage != VK_NULL_HANDLE) vkDestroyImage(G_LOGICAL_DEVICE, textureImage, G_ALLOCATION_CALLBACK);
+	if (textureImageMemory != VK_NULL_HANDLE) vkFreeMemory(G_LOGICAL_DEVICE, textureImageMemory, G_ALLOCATION_CALLBACK);
+
+	if (uiDisplayLayout != VK_NULL_HANDLE) vkDestroyDescriptorSetLayout(G_LOGICAL_DEVICE, uiDisplayLayout, G_ALLOCATION_CALLBACK);
+
+	textureSampler = VK_NULL_HANDLE;
+	textureImageView = VK_NULL_HANDLE;
+	textureImage = VK_NULL_HANDLE;
+	textureImageMemory = VK_NULL_HANDLE;
+	uiDisplayLayout = VK_NULL_HANDLE;
+}
+
 Rendering::TextureRessource::~TextureRessource()
 {
-	DestroyImage();
+	DestroyRessources();
 }
 
 void Rendering::TextureRessource::CreateImageView(VkImage image, VkImageView& view, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
@@ -209,17 +232,6 @@ void Rendering::TextureRessource::CreateTextureSampler()
 	samplerInfo.mipLodBias = 0.0f; // Optional
 
 	VK_ENSURE(vkCreateSampler(G_LOGICAL_DEVICE, &samplerInfo, G_ALLOCATION_CALLBACK, &textureSampler), "failed to create sampler");
-}
-
-void Rendering::TextureRessource::DestroyImage()
-{
-	vkDestroySampler(G_LOGICAL_DEVICE, textureSampler, G_ALLOCATION_CALLBACK);
-	vkDestroyImageView(G_LOGICAL_DEVICE, textureImageView, G_ALLOCATION_CALLBACK);
-
-	vkDestroyImage(G_LOGICAL_DEVICE, textureImage, G_ALLOCATION_CALLBACK);
-	vkFreeMemory(G_LOGICAL_DEVICE, textureImageMemory, G_ALLOCATION_CALLBACK);
-
-	vkDestroyDescriptorSetLayout(G_LOGICAL_DEVICE, uiDisplayLayout, G_ALLOCATION_CALLBACK);
 }
 
 void Rendering::TextureRessource::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevel, VkCommandBuffer commandBuffer)

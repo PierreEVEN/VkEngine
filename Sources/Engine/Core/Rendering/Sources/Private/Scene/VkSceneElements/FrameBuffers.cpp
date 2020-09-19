@@ -27,12 +27,12 @@ void Rendering::FramebufferGroup::CreateFrameBufferImages(SwapChain* swapChain)
 {
 	/** Color buffer */
 	VkFormat colorFormat = G_SWAPCHAIN_SURFACE_FORMAT.format;
-	TextureRessource::CreateImage(swapChain->GetSwapChainExtend().width, swapChain->GetSwapChainExtend().height, 1, G_MSAA_SAMPLE_COUNT, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
+	TextureRessource::CreateImage(swapChain->GetSwapChainExtend().width, swapChain->GetSwapChainExtend().height, 1, (VkSampleCountFlagBits)G_MSAA_SAMPLE_COUNT.GetValue(), colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
 	TextureRessource::CreateImageView(colorImage, colorImageView, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 
 	/** Depth buffer */
 	VkFormat depthFormat = FindDepthFormat();
-	TextureRessource::CreateImage(swapChain->GetSwapChainExtend().width, swapChain->GetSwapChainExtend().height, 1, G_MSAA_SAMPLE_COUNT, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
+	TextureRessource::CreateImage(swapChain->GetSwapChainExtend().width, swapChain->GetSwapChainExtend().height, 1, (VkSampleCountFlagBits)G_MSAA_SAMPLE_COUNT.GetValue(), depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
 	TextureRessource::CreateImageView(depthImage, depthImageView, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 
 	/** Swap chain buffer */

@@ -9,9 +9,16 @@ void ImGuiVkResultDelegate(VkResult err)
 	if (err != VK_SUCCESS) { LOG_ASSERT(String("ImGui initialization error : ") + ToString((int32_t)err)); }
 }
 
+void Rendering::RebuildImGuiRessoruces()
+{
+	DestroyImGuiRessources();
+	PreInitializeImGui();
+}
+
 void Rendering::PreInitializeImGui()
 {
 	LOG("Initialize imgui ressources");
+
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();

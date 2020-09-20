@@ -67,6 +67,9 @@ void Rendering::StaticMesh::Draw(VkCommandBuffer& inCommandBuffer, ViewportInsta
 			if (section.materialLink) {
 				section.materialLink->Draw(inCommandBuffer, viewport, imageIndex);
 			}
+			else {
+				LOG_ASSERT("Failed to find valid material reference");
+			}
 			vkCmdPushConstants(inCommandBuffer, section.materialLink->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(Mat4f), &objectTransform);
 			section.MeshLink->Draw(inCommandBuffer);
 		}

@@ -243,22 +243,9 @@ void Rendering::Initialization::InitializeSwapchainProperties()
 	G_SWAPCHAIN_SURFACE_FORMAT = ChooseSwapSurfaceFormat();
 	G_SWAPCHAIN_PRESENT_MODE = ChooseSwapPresentMode(G_SWAPCHAIN_SUPPORT_DETAILS.presentModes);
 	G_SWAP_CHAIN_IMAGE_COUNT = G_SWAPCHAIN_SUPPORT_DETAILS.capabilities.minImageCount + 1;
-	if (G_ENABLE_MULTISAMPLING.GetValue())
-	{
-		G_MAX_MSAA_SAMPLE_COUNT = GetMaxUsableSampleCount();
-		if (G_MAX_MSAA_SAMPLE_COUNT == VK_SAMPLE_COUNT_1_BIT)
-		{
-			G_ENABLE_MULTISAMPLING.SetValue(false);
-			LOG_WARNING("Cannot enable multisampling on this device");
-		}
-		else {
-			if (G_MAX_MSAA_SAMPLE_COUNT < G_MSAA_SAMPLE_COUNT.GetValue()) {
-				G_MSAA_SAMPLE_COUNT.SetValue(G_MAX_MSAA_SAMPLE_COUNT);
-			}
-		}
-	}
-	if (!G_ENABLE_MULTISAMPLING.GetValue() && G_MSAA_SAMPLE_COUNT.GetValue() != 1) {
-		G_MSAA_SAMPLE_COUNT.SetValue(1);
+	G_MAX_MSAA_SAMPLE_COUNT = GetMaxUsableSampleCount();
+	if (G_MAX_MSAA_SAMPLE_COUNT < G_MSAA_SAMPLE_COUNT.GetValue()) {
+		G_MSAA_SAMPLE_COUNT.SetValue(G_MAX_MSAA_SAMPLE_COUNT);
 	}
 }
 
@@ -277,7 +264,7 @@ void Rendering::Initialization::CreateRenderPass()
 	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	colorAttachment.finalLayout = G_ENABLE_MULTISAMPLING.GetValue() ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	colorAttachment.finalLayout = G_MSAA_SAMPLE_COUNT.GetValue() > 1 ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
 	VkAttachmentDescription depthAttachment{};
 	depthAttachment.format = FindDepthFormat();
@@ -316,7 +303,7 @@ void Rendering::Initialization::CreateRenderPass()
 	subpass.colorAttachmentCount = 1;
 	subpass.pColorAttachments = &colorAttachmentRef;
 	subpass.pDepthStencilAttachment = &depthAttachmentRef;
-	subpass.pResolveAttachments = G_ENABLE_MULTISAMPLING.GetValue() ? &colorAttachmentResolveRef : nullptr;
+	subpass.pResolveAttachments = G_MSAA_SAMPLE_COUNT.GetValue() > 1 ? &colorAttachmentResolveRef : nullptr;
 	subpass.inputAttachmentCount = 0;                            // Input attachments can be used to sample from contents of a previous subpass
 	subpass.pInputAttachments = nullptr;                         // (Input attachments not used by this example)
 	subpass.preserveAttachmentCount = 0;                         // Preserved attachments can be used to loop (and preserve) attachments through subpasses
@@ -341,7 +328,7 @@ void Rendering::Initialization::CreateRenderPass()
 
 	std::vector<VkAttachmentDescription> attachments;
 
-	if (G_ENABLE_MULTISAMPLING.GetValue())
+	if (G_MSAA_SAMPLE_COUNT.GetValue() > 1)
 	{
 		attachments.push_back(colorAttachment);
 		attachments.push_back(depthAttachment);

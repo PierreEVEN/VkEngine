@@ -5,6 +5,8 @@
 
 namespace Rendering
 {
+	void RebuildImGuiRessoruces();
+
 	void PreInitializeImGui();
 	void DestroyImGuiRessources();
 }

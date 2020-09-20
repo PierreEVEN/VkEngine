@@ -145,7 +145,7 @@ void Rendering::DebugUI::DrawContent(const size_t& imageIndex)
 	}
 	avgFps /= 200;
 	ImGui::Text(String(String("Framerate : ") + ToString(1 / parent->GetDeltaTime()) + " fps").GetData());
-	if (G_ENABLE_MULTISAMPLING.GetValue())
+	if (G_MSAA_SAMPLE_COUNT.GetValue() > 1)
 	{
 		ImGui::Text("MSAA samples : %d", (VkSampleCountFlagBits)G_MSAA_SAMPLE_COUNT.GetValue());
 	}
@@ -158,7 +158,6 @@ void Rendering::DebugUI::DrawContent(const size_t& imageIndex)
 	fpsFrameIndex = (fpsFrameIndex + 1) % 1000;
 	ImGui::PlotLines("framerate", fpsHistory, IM_ARRAYSIZE(fpsHistory), fpsFrameIndex, String(String("average : ") + ToString(avgFps) + String(" / max : ") + ToString(maxFpsHistory)).GetData(), 0, maxFpsHistory, ImVec2(0, 80.0f));
 
-	TConVarUI<bool>::DrawUI(G_ENABLE_MULTISAMPLING);
 	int32_t currentValue = G_MSAA_SAMPLE_COUNT.GetValue();
 	if (ImGui::Button("Inc MSAA")) {
 		switch (currentValue) {
@@ -194,13 +193,11 @@ void Rendering::DebugUI::DrawContent(const size_t& imageIndex)
 		}
 	}
 	if (currentValue > G_MAX_MSAA_SAMPLE_COUNT) {
-		LOG_WARNING("ecceeded max value : " + ToString(currentValue));
+		LOG_WARNING("exceeded max value : " + ToString(currentValue));
 		currentValue = G_MAX_MSAA_SAMPLE_COUNT;
 	}
 	if (currentValue != G_MSAA_SAMPLE_COUNT.GetValue()) {
-		LOG("set value");
-		//G_MSAA_SAMPLE_COUNT.SetValue(currentValue);
-		parent->bShouldRecreateRenderPass = true;
+		G_MSAA_SAMPLE_COUNT.SetValue(currentValue);
 	}
 
 	TConVarUI<bool>::DrawUI(G_SLEEP_HIDLE_THREADS);

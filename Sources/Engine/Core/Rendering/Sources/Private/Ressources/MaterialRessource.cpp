@@ -180,7 +180,7 @@ void Rendering::MaterialRessource::CreatePipeline(const SMaterialStaticPropertie
 	multisampling.pSampleMask = nullptr; // Optional
 	multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
 	multisampling.alphaToOneEnable = VK_FALSE; // Optional
-	multisampling.sampleShadingEnable = G_ENABLE_MULTISAMPLING.GetValue() ? VK_TRUE : VK_FALSE;
+	multisampling.sampleShadingEnable = G_MSAA_SAMPLE_COUNT.GetValue() > 1 ? VK_TRUE : VK_FALSE;
 	multisampling.minSampleShading = .2f;
 
 	VkPipelineDepthStencilStateCreateInfo depthStencil{};

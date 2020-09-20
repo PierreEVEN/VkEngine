@@ -288,8 +288,10 @@ void Rendering::ViewportInstance::RecreateRenderPass()
 {
 	vkDeviceWaitIdle(G_LOGICAL_DEVICE);
 	bShouldRecreateRenderPass = false;
-	//Initialization::CreateRenderPass();
+	Initialization::CreateRenderPass();
 	viewportSwapChain->CreateOrRecreateSwapchain();
+	frameBuffers->Rebuild(viewportSwapChain);
+	RebuildImGuiRessoruces();
 	Ressource::UpdateAllRessources();
 }
 
@@ -305,5 +307,5 @@ void Rendering::ViewportInstance::ResizeViewport()
 
 	bHasViewportBeenResized = false;
 	if (viewportSwapChain) viewportSwapChain->ResizeSwapchain(desiredViewportSize, false);
-	if (frameBuffers) frameBuffers->Resize(viewportSwapChain);
+	if (frameBuffers) frameBuffers->Rebuild(viewportSwapChain);
 }

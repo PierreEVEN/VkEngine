@@ -15,7 +15,7 @@ Rendering::FramebufferGroup::~FramebufferGroup()
 	DestroyFrameBufferImages();
 }
 
-void Rendering::FramebufferGroup::Resize(SwapChain* inSwapChain)
+void Rendering::FramebufferGroup::Rebuild(SwapChain* inSwapChain)
 {
 	DestroyFrameBuffer();
 	DestroyFrameBufferImages();
@@ -51,7 +51,7 @@ void Rendering::FramebufferGroup::CreateFrameBuffer(SwapChain* swapChain)
 
 	for (size_t i = 0; i < G_SWAP_CHAIN_IMAGE_COUNT; i++) {
 		std::vector<VkImageView> attachments;
-		if (G_ENABLE_MULTISAMPLING.GetValue())
+		if (G_MSAA_SAMPLE_COUNT.GetValue() > 1)
 		{
 			attachments.push_back(colorImageView);
 			attachments.push_back(depthImageView);

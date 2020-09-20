@@ -38,7 +38,6 @@ namespace Rendering
 	inline VkRenderPass									G_RENDER_PASS = VK_NULL_HANDLE;
 
 	/** MultiSampling */
-	inline TConVar<bool>								G_ENABLE_MULTISAMPLING(G_RENDERING_INI, "Rendering", "MultiSampling", true);
 	inline TConVar<int32_t>								G_MSAA_SAMPLE_COUNT(G_RENDERING_INI, "Rendering", "MsaaSamplesCount", 4);
 	inline VkSampleCountFlagBits						G_MAX_MSAA_SAMPLE_COUNT = VK_SAMPLE_COUNT_1_BIT;
 

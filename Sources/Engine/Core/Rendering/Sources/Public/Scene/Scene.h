@@ -46,9 +46,7 @@ namespace Rendering
 		/** Recreate renderPass */
 		void RecreateRenderPass();
 		inline void RequestRecreateFramebuffer(const int32_t& value) { bShouldRecreateRenderPass = true; }
-	public:
 		bool bShouldRecreateRenderPass = false;
-	private:
 
 
 		/** Resize framebuffer */

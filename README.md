@@ -18,7 +18,8 @@
 
 ## videos
 
-asyn loading (slowed down for the example)
+async loading (slowed down for the example)
+
 [![](https://user-images.githubusercontent.com/24438631/100240917-6f2d2800-2f33-11eb-9fe8-689db1cd1e9b.gif)](https://youtu.be/NY4k38Y09-o)
 
 ## screenshots

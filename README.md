@@ -15,6 +15,7 @@
 - class serialization using reflection
 - shaders hot reload
 - shader editor
+- Msaa
 
 ## videos
 

@@ -14,13 +14,11 @@ public:
 	/** Default ctor */
 	TVector() = default;
 	~TVector() { if (data) delete data; }
-
-	TVector() { if (data) delete data; }
-
+	
 	/** size ctor */
 	TVector(const std::vector<T>& right) {
 		Resize(right.size());
-		memcpy(right, right.begin(), right.size() * sizeof(T));
+		memcpy(data, &right.begin(), right.size() * sizeof(T));
 	}
 
 	/** initializer ctor */
